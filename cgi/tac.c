@@ -96,6 +96,7 @@ authdata current_authdata;
 
 int embedded=FALSE;
 int display_header=FALSE;
+int daemon_check=TRUE;
 
 hostoutage *hostoutage_list=NULL;
 
@@ -249,7 +250,7 @@ int main(void){
 
 	/* read all status data */
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
-	if(result==ERROR){
+	if(result==ERROR && daemon_check==TRUE){
 		document_header(FALSE);
 		status_data_error();
 		document_footer();
@@ -274,7 +275,7 @@ int main(void){
 
 		/* left column of top table - info box */
 		printf("<td align=left valign=top width=33%%>\n");
-		display_info_table("Tactical Status Overview",TRUE,&current_authdata);
+		display_info_table("Tactical Status Overview",TRUE,&current_authdata, daemon_check);
 		printf("</td>\n");
 
 		/* middle column of top table - log file navigation options */
@@ -445,6 +446,10 @@ int process_cgivars(void){
 		/* we found the noheader option */
 		else if(!strcmp(variables[x],"noheader"))
 			display_header=FALSE;
+
+		/* we found the nodaemoncheck option */
+		else if(!strcmp(variables[x],"nodaemoncheck"))
+			daemon_check=FALSE;
 
 		/* we received an invalid argument */
 		else
@@ -946,7 +951,7 @@ void display_tac_overview(void){
 	/* left column */
 	printf("<td align=left valign=top width=50%%>\n");
 
-	display_info_table("Tactical Monitoring Overview",TRUE,&current_authdata);
+	display_info_table("Tactical Monitoring Overview",TRUE,&current_authdata, daemon_check);
 
 	printf("</td>\n");
 

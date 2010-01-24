@@ -179,6 +179,7 @@ char *host_name="all";
 
 int embedded=FALSE;
 int display_header=TRUE;
+int daemon_check=TRUE;
 int display_popups=TRUE;
 int use_links=TRUE;
 int use_text=TRUE;
@@ -274,7 +275,7 @@ int main(int argc, char **argv){
 
 	/* read all status data */
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
-	if(result==ERROR){
+	if(result==ERROR && daemon_check==TRUE){
 		document_header(FALSE);
 		if(create_type==CREATE_HTML)
 			status_data_error();
@@ -580,6 +581,10 @@ int process_cgivars(void){
 			strip_html_brackets(variables[x]);
 			add_layer(variables[x]);
 		        }
+		/* we found the nodaemoncheck option */
+		else if(!strcmp(variables[x],"nodaemoncheck"))
+			daemon_check=FALSE;
+
 	        }
 
 	/* free memory allocated to the CGI variables */
@@ -620,7 +625,7 @@ void display_page_header(void){
 		else
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Network Map For Host <I>%s</I>",host_name);
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		display_info_table(temp_buffer,TRUE,&current_authdata);
+		display_info_table(temp_buffer,TRUE,&current_authdata, daemon_check);
 
 		printf("<TABLE BORDER=1 CELLPADDING=0 CELLSPACING=0 CLASS='linkBox'>\n");
 		printf("<TR><TD CLASS='linkBox'>\n");

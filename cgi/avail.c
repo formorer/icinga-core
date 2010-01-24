@@ -260,6 +260,8 @@ int earliest_archive=0;
 
 int embedded=FALSE;
 int display_header=TRUE;
+int daemon_check=TRUE;
+
 
 timeperiod *current_timeperiod=NULL;
 
@@ -318,7 +320,7 @@ int main(int argc, char **argv){
 
 	/* read all status data */
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
-	if(result==ERROR){
+	if(result==ERROR && daemon_check==TRUE){
 		document_header(FALSE);
 		status_data_error();
 		document_footer();
@@ -402,7 +404,7 @@ int main(int argc, char **argv){
 			break;
 		        }
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
-		display_info_table(temp_buffer,FALSE,&current_authdata);
+		display_info_table(temp_buffer,FALSE,&current_authdata, daemon_check);
 
 		if(((display_type==DISPLAY_HOST_AVAIL && show_all_hosts==FALSE) || (display_type==DISPLAY_SERVICE_AVAIL && show_all_services==FALSE)) && get_date_parts==FALSE){
 
@@ -1643,6 +1645,10 @@ int process_cgivars(void){
 				        }
 			        }
 		        }
+
+		/* we found the nodaemoncheck option */
+		else if(!strcmp(variables[x],"nodaemoncheck"))
+			daemon_check=FALSE;
 
 	        }
 
