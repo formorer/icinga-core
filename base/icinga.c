@@ -48,6 +48,7 @@
 #include "../include/broker.h"
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
+#include "../include/profiler.h"
 
 /*#define DEBUG_MEMORY 1*/
 #ifdef DEBUG_MEMORY
@@ -245,6 +246,7 @@ int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
 
+int             event_profiling_enabled=FALSE;
 
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
@@ -387,6 +389,7 @@ int main(int argc, char **argv, char **env){
 #ifdef DEBUG_MEMORY
 	mtrace();
 #endif
+	profiler_init();
 
 	if(daemon_mode==FALSE){
 		printf("\n%s %s\n", PROGRAM_NAME ,PROGRAM_VERSION);
