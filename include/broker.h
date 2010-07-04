@@ -183,7 +183,6 @@
 
 /****** EVENT BROKER FUNCTIONS *************/
 
-#ifdef USE_EVENT_BROKER
 struct timeval get_broker_timestamp(struct timeval *);
 void broker_program_state(int,int,int,struct timeval *);
 void broker_timed_event(int,int,int,timed_event *,struct timeval *);
@@ -219,4 +218,3 @@ void broker_statechange_data(int,int,int,int,void *,int,int,int,int,struct timev
   }
 #endif
 
-#endif

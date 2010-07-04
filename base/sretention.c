@@ -86,20 +86,16 @@ int save_state_information(int autosave){
 	if(retain_state_information==FALSE)
 		return OK;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTSAVE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	/********* IMPLEMENTATION-SPECIFIC OUTPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
 	result=xrddefault_save_state_information();
 #endif
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDSAVE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	if(result==ERROR)
 		return ERROR;
@@ -120,20 +116,16 @@ int read_initial_state_information(void){
 	if(retain_state_information==FALSE)
 		return OK;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_retention_data(NEBTYPE_RETENTIONDATA_STARTLOAD,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	/********* IMPLEMENTATION-SPECIFIC INPUT FUNCTION ********/
 #ifdef USE_XRDDEFAULT
 	result=xrddefault_read_state_information();
 #endif
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_retention_data(NEBTYPE_RETENTIONDATA_ENDLOAD,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	if(result==ERROR)
 		return ERROR;

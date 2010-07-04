@@ -85,20 +85,16 @@ int initialize_status_data(char *config_file){
 int update_all_status_data(void){
 	int result=OK;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_STARTDUMP,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	/**** IMPLEMENTATION-SPECIFIC CALLS ****/
 #ifdef USE_XSDDEFAULT
 	result=xsddefault_save_status_data();
 #endif
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_aggregated_status_data(NEBTYPE_AGGREGATEDSTATUS_ENDDUMP,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	if(result!=OK)
 		return ERROR;
@@ -124,11 +120,9 @@ int cleanup_status_data(char *config_file,int delete_status_data){
 /* updates program status info */
 int update_program_status(int aggregated_dump){
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
 	if(aggregated_dump==FALSE)
 	        broker_program_status(NEBTYPE_PROGRAMSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	/* currently a noop if aggregated updates is TRUE */
 
@@ -144,11 +138,9 @@ int update_program_status(int aggregated_dump){
 /* updates host status info */
 int update_host_status(host *hst,int aggregated_dump){
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
 	if(aggregated_dump==FALSE)
 	          broker_host_status(NEBTYPE_HOSTSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,NULL);
-#endif
 
 	/* currently a noop if aggregated updates is TRUE */
 
@@ -164,11 +156,9 @@ int update_host_status(host *hst,int aggregated_dump){
 /* updates service status info */
 int update_service_status(service *svc,int aggregated_dump){
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
 	if(aggregated_dump==FALSE)
 	        broker_service_status(NEBTYPE_SERVICESTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,NULL);
-#endif
 
 	/* currently a noop if aggregated updates is TRUE */
 
@@ -184,11 +174,9 @@ int update_service_status(service *svc,int aggregated_dump){
 /* updates contact status info */
 int update_contact_status(contact *cntct,int aggregated_dump){
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker (non-aggregated dumps only) */
 	if(aggregated_dump==FALSE)
 	        broker_contact_status(NEBTYPE_CONTACTSTATUS_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,cntct,NULL);
-#endif
 
 	/* currently a noop if aggregated updates is TRUE */
 

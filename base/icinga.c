@@ -674,11 +674,9 @@ int main(int argc, char **argv, char **env){
 				exit(ERROR);
 			        }
 
-#ifdef USE_EVENT_BROKER
 			/* initialize modules */
 			neb_init_modules();
 			neb_init_callback_list();
-#endif
 
 			/* this must be logged after we read config data, as user may have changed location of main log file */
 			logit(NSLOG_PROCESS_INFO, TRUE, "%s %s starting... (PID=%d)\n", PROGRAM_NAME, PROGRAM_VERSION, (int)getpid() );
@@ -692,13 +690,11 @@ int main(int argc, char **argv, char **env){
 			/* write log version/info */
 			write_log_file_info(NULL);
 
-#ifdef USE_EVENT_BROKER
 			/* load modules */
 			neb_load_all_modules();
 
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_PRELAUNCH,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 			/* read in all object config data */
 			if(result==OK)
@@ -735,10 +731,8 @@ int main(int argc, char **argv, char **env){
 						deinit_embedded_perl();
 					}
 
-#ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
 				cleanup();
 				exit(ERROR);
 				}
@@ -763,10 +757,8 @@ int main(int argc, char **argv, char **env){
 			setup_sighandler();
 
 
-#ifdef USE_EVENT_BROKER
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_START,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 			/* enter daemon mode (unless we're restarting...) */
 			if(daemon_mode==TRUE && sigrestart==FALSE){
@@ -777,10 +769,8 @@ int main(int argc, char **argv, char **env){
 				if(result==ERROR){
 					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to failure to daemonize. (PID=%d)",(int)getpid());
 
-#ifdef USE_EVENT_BROKER
 					/* send program data to broker */
 					broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
 					cleanup();
 					exit(ERROR);
 					}
@@ -799,10 +789,8 @@ int main(int argc, char **argv, char **env){
 
 				logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,"Bailing out due to errors encountered while trying to initialize the external command file... (PID=%d)\n",(int)getpid());
 
-#ifdef USE_EVENT_BROKER
 				/* send program data to broker */
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_PROCESS_INITIATED,NEBATTR_SHUTDOWN_ABNORMAL,NULL);
-#endif
 				cleanup();
 				exit(ERROR);
 		                }
@@ -844,10 +832,8 @@ int main(int argc, char **argv, char **env){
 			/* reset the restart flag */
 			sigrestart=FALSE;
 
-#ifdef USE_EVENT_BROKER
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_EVENTLOOPSTART,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 			/* get event start time and save as macro */
 			event_start=time(NULL);
@@ -872,14 +858,12 @@ int main(int argc, char **argv, char **env){
 				my_free(buffer);
 				}
 
-#ifdef USE_EVENT_BROKER
 			/* send program data to broker */
 			broker_program_state(NEBTYPE_PROCESS_EVENTLOOPEND,NEBFLAG_NONE,NEBATTR_NONE,NULL);
 			if(sigshutdown==TRUE)
 				broker_program_state(NEBTYPE_PROCESS_SHUTDOWN,NEBFLAG_USER_INITIATED,NEBATTR_SHUTDOWN_NORMAL,NULL);
 			else if(sigrestart==TRUE)
 				broker_program_state(NEBTYPE_PROCESS_RESTART,NEBFLAG_USER_INITIATED,NEBATTR_RESTART_NORMAL,NULL);
-#endif
 
 			/* save service and host state information */
 			save_state_information(FALSE);

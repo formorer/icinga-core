@@ -29,7 +29,6 @@
 #include "../include/icinga.h"
 
 
-#ifdef USE_EVENT_BROKER
 
 
 nebmodule *neb_module_list=NULL;
@@ -647,4 +646,3 @@ int neb_free_callback_list(void){
 	return OK;
         }
 
-#endif

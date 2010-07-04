@@ -1261,9 +1261,7 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"broker_module")){
 			modptr=strtok(value," \n");
 			argptr=strtok(NULL,"\n");
-#ifdef USE_EVENT_BROKER
-                        neb_add_module(modptr,argptr,TRUE);
-#endif
+            neb_add_module(modptr,argptr,TRUE);
 		        }
 
 		else if(!strcmp(variable,"use_regexp_matching"))

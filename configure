@@ -738,7 +738,6 @@ enable_statuswrl
 with_cgiurl
 with_htmurl
 enable_nanosleep
-enable_event_broker
 enable_state_based_escal_ranges
 enable_idoutils
 enable_oracle
@@ -1383,7 +1382,6 @@ Optional Features:
   --disable-statuswrl     disables compilation of statuswrl (VRML) CGI
   --enable-nanosleep      enables use of nanosleep (instead sleep) in event
                           timing
-  --enable-event-broker   enables integration of event broker routines
   --enable-state-based-escal-ranges
                           enables state based escalation ranges - attention:
                           interferes with mk_livestatus neb module
@@ -5742,13 +5740,6 @@ _ACEOF
 fi
 
 USE_EVENTBROKER=yes
-# Check whether --enable-event-broker was given.
-if test "${enable_event_broker+set}" = set; then :
-  enableval=$enable_event_broker; USE_EVENTBROKER=$enableval
-else
-  USE_EVENTBROKER=yes
-fi
-
 
 BROKER_LDFLAGS=""
 BROKERLIBS="";
@@ -6018,9 +6009,6 @@ else
 fi
 
 if test x$USE_IDOUTILS = xyes; then
-	if test x$USE_EVENTBROKER = xno; then
-		as_fn_error "--enable-idoutils needs also --enable-event-broker" "$LINENO" 5
-	fi
 
 
 		USE_OCILIB=no
@@ -8066,13 +8054,6 @@ fi
 else
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:             Embedded Perl:  no" >&5
 $as_echo "            Embedded Perl:  no" >&6; }
-fi
-if test x$USE_EVENTBROKER = xyes; then
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  yes" >&5
-$as_echo "             Event Broker:  yes" >&6; }
-else
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:              Event Broker:  no" >&5
-$as_echo "             Event Broker:  no" >&6; }
 fi
 if test x$USE_IDOUTILS = xyes; then
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:            Build IDOUtils:  yes" >&5

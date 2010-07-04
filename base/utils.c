@@ -410,12 +410,10 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
 	end_time.tv_usec=0L;
 	broker_system_command(NEBTYPE_SYSTEM_COMMAND_START,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,NULL,NULL);
-#endif
 
 	/* fork */
 	pid=fork();
@@ -658,10 +656,8 @@ int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **o
 
 		log_debug_info(DEBUGL_COMMANDS,1,"Execution time=%.3f sec, early timeout=%d, result=%d, output=%s\n",*exectime,*early_timeout,result,(output_dbuf.buf==NULL)?"(null)":output_dbuf.buf);
 
-#ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output_dbuf.buf==NULL)?NULL:output_dbuf.buf,NULL);
-#endif
 
 		/* free memory */
 		dbuf_free(&output_dbuf);
@@ -2386,10 +2382,8 @@ int daemon_init(void){
 	open("/dev/null",O_WRONLY);
 	open("/dev/null",O_WRONLY);
 
-#ifdef USE_EVENT_BROKER
 	/* send program data to broker */
 	broker_program_state(NEBTYPE_PROCESS_DAEMONIZE,NEBFLAG_NONE,NEBATTR_NONE,NULL);
-#endif
 
 	return OK;
 	}
@@ -4450,7 +4444,6 @@ int has_shell_metachars(const char *s){
 /* do some cleanup before we exit */
 void cleanup(void){
 
-#ifdef USE_EVENT_BROKER
 	/* unload modules */
 	if(test_scheduling==FALSE && verify_config==FALSE){
 		neb_free_callback_list();
@@ -4458,7 +4451,6 @@ void cleanup(void){
 		neb_free_module_list();
 		neb_deinit_modules();
 	        }
-#endif
 
 	/* free all allocated memory - including macros */
 	free_memory();

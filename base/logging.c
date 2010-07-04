@@ -180,10 +180,8 @@ int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
 
 	fclose(fp);
 
-#ifdef USE_EVENT_BROKER
 	/* send data to the event broker */
 	broker_log_data(NEBTYPE_LOG_DATA,NEBFLAG_NONE,NEBATTR_NONE,buffer,data_type,log_time,NULL);
-#endif
 
 	return OK;
 	}

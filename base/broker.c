@@ -56,10 +56,6 @@ extern char *global_host_event_handler;
 extern char *global_service_event_handler;
 
 
-#ifdef USE_EVENT_BROKER
-
-
-
 /******************************************************************/
 /************************* EVENT FUNCTIONS ************************/
 /******************************************************************/
@@ -1009,5 +1005,4 @@ struct timeval get_broker_timestamp(struct timeval *timestamp){
 
 
 
-#endif
 

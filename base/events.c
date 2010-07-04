@@ -1008,10 +1008,8 @@ void add_event(timed_event *event, timed_event **event_list, timed_event **event
 			}
 	        }
 
-#ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_ADD,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
-#endif
 
 	return;
         }
@@ -1024,10 +1022,8 @@ void remove_event(timed_event *event, timed_event **event_list, timed_event **ev
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"remove_event()\n");
 
-#ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_REMOVE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
-#endif
 
 	if(*event_list==NULL)
 		return;
@@ -1314,14 +1310,12 @@ int event_execution_loop(void){
 			delay.tv_nsec=0L;
 #endif
 
-#ifdef USE_EVENT_BROKER
 			/* populate fake "sleep" event */
 			sleep_event.run_time=current_time;
 			sleep_event.event_data=(void *)&delay;
 
 			/* send event data to broker */
 			broker_timed_event(NEBTYPE_TIMEDEVENT_SLEEP,NEBFLAG_NONE,NEBATTR_NONE,&sleep_event,NULL);
-#endif
 
 			/* wait a while so we don't hog the CPU... */
 #ifdef USE_NANOSLEEP
@@ -1361,10 +1355,8 @@ int handle_timed_event(timed_event *event){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_timed_event() start\n");
 
-#ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	broker_timed_event(NEBTYPE_TIMEDEVENT_EXECUTE,NEBFLAG_NONE,NEBATTR_NONE,event,NULL);
-#endif
 
 	log_debug_info(DEBUGL_EVENTS,0,"** Timed Event ** Type: %d, Run Time: %s",event->event_type,ctime(&event->run_time));
 		

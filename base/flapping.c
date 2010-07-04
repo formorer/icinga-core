@@ -341,10 +341,8 @@ void set_service_flap(service *svc, double percent_change, double high_threshold
 	/* set the flapping indicator */
 	svc->is_flapping=TRUE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_FLAPPING,svc,percent_change,high_threshold,low_threshold,NULL);
-#endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
 	if(svc->current_state!=STATE_OK && svc->current_notification_number>0)
@@ -381,10 +379,8 @@ void clear_service_flap(service *svc, double percent_change, double high_thresho
 	/* clear the flapping indicator */
 	svc->is_flapping=FALSE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,SERVICE_FLAPPING,svc,percent_change,high_threshold,low_threshold,NULL);
-#endif
 
 	/* send a notification */
 	service_notification(svc,NOTIFICATION_FLAPPINGSTOP,NULL,NULL,NOTIFICATION_OPTION_NONE);
@@ -422,10 +418,8 @@ void set_host_flap(host *hst, double percent_change, double high_threshold, doub
 	/* set the flapping indicator */
 	hst->is_flapping=TRUE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_flapping_data(NEBTYPE_FLAPPING_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_FLAPPING,hst,percent_change,high_threshold,low_threshold,NULL);
-#endif
 
 	/* see if we should check to send a recovery notification out when flapping stops */
 	if(hst->current_state!=HOST_UP && hst->current_notification_number>0)
@@ -462,10 +456,8 @@ void clear_host_flap(host *hst, double percent_change, double high_threshold, do
 	/* clear the flapping indicator */
 	hst->is_flapping=FALSE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_NORMAL,HOST_FLAPPING,hst,percent_change,high_threshold,low_threshold,NULL);
-#endif
 
 	/* send a notification */
 	host_notification(hst,NOTIFICATION_FLAPPINGSTOP,NULL,NULL,NOTIFICATION_OPTION_NONE);
@@ -505,10 +497,8 @@ void enable_flap_detection_routines(void){
 	/* set flap detection flag */
 	enable_flap_detection=TRUE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
-#endif
 
 	/* update program status */
 	update_program_status(FALSE);
@@ -543,10 +533,8 @@ void disable_flap_detection_routines(void){
 	/* set flap detection flag */
 	enable_flap_detection=FALSE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_program_data(NEBTYPE_ADAPTIVEPROGRAM_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,CMD_NONE,attr,modified_host_process_attributes,attr,modified_service_process_attributes,NULL);
-#endif
 
 	/* update program status */
 	update_program_status(FALSE);
@@ -583,10 +571,8 @@ void enable_host_flap_detection(host *hst){
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=TRUE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
-#endif
 
 	/* check for flapping */
 	check_for_host_flapping(hst,FALSE,FALSE,TRUE);
@@ -620,10 +606,8 @@ void disable_host_flap_detection(host *hst){
 	/* set the flap detection enabled flag */
 	hst->flap_detection_enabled=FALSE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_host_data(NEBTYPE_ADAPTIVEHOST_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,hst,CMD_NONE,attr,hst->modified_attributes,NULL);
-#endif
 
 	/* handle the details... */
 	handle_host_flap_detection_disabled(hst);
@@ -653,10 +637,8 @@ void handle_host_flap_detection_disabled(host *hst){
 		/* log a notice - this one is parsed by the history CGI */
 		logit(NSLOG_INFO_MESSAGE,FALSE,"HOST FLAPPING ALERT: %s;DISABLED; Flap detection has been disabled\n",hst->name);
 
-#ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,HOST_FLAPPING,hst,hst->percent_state_change,0.0,0.0,NULL);
-#endif
 
 		/* send a notification */
 		host_notification(hst,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
@@ -697,10 +679,8 @@ void enable_service_flap_detection(service *svc){
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=TRUE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
-#endif
 
 	/* check for flapping */
 	check_for_service_flapping(svc,FALSE,TRUE);
@@ -734,10 +714,8 @@ void disable_service_flap_detection(service *svc){
 	/* set the flap detection enabled flag */
 	svc->flap_detection_enabled=FALSE;
 
-#ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_adaptive_service_data(NEBTYPE_ADAPTIVESERVICE_UPDATE,NEBFLAG_NONE,NEBATTR_NONE,svc,CMD_NONE,attr,svc->modified_attributes,NULL);
-#endif
 
 	/* handle the details... */
 	handle_service_flap_detection_disabled(svc);
@@ -767,10 +745,8 @@ void handle_service_flap_detection_disabled(service *svc){
 		/* log a notice - this one is parsed by the history CGI */
 		logit(NSLOG_INFO_MESSAGE,FALSE,"SERVICE FLAPPING ALERT: %s;%s;DISABLED; Flap detection has been disabled\n",svc->host_name,svc->description);
 
-#ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		broker_flapping_data(NEBTYPE_FLAPPING_STOP,NEBFLAG_NONE,NEBATTR_FLAPPING_STOP_DISABLED,SERVICE_FLAPPING,svc,svc->percent_state_change,0.0,0.0,NULL);
-#endif
 
 		/* send a notification */
 		service_notification(svc,NOTIFICATION_FLAPPINGDISABLED,NULL,NULL,NOTIFICATION_OPTION_NONE);
