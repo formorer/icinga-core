@@ -2,6 +2,28 @@
 Icinga 1.0.x Change Log
 #######################
 
+1.0.4 - 06/10/2010
+
+ENHANCEMENTS
+* core: add eventhandler override (Sven Nierlein)
+* core: add config option to disable logging in to the daemon log file
+
+* classic ui: add commands expander to config display (Jochen Bern)
+	- $ARGn$ substitution will be shown between command_line and
+	  check_command associated for hosts, services, etc and help
+	  getting to know/use commands the core will execute.
+* classic ui: change menu, add unhandled host/service problems
+
+
+FIXES
+* core: fix send comments to the broker with proper expiration_time (Matthieu Kermagoret)
+* core: fix segfault in escalation conditions when using object tricks (Vitali Voroth)
+* core: fix for event execution loop re-scheduling host checks instead of executing them if service checks are disabled (Ethan Galstad)
+
+* classic ui: update jquery for multiple cmds dropdown, resolve conflicts with pnp
+* classic ui: fix delay sorting of comments/downtimes (Ton Voon)
+
+
 1.0.3 - 18/08/2010
 
 ENHANCEMENTS
