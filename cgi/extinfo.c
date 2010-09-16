@@ -134,6 +134,8 @@ extern int daemon_check;
 
 void show_servicedowntimecommand_table(void);
 void show_hostdowntimecommand_table(void);
+void show_servicecommentcommand_table(void);
+void show_hostcommentcommand_table(void);
 
 int CGI_ID=EXTINFO_CGI_ID;
 
@@ -1825,11 +1827,16 @@ void show_all_comments(void){
 	printf("<a href='%s?cmd_typ=%d&host='>",CMD_CGI,CMD_ADD_HOST_COMMENT);
 	printf("Add a new host comment</a></div>\n");
 
+        printf("<DIV ALIGN=RIGHT>");
+        show_hostcommentcommand_table();
+        printf("</DIV>\n");
+
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
         /* A form to wrap the table in for JavaScript to understand what we want */
         printf("<form name='tableformhost' id='tableformhost'>");
         printf("<input type=hidden name=buttonCheckboxChecked>");
+	printf("<input type=hidden name=hiddencmdfield>");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH><TH CLASS='comment'><input type='checkbox' value=all onclick=\"checkAll(\'tableformhost\');isValidForSubmit(\'tableformhost\');\"></TH></TR>\n");
 
@@ -1900,11 +1907,16 @@ void show_all_comments(void){
 	printf("<a href='%s?cmd_typ=%d&host=&service='>",CMD_CGI,CMD_ADD_SVC_COMMENT);
 	printf("Add a new service comment</a></div>\n");
 
+        printf("<DIV ALIGN=RIGHT>");
+        show_servicecommentcommand_table();
+        printf("</DIV>\n");
+
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
         /* A form to wrap the table in for JavaScript to understand what we want */
         printf("<form name='tableformservice' id='tableformservice'>");
         printf("<input type=hidden name=buttonCheckboxChecked>");
+	printf("<input type=hidden name=hiddencmdfield>");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
 	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH><TH CLASS='comment'><input type='checkbox' value=all onclick=\"checkAll(\'tableformservice\');isValidForSubmit(\'tableformservice\');\"></TH></TR>\n");
 
@@ -2665,11 +2677,16 @@ void show_all_downtime(void){
 	printf("<a href='%s?cmd_typ=%d&host='>",CMD_CGI,CMD_SCHEDULE_HOST_DOWNTIME);
 	printf("Schedule host downtime</a></div>\n");
 
+	printf("<DIV ALIGN=RIGHT>");
+	show_hostdowntimecommand_table();
+	printf("</DIV>\n");
+
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
 	/* A form to wrap the table in for JavaScript to understand what we want */
 	printf("<form name='tableformhost' id='tableformhost'>");
 	printf("<input type=hidden name=buttonCheckboxChecked>");
+	printf("<input type=hidden name=hiddencmdfield>");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
 	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH><TH CLASS='downtime'><input type='checkbox' value=all onclick=\"checkAll(\'tableformhost\');isValidForSubmit(\'tableformhost\');\"></TH></TR>\n");
 
@@ -2738,11 +2755,16 @@ void show_all_downtime(void){
 	printf("<a href='%s?cmd_typ=%d&host=&service='>",CMD_CGI,CMD_SCHEDULE_SVC_DOWNTIME);
 	printf("Schedule service downtime</a></div>\n");
 
+        printf("<DIV ALIGN=RIGHT>");
+        show_servicedowntimecommand_table();
+        printf("</DIV>\n");
+
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
         /* A form to wrap the table in for JavaScript to understand what we want */
         printf("<form name='tableformservice' id='tableformservice'>");
         printf("<input type=hidden name=buttonCheckboxChecked>");
+	printf("<input type=hidden name=hiddencmdfield>");
 	printf("<TABLE BORDER=0 CLASS='downtime'>\n");
 	printf("<TR CLASS='downtime'><TH CLASS='downtime'>Host Name</TH><TH CLASS='downtime'>Service</TH><TH CLASS='downtime'>Entry Time</TH><TH CLASS='downtime'>Author</TH><TH CLASS='downtime'>Comment</TH><TH CLASS='downtime'>Start Time</TH><TH CLASS='downtime'>End Time</TH><TH CLASS='downtime'>Type</TH><TH CLASS='downtime'>Duration</TH><TH CLASS='downtime'>Downtime ID</TH><TH CLASS='downtime'>Trigger ID</TH><TH CLASS='downtime'>Actions</TH><TH CLASS='downtime'><input type='checkbox' value=all onclick=\"checkAll(\'tableformservice\');isValidForSubmit(\'tableformservice\');\"></TH></TR>\n");
 
@@ -3264,22 +3286,42 @@ void free_sortdata_list(void){
 /* Command dropdown menu */
 void show_servicedowntimecommand_table(void){
         /* A new div for the command table */
-        printf("<DIV CLASS='serviceDownTimeCommands'>Commands for checked service(s)</DIV>\n");
+        printf("<DIV CLASS='serviceCommands'>Commands for checked service(s)</DIV>\n");
         /* DropDown menu */
         printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
                 printf("<option value='nothing'>Select command</option>");
-                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_ADD_SVC_COMMENT,url_images_path,COMMENT_ICON);
+                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_DEL_SVC_DOWNTIME,url_images_path,DELETE_ICON);
         printf("</select>");
-        printf("<br><br><b><input type=\"button\"name=\"serviceDownTimeCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformservice\') disabled=\"disabled\"></b>\n");
+        printf("<br><br><b><input type=\"button\"name=\"serviceCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformservice\') disabled=\"disabled\"></b>\n");
         }
 void show_hostdowntimecommand_table(void){
         /* A new div for the command table */
-        printf("<DIV CLASS='hostDownTimeCommands'>Commands for checked host(s)</DIV>\n");
+        printf("<DIV CLASS='hostCommands'>Commands for checked host(s)</DIV>\n");
         /* DropDown menu */
         printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
                 printf("<option value='nothing'>Select command</option>");
-                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_ADD_SVC_COMMENT,url_images_path,COMMENT_ICON);
+                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_DEL_HOST_DOWNTIME,url_images_path,DELETE_ICON);
         printf("</select>");
-        printf("<br><br><b><input type=\"button\"name=\"hostDownTimeCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformhost\') disabled=\"disabled\"></b>\n");
+        printf("<br><br><b><input type=\"button\"name=\"hostCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformhost\') disabled=\"disabled\"></b>\n");
+        }
+void show_servicecommentcommand_table(void){
+        /* A new div for the command table */
+        printf("<DIV CLASS='serviceCommands'>Commands for checked service(s)</DIV>\n");
+        /* DropDown menu */
+        printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
+                printf("<option value='nothing'>Select command</option>");
+                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_DEL_SVC_COMMENT,url_images_path,COMMENT_ICON);
+        printf("</select>");
+        printf("<br><br><b><input type=\"button\"name=\"serviceCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformservice\') disabled=\"disabled\"></b>\n");
+        }
+void show_hostcommentcommand_table(void){
+        /* A new div for the command table */
+        printf("<DIV CLASS='hostCommands'>Commands for checked host(s)</DIV>\n");
+        /* DropDown menu */
+        printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
+                printf("<option value='nothing'>Select command</option>");
+                printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_DEL_HOST_COMMENT,url_images_path,COMMENT_ICON);
+        printf("</select>");
+        printf("<br><br><b><input type=\"button\"name=\"hostCommandButton\" value=\"Submit\" class=\"serviceTotalsCommands\" onClick=cmd_submit(\'tableformhost\') disabled=\"disabled\"></b>\n");
         }
 

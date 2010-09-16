@@ -55,11 +55,11 @@ function isValidForSubmit(form)
                         {
                                 document.tableform.buttonCheckboxChecked.value='true';
                         }
-                if ((document.tableformservice) && (document.tableformservice.serviceDownTimeCommandButton))
+                if ((document.tableformservice) && (document.tableformservice.serviceCommandButton))
                         {
                                 document.tableformservice.buttonCheckboxChecked.value='true';
                         }
-                if ((document.tableformhost) && (document.tableformhost.hostDownTimeCommandButton))
+                if ((document.tableformhost) && (document.tableformhost.hostCommandButton))
                         {
                                 document.tableformhost.buttonCheckboxChecked.value='true';
                         }
@@ -75,11 +75,11 @@ function isValidForSubmit(form)
                         {
                                 document.tableform.buttonCheckboxChecked.value='false';
                         }
-                if ((document.tableformservice) && (document.tableformservice.serviceDownTimeCommandButton))
+                if ((document.tableformservice) && (document.tableformservice.serviceCommandButton))
                         {
                                 document.tableformservice.buttonCheckboxChecked.value='false';
                         }
-                if ((document.tableformhost) && (document.tableformhost.hostDownTimeCommandButton))
+                if ((document.tableformhost) && (document.tableformhost.hostCommandButton))
                         {
                                 document.tableformhost.buttonCheckboxChecked.value='false';
                 	}
@@ -127,24 +127,24 @@ function enableDisableButton()
 		}
         }
 	if ((document.tableformservice) && (document.tableformservice.buttonCheckboxChecked.value=='true')){
-		if (document.tableform.buttonValidChoice.value=='true'){
-                        if (document.tableformservice.serviceDownTimeCommandButton){
-                                document.tableformservice.serviceDownTimeCommandButton.disabled=false;
+		if (document.tableformservice.buttonValidChoice.value=='true'){
+                        if (document.tableformservice.serviceCommandButton){
+                                document.tableformservice.serviceCommandButton.disabled=false;
                         }
 		} else {
-                        if (document.tableformservice.serviceDownTimeCommandButton){
-                                document.tableformservice.serviceDownTimeCommandButton.disabled=true;
+                        if (document.tableformservice.serviceCommandButton){
+                                document.tableformservice.serviceCommandButton.disabled=true;
                         }
 		}
 	}
         if ((document.tableformhost) && (document.tableformhost.buttonCheckboxChecked.value=='true')){
-                if (document.tableform.buttonValidChoice.value=='true'){
-                        if (document.tableformhost.hostDownTimeCommandButton){
-                                document.tableformhost.hostDownTimeCommandButton.disabled=false;
+                if (document.tableformhost.buttonValidChoice.value=='true'){
+                        if (document.tableformhost.hostCommandButton){
+                                document.tableformhost.hostCommandButton.disabled=false;
                         }
                 } else {
-                        if (document.tableformhost.serviceDownTimeCommandButton){
-                                document.tableformhost.hostDownTimeCommandButton.disabled=true;
+                        if (document.tableformhost.serviceCommandButton){
+                                document.tableformhost.hostCommandButton.disabled=true;
                         }
                 }
         }
