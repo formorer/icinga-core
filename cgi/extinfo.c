@@ -1827,8 +1827,11 @@ void show_all_comments(void){
 
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
+        /* A form to wrap the table in for JavaScript to understand what we want */
+        printf("<form name='tableformhost' id='tableformhost'>");
+        printf("<input type=hidden name=buttonCheckboxChecked>");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH><TH CLASS='comment'><input type='checkbox' value=all onclick=\"checkAll(\'tableformhost\');isValidForSubmit(\'tableformhost\');\"></TH></TR>\n");
 
 	/* display all the host comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1876,6 +1879,7 @@ void show_all_comments(void){
 		printf("<td CLASS='%s'><A HREF='%s?type=%d&host=%s'>%s</A></td>",bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_comment->host_name),(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
 		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%lu'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",CMD_CGI,CMD_DEL_HOST_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s' nowrap><input onclick=\"isValidForSubmit(\'tableformhost\');\" type='checkbox' name='checkbox' value='&com_id=%lu'></td>",bg_class,temp_comment->comment_id);
 		printf("</tr>\n");
 	        }
 
@@ -1883,6 +1887,7 @@ void show_all_comments(void){
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=9>There are no host comments</TD></TR>");
 
 	printf("</TABLE>\n");
+	printf("</form>\n");
 	printf("</DIV>\n");
 
 	printf("<BR /><BR /><BR />\n");
@@ -1897,8 +1902,11 @@ void show_all_comments(void){
 
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
+        /* A form to wrap the table in for JavaScript to understand what we want */
+        printf("<form name='tableformservice' id='tableformservice'>");
+        printf("<input type=hidden name=buttonCheckboxChecked>");
 	printf("<TABLE BORDER=0 CLASS='comment'>\n");
-	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH></TR>\n");
+	printf("<TR CLASS='comment'><TH CLASS='comment'>Host Name</TH><TH CLASS='comment'>Service</TH><TH CLASS='comment'>Entry Time</TH><TH CLASS='comment'>Author</TH><TH CLASS='comment'>Comment</TH><TH CLASS='comment'>Comment ID</TH><TH CLASS='comment'>Persistent</TH><TH CLASS='comment'>Type</TH><TH CLASS='comment'>Expires</TH><TH CLASS='comment'>Actions</TH><TH CLASS='comment'><input type='checkbox' value=all onclick=\"checkAll(\'tableformservice\');isValidForSubmit(\'tableformservice\');\"></TH></TR>\n");
 
 	/* display all the service comments */
 	for(temp_comment=comment_list,total_comments=0;temp_comment!=NULL;temp_comment=temp_comment->next){
@@ -1949,6 +1957,7 @@ void show_all_comments(void){
 		printf("&service=%s'>%s</A></td>",url_encode(temp_comment->service_description),(temp_service->display_name!=NULL)?temp_service->display_name:temp_service->description);
 		printf("<td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%ld</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td><td CLASS='%s'>%s</td>",bg_class,date_time,bg_class,temp_comment->author,bg_class,temp_comment->comment_data,bg_class,temp_comment->comment_id,bg_class,(temp_comment->persistent)?"Yes":"No",bg_class,comment_type,bg_class,(temp_comment->expires==TRUE)?expire_time:"N/A");
 		printf("<td><a href='%s?cmd_typ=%d&com_id=%ld'><img src='%s%s' border=0 ALT='Delete This Comment' TITLE='Delete This Comment'></td>",CMD_CGI,CMD_DEL_SVC_COMMENT,temp_comment->comment_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s' nowrap><input onclick=\"isValidForSubmit(\'tableformservice\');\" type='checkbox' name='checkbox' value='&com_id=%lu'></td>",bg_class,temp_comment->comment_id);
 		printf("</tr>\n");
 	        }
 
@@ -1956,6 +1965,7 @@ void show_all_comments(void){
 		printf("<TR CLASS='commentOdd'><TD CLASS='commentOdd' COLSPAN=10>There are no service comments</TD></TR>");
 
 	printf("</TABLE>\n");
+	printf("</form>\n");
 	printf("</DIV>\n");
 
 	return;
@@ -2652,8 +2662,8 @@ void show_all_downtime(void){
 	printf("<DIV CLASS='downtimeTitle'>Scheduled Host Downtime</DIV>\n");
 
 	printf("<div CLASS='comment'><img src='%s%s' border=0>&nbsp;",url_images_path,DOWNTIME_ICON);
+	printf("<a href='%s?cmd_typ=%d&host='>",CMD_CGI,CMD_SCHEDULE_HOST_DOWNTIME);
 	printf("Schedule host downtime</a></div>\n");
-        printf("<a href='%s?cmd_typ=%d&host='>",CMD_CGI,CMD_SCHEDULE_HOST_DOWNTIME);
 
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2707,6 +2717,7 @@ void show_all_downtime(void){
 			printf("%lu",temp_downtime->triggered_by);
 		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry' TITLE='Delete/Cancel This Scheduled Downtime Entry'></td>",CMD_CGI,CMD_DEL_HOST_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s' nowrap><input onclick=\"isValidForSubmit(\'tableformhost\');\" type='checkbox' name='checkbox' value='&down_id=%lu'></td>",bg_class,temp_downtime->downtime_id);
 		printf("</tr>\n");
 	        }
 
@@ -2724,8 +2735,8 @@ void show_all_downtime(void){
 	printf("<DIV CLASS='downtimeTitle'>Scheduled Service Downtime</DIV>\n");
 
 	printf("<div CLASS='comment'><img src='%s%s' border=0>&nbsp;",url_images_path,DOWNTIME_ICON);
-	printf("Schedule service downtime</a></div>\n");
 	printf("<a href='%s?cmd_typ=%d&host=&service='>",CMD_CGI,CMD_SCHEDULE_SVC_DOWNTIME);
+	printf("Schedule service downtime</a></div>\n");
 
 	printf("<BR />\n");
 	printf("<DIV ALIGN=CENTER>\n");
@@ -2782,6 +2793,7 @@ void show_all_downtime(void){
 			printf("%lu",temp_downtime->triggered_by);
 		printf("</td>\n");
 		printf("<td><a href='%s?cmd_typ=%d&down_id=%lu'><img src='%s%s' border=0 ALT='Delete/Cancel This Scheduled Downtime Entry' TITLE='Delete/Cancel This Scheduled Downtime Entry'></td>",CMD_CGI,CMD_DEL_SVC_DOWNTIME,temp_downtime->downtime_id,url_images_path,DELETE_ICON);
+		printf("<td CLASS='%s' nowrap><input onclick=\"isValidForSubmit(\'tableformservice\');\" type='checkbox' name='checkbox' value='&down_id=%lu'></td>",bg_class,temp_downtime->downtime_id);
 		printf("</tr>\n");
 	        }
 
