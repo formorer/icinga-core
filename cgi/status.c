@@ -147,7 +147,9 @@ char *host_name=NULL;
 char *host_filter=NULL;
 char *hostgroup_name=NULL;
 char *servicegroup_name=NULL;
+char *service_desc=NULL;
 char *service_filter=NULL;
+
 int host_alert=FALSE;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -5150,9 +5152,10 @@ void show_filters(void){
 	if(host_properties!=0L || service_properties!=0L || host_status_types!=all_host_status_types || service_status_types!=all_service_status_types){
 
 		printf("<table border=1 class='filter' cellspacing=0 cellpadding=0>\n");
-		printf("<tr><td class='filter'>\n");
-		printf("<table border=0 cellspacing=2 cellpadding=0>\n");
-		printf("<tr><td colspan=2 valign=top align=left CLASS='filterTitle'>Display Filters:</td></tr>");
+		printf("<tr><td valign=top align=left CLASS='filterTitle'>Display Filters:&nbsp;");
+		printf("<img id='expand_image' src='%s%s' border=0 onClick=\"if (document.getElementById('filters').style.display == 'none') { document.getElementById('filters').style.display = ''; document.getElementById('expand_image').src = '%s%s'; } else { document.getElementById('filters').style.display = 'none'; document.getElementById('expand_image').src = '%s%s'; }\">",url_images_path,EXPAND_ICON,url_images_path,COLLAPSE_ICON,url_images_path,EXPAND_ICON);
+		printf("</td></tr>");
+		printf("<tr><td><table id='filters' border=0 cellspacing=2 cellpadding=0 style='display:none;'>\n");
 		printf("<tr><td valign=top align=left CLASS='filterName'>Host Status Types:</td>");
 		printf("<td valign=top align=left CLASS='filterValue'>");
 		if(host_status_types==all_host_status_types)
