@@ -16,6 +16,8 @@ ENHANCEMENTS
 * classic ui: change displayed name for hostgroups and servicegroups in extinfo.cgi
 * classic ui: adding "Attempt" column to host status detail list
 
+* install: add sysconfig source to init script #1015
+
 * idoutils: add index to table icinga_statehistory for usage in reporting module #957
 
 FIXES
