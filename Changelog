@@ -24,6 +24,7 @@ FIXES
 * core: fix problem with extra whitespace in command definition and ePN (Jason Young) #918
 * core: fix NOTIFICATIONTYPE MACRO never became CUSTOM (Alexey Dvoryanchikov) #950
 * core: fix parsing of long plugin output for async host checks (Jochen Bern) #1046
+* core: fix possible validation error with empty hostgroups/servicegroups (Sven-Göran Bergh) #1040
 
 * classic ui: change servicestatus letter color to default black, not grey #946
 * classic ui: fix waste of cpu in status summary (TomTom) #933
