@@ -942,14 +942,22 @@ int read_main_config_file(char *main_config_file){
 		else if(!strcmp(variable,"enable_notifications"))
 			enable_notifications=(atoi(value)>0)?TRUE:FALSE;
 
-		else if(!strcmp(variable,"execute_service_checks"))
+		else if(!strcmp(variable,"execute_service_checks")){
 			execute_service_checks=(atoi(value)>0)?TRUE:FALSE;
+			if(execute_service_checks==FALSE){
+				logit(NSLOG_VERIFICATION_WARNING,TRUE,"Warning: Execute service checks are globally disabled!");
+				}
+			}
 
 		else if(!strcmp(variable,"accept_passive_service_checks"))
 			accept_passive_service_checks=(atoi(value)>0)?TRUE:FALSE;
 
-		else if(!strcmp(variable,"execute_host_checks"))
+		else if(!strcmp(variable,"execute_host_checks")){
 			execute_host_checks=(atoi(value)>0)?TRUE:FALSE;
+			if(execute_host_checks==FALSE){
+                                logit(NSLOG_VERIFICATION_WARNING,TRUE,"Warning: Execute host checks are globally disabled!");
+                                }
+			}
 
 		else if(!strcmp(variable,"accept_passive_host_checks"))
 			accept_passive_host_checks=(atoi(value)>0)?TRUE:FALSE;
