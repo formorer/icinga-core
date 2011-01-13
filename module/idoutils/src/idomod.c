@@ -34,7 +34,7 @@ NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 
 #define IDOMOD_VERSION "1.2.2"
 #define IDOMOD_NAME "IDOMOD"
-#define IDOMOD_DATE "11-09-2010"
+#define IDOMOD_DATE "02-16-2010"
 
 
 void *idomod_module_handle=NULL;
