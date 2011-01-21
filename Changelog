@@ -28,6 +28,7 @@ FIXES
 * core: fix allocate memory once for *GROUPMEMBERS macros (Stephane Lapie) #1076
 * core: fix extraneous alerts for services when host is down (Ton Voon) #1097
 * core: fix bug with passive host checks being incorrectly sent to event brokers as active checks (Ethan Galstad) #1133
+* core: fix bug where passive host check status updates were not being propagated to event brokers (Ethan Galstad) #1134
 
 * classic ui: change servicestatus letter color to default black, not grey #946
 * classic ui: fix waste of cpu in status summary (TomTom) #933
