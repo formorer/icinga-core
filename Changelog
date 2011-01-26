@@ -19,6 +19,7 @@ ENHANCEMENTS
 * install: add sysconfig source to init script #1015
 
 * idoutils: add index to table icinga_statehistory for usage in reporting module #957
+* idoutils: add indexes for logentries, preventing heavy load #1055
 
 FIXES
 * core: fix problem with extra whitespace in command definition and ePN (Jason Young) #918
