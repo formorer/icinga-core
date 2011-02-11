@@ -26,6 +26,16 @@
 #include "../include/config.h"
 #include "../include/comments.h"
 #include "../include/common.h"
+
+/*
+  macro for checking the return value of asprintf and returning some error
+*/
+#define  CHECKASPRINTFRET(asprintfcode)                          \
+if (asprintfcode<0)  {                                           \
+  log_debug_info(DEBUGL_FUNCTIONS,0,"asprintf failed!\n");	 \
+return FALSE; /* TODO: what is the right error code? */          \
+}
+
 #include "../include/statusdata.h"
 #include "../include/downtime.h"
 #include "../include/macros.h"
@@ -421,6 +431,14 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 		log_debug_info(DEBUGL_CHECKS,1,"Unable to run scheduled service check at this time\n");
 
 		/* only attempt to (re)schedule checks that should get checked... */
+
+
+#ifdef NSCORE
+		/*
+typedef struct service_struct service;
+		  should_be_scheduled 
+		 */
+
 		if(svc->should_be_scheduled==TRUE){
 
 			/* get current time */
@@ -472,6 +490,8 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 		if(svc->should_be_scheduled==TRUE)
 			schedule_service_check(svc,svc->next_check,check_options);
 
+#endif
+		/* NSCORE*/
 		/* update the status log */
 		update_service_status(svc,FALSE);
 
@@ -480,6 +500,8 @@ int run_scheduled_service_check(service *svc, int check_options, double latency)
 
 	return OK;
 }
+
+
 
 
 /* forks a child process to run a service check, but does not wait for the service check result */
@@ -638,7 +660,11 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
+
+	int asprintfcode=asprintf(&output_file,"%s/checkXXXXXX",temp_path);
+	CHECKASPRINTFRET(asprintfcode);
+
+
 	check_result_info.output_file_fd=mkstemp(output_file);
 	if(check_result_info.output_file_fd>=0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
@@ -1152,13 +1178,18 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	/* make sure the return code is within bounds */
 	else if(queued_check_result->return_code<0 || queued_check_result->return_code>3){
 
+	  int asprintfcode=0;
 		if ( queued_check_result->return_code==126 ) {
-			asprintf(&temp_service->plugin_output,"The command defined for service %s is not an executable\n", queued_check_result->service_description);
+			asprintfcode=asprintf(&temp_service->plugin_output,"The command defined for service %s is not an executable\n", queued_check_result->service_description);
 		} else if  ( queued_check_result->return_code==127 ) {
-			asprintf(&temp_service->plugin_output,"The command defined for service %s does not exist\n", queued_check_result->service_description);
+			asprintfcode=asprintf(&temp_service->plugin_output,"The command defined for service %s does not exist\n", queued_check_result->service_description);
 		} else {
-			asprintf(&temp_service->plugin_output, "Return code of %d is out of bounds", queued_check_result->return_code);
+			asprintfcode=asprintf(&temp_service->plugin_output, "Return code of %d is out of bounds", queued_check_result->return_code);
 		}
+		
+		CHECKASPRINTFRET(asprintfcode);
+
+
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"%s",temp_service->plugin_output);
 
 		temp_service->current_state=STATE_CRITICAL;
@@ -2796,6 +2827,7 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,hst->execution_time,host_check_timeout,FALSE,hst->current_state,hst->processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
+
 #endif
 
 	return result;
@@ -2899,8 +2931,8 @@ int execute_sync_host_check_3x(host *hst){
 	if(early_timeout==TRUE){
 
 		my_free(temp_plugin_output);
-		asprintf(&temp_plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
-
+		int asprintfcode=asprintf(&temp_plugin_output,"Host check timed out after %d seconds\n",host_check_timeout);
+		CHECKASPRINTFRET(asprintfcode);
 		/* log the timeout */
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Host check command '%s' for host '%s' timed out after %d seconds\n",processed_command,hst->name,host_check_timeout);
 	}
@@ -3155,7 +3187,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* open a temp file for storing check output */
 	old_umask=umask(new_umask);
-	asprintf(&output_file,"%s/checkXXXXXX",temp_path);
+	int asprintfcode=asprintf(&output_file,"%s/checkXXXXXX",temp_path);
+	CHECKASPRINTFRET(asprintfcode);
+
 	check_result_info.output_file_fd=mkstemp(output_file);
 	if(check_result_info.output_file_fd>=0)
 		check_result_info.output_file_fp=fdopen(check_result_info.output_file_fd,"w");
@@ -3533,7 +3567,9 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 			my_free(temp_host->long_plugin_output);
 			my_free(temp_host->perf_data);
 
-			asprintf(&temp_host->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
+			int asprintfcode=asprintf(&temp_host->plugin_output,"(Return code of %d is out of bounds%s)",queued_check_result->return_code,(queued_check_result->return_code==126 || queued_check_result->return_code==127)?" - plugin may be missing":"");
+			CHECKASPRINTFRET(asprintfcode);
+
 
 			result=STATE_CRITICAL;
 		}

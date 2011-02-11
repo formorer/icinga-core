@@ -474,7 +474,15 @@ int main(int argc, char **argv, char **env){
 		        }
 
 		/* get absolute path of current working directory */
-		getcwd(config_file,MAX_FILENAME_LENGTH);
+		if(getcwd(config_file,MAX_FILENAME_LENGTH)==NULL)
+		  {
+		    /*
+		      this can fail
+		      http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html
+		     */
+		    printf("Error getting cwd.\n");
+		    exit(ERROR);
+		  }
 
 		/* append a forward slash */
 		strncat(config_file,"/",1);

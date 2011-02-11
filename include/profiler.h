@@ -55,9 +55,9 @@ typedef struct profiler_item{
 
 extern profiler_item * profiler;
 
-void profiler_init();
-void profiler_enable_core();
-void profiler_enable_all();
+extern void profiler_init(void);
+extern void profiler_enable_core(void);
+extern void profiler_enable_all(void);
 void profiler_full_reset(profiler_item *p[]);
 void profiler_item_reset(profiler_item *p);
 void profiler_add(int event, char *name);

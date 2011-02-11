@@ -396,7 +396,15 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 #endif
 
 	/* create a pipe */
-	pipe(fd);
+	int pipestatus= pipe(fd);
+	if (pipestatus < 0)
+	  {
+	    logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: pipe() in my_system_r() failed for command \"%s\"\n",cmd);
+	    close(fd[0]);
+	    close(fd[1]);
+	    
+	    return STATE_UNKNOWN;
+	  }
 
 	/* make the pipe non-blocking */
 	fcntl(fd[0],F_SETFL,O_NONBLOCK);
@@ -514,7 +522,11 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 			buffer[sizeof(buffer)-1]='\x0';
 
 			/* write the error back to the parent process */
-			write(fd[1],buffer,strlen(buffer)+1);
+			int writestat = write(fd[1],buffer,strlen(buffer)+1);
+			if (writestat<0)
+			  {
+			    log_debug_info(DEBUGL_COMMANDS,0,"could not write to parent process with error code %d\n",writestat);
+			  }
 
 			result=STATE_CRITICAL;
 		        }
@@ -522,7 +534,13 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 
 			/* write all the lines of output back to the parent process */
 			while(fgets(buffer,sizeof(buffer)-1,fp))
-				write(fd[1],buffer,strlen(buffer));
+			  {
+				int writestat =write(fd[1],buffer,strlen(buffer));
+				if (writestat<0)
+				  {
+				    log_debug_info(DEBUGL_COMMANDS,0,"could not write to parent process with error code %d\n",writestat);
+				  }
+			  }
 
 			/* close the command and get termination status */
 			status=pclose(fp);
@@ -2299,10 +2317,28 @@ int daemon_init(void){
 
 	/* change working directory. scuttle home if we're dumping core */
 	homedir=getenv("HOME");
+
 	if(daemon_dumps_core==TRUE && homedir!=NULL)
-		chdir(homedir);
+	  {
+	    int chdirstat=chdirstat=chdir(homedir);
+	    if (chdirstat<0)
+	      {
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"could not change directory to %s\n", homedir);
+		cleanup();
+		exit(ERROR);
+	      }
+	  }
 	else
-		chdir("/");
+	  {
+	    int chdirstat=chdir("/");
+	    if (chdirstat<0)
+	      {
+		logit(NSLOG_RUNTIME_ERROR,TRUE,"could not change directory to /\n");
+		cleanup();
+		exit(ERROR);
+	      }
+	  }
+
 
 	umask(S_IWGRP|S_IWOTH);
 
@@ -2379,9 +2415,19 @@ int daemon_init(void){
 
 	/* write PID to lockfile... */
 	lseek(lockfile,0,SEEK_SET);
-	ftruncate(lockfile,0);
+	if (ftruncate(lockfile,0)<0)
+	  {
+	    logit(NSLOG_RUNTIME_ERROR,TRUE,"Cannot truncate lockfile '%s': Bailing out...",lock_file);
+	    cleanup();
+	    exit(ERROR);
+	  }
 	sprintf(buf,"%d\n",(int)getpid());
-	write(lockfile,buf,strlen(buf));
+	if (write(lockfile,buf,strlen(buf))<0)
+	  {
+	    logit(NSLOG_RUNTIME_ERROR,TRUE,"Cannot write to lockfile '%s': Bailing out...",lock_file);
+	    cleanup();
+	    exit(ERROR);
+	  }
 
 	/* make sure lock file stays open while program is executing... */
 	val=fcntl(lockfile,F_GETFD,0);
