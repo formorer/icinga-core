@@ -907,6 +907,12 @@ void document_header(int cgi_id, int use_stylesheet){
                         cgi_title       = "Trends";
                         cgi_body_class  = "trends";
                         break;
+                case ERROR_CGI_ID:
+                        cgi_name        = "";
+                        cgi_css         = CMD_CSS;
+                        cgi_title       = "ERROR";
+                        cgi_body_class  = "error";
+                        break;
         }
 
 	if(content_type==WML_CONTENT){
@@ -923,18 +929,20 @@ void document_header(int cgi_id, int use_stylesheet){
 		return;
 	}
 
-	printf("Cache-Control: no-store\r\n");
-	printf("Pragma: no-cache\r\n");
+	if(cgi_id!=ERROR_CGI_ID){
+		printf("Cache-Control: no-store\r\n");
+		printf("Pragma: no-cache\r\n");
 
-	if(refresh)
-		printf("Refresh: %d\r\n",refresh_rate);
+		if(refresh)
+			printf("Refresh: %d\r\n",refresh_rate);
 
-	get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Last-Modified: %s\r\n",date_time);
+		get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
+		printf("Last-Modified: %s\r\n",date_time);
 
-	expire_time=(time_t)0L;
-	get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Expires: %s\r\n",date_time);
+		expire_time=(time_t)0L;
+		get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
+		printf("Expires: %s\r\n",date_time);
+	}
 
 	if(cgi_id==STATUSWRL_CGI_ID) {
 		printf("Content-Type: x-world/x-vrml\r\n\r\n");
@@ -965,8 +973,10 @@ void document_header(int cgi_id, int use_stylesheet){
 		return;
 	}
 
-	// send HTML CONTENT
-	printf("Content-type: text/html; charset=\"%s\"\r\n\r\n", http_charset);
+	if(cgi_id!=ERROR_CGI_ID){
+		// send HTML CONTENT
+		printf("Content-type: text/html; charset=\"%s\"\r\n\r\n", http_charset);
+	}
 
 	if(embedded==TRUE)
 		return;
@@ -2219,7 +2229,7 @@ void cgi_config_file_error(char *config_file){
 	printf("<P>\n");
 	printf("<OL>\n");
 
-	printf("<LI>Make sure you've installed a CGI config file in its proper location.  See the error message about for details on where the CGI is expecting to find the configuration file.  A sample CGI configuration file (named <b>cgi.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
+	printf("<LI>Make sure you've installed a CGI config file in its proper location.  A sample CGI configuration file (named <b>cgi.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
 	printf("<LI>Make sure the user your web server is running as has permission to read the CGI config file.\n");
 
 	printf("</OL>\n");
@@ -2248,7 +2258,7 @@ void main_config_file_error(char *config_file){
 	printf("<P>\n");
 	printf("<OL>\n");
 
-	printf("<LI>Make sure you've installed a main config file in its proper location.  See the error message about for details on where the CGI is expecting to find the configuration file.  A sample main configuration file (named <b>icinga.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
+	printf("<LI>Make sure you've installed a main config file in its proper location. A sample main configuration file (named <b>icinga.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
 	printf("<LI>Make sure the user your web server is running as has permission to read the main config file.\n");
 
 	printf("</OL>\n");
@@ -2298,11 +2308,12 @@ void status_data_error(void){
 	printf("<P><STRONG><FONT COLOR='RED'>Error: Could not read host and service status information!</FONT></STRONG></P>\n");
 
 	printf("<P>\n");
-	printf("The most common cause of this error message (especially for new users), is the fact that %s is not actually running.  If %s is indeed not running, this is a normal error message.  It simply indicates that the CGIs could not obtain the current status of hosts and services that are being monitored.  If you've just installed things, make sure you read the documentation on starting %s.\n", PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
+	printf("It seems that %s is not running or has not yet finished the startup procedure and then creating the status data file. If %s is indeed not running, this is a normal error message.\n", PROGRAM_NAME, PROGRAM_NAME);
+	printf("Please note that event broker modules and/or rdbms backends may slow down the overall (re)start and the cgis cannot retrieve any status information.");
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Some other things you should check in order to resolve this error include:\n");
+	printf("Things to check in order to resolve this error include:\n");
 	printf("</P>\n");
 
 	printf("<P>\n");
@@ -2310,6 +2321,7 @@ void status_data_error(void){
 
 	printf("<LI>Check the %s log file for messages relating to startup or status data errors.\n", PROGRAM_NAME);
 	printf("<LI>Always verify configuration options using the <b>-v</b> command-line option before starting or restarting %s!\n", PROGRAM_NAME);
+	printf("<LI>If using any event broker module for %s, look into their respective logs and/or on their behavior!\n", PROGRAM_NAME);
 
 	printf("</OL>\n");
 	printf("</P>\n");
@@ -2322,7 +2334,44 @@ void status_data_error(void){
         }
 
 
+void print_error(char *config_file, int error_type){
 
+	/* if cgi.cfg is missing, we don't know which fancy style to use, take our own */
+	if(error_type!=ERROR_CGI_CFG_FILE){
+	        document_header(ERROR_CGI_ID,TRUE);
+	}
+
+         /* Giving credits to stop.png image source */
+        printf("\n<!-- Image \"stop.png\" has been taken from \"http://fedoraproject.org/wiki/Template:Admon/caution\" -->\n\n");
+
+        printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
+	if(error_type==ERROR_CGI_CFG_FILE){
+	        printf("<DIV style='font-family:  Helvetica, serif; background-color: #fff; color: #000; font-size: 8pt; text-align:left; font-weight: bold; margin:1em; border:1px red solid; background-color: #FFE5E5;' CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55></td>");
+	} else {
+	        printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
+	}
+        printf("<td class='errorMessage'>");
+
+	switch(error_type){
+		case ERROR_CGI_STATUS_DATA:
+			status_data_error();
+			break;
+		case ERROR_CGI_OBJECT_DATA:
+			object_data_error();
+			break;
+		case ERROR_CGI_CFG_FILE:
+			cgi_config_file_error(config_file);
+			break;
+		case ERROR_CGI_MAIN_CFG:
+			main_config_file_error(config_file);
+			break;
+	}
+
+        printf("</td></tr></table></DIV>\n");
+        printf("</DIV>\n");
+
+	return;
+}
 
 /* displays context-sensitive help window */
 void display_context_help(char *chid){

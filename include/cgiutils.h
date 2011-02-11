@@ -88,6 +88,17 @@ extern "C" {
 #define CHECKSANITY_CGI_ID	18
 #define MINISTATUS_CGI_ID	19
 
+/* for error msg */
+#define ERROR_CGI_ID	20
+
+
+/******************************* ERROR CGI IDS **********************************/
+
+#define ERROR_CGI_STATUS_DATA	1
+#define ERROR_CGI_OBJECT_DATA	2
+#define ERROR_CGI_CFG_FILE	3
+#define ERROR_CGI_MAIN_CFG	4
+
 
 /**************************** STYLE SHEET NAMES ******************************/
 
@@ -574,6 +585,7 @@ void cgi_config_file_error(char *);
 void main_config_file_error(char *);
 void object_data_error(void);
 void status_data_error(void);
+void print_error(char*, int);
 
 void display_context_help(char *);				/* displays context-sensitive help window */
 

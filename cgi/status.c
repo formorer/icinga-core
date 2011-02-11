@@ -223,7 +223,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -232,7 +232,7 @@ int main(void){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -241,7 +241,7 @@ int main(void){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -250,7 +250,7 @@ int main(void){
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
-		status_data_error();
+		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
@@ -288,6 +288,11 @@ int main(void){
 					if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 						continue;
 					if(!strcmp(host_name,temp_host->address)){
+						free(host_name);
+						host_name=strdup(temp_host->name);
+						break;
+						}
+					if(!strcmp(host_name,temp_host->address6)){
 						free(host_name);
 						host_name=strdup(temp_host->name);
 						break;
@@ -1640,7 +1645,7 @@ void show_service_detail(void){
 				if(new_host==TRUE){
 
 					/* grab macros */
-					grab_host_macros(mac, temp_host);
+					grab_host_macros_r(mac, temp_host);
 
 					if(temp_hoststatus->status==HOST_DOWN){
 						if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
@@ -1668,7 +1673,11 @@ void show_service_detail(void){
 					printf("<TD ALIGN=LEFT>\n");
 					printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 					printf("<TR>\n");
-					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					if(!strcmp(temp_host->address6,temp_host->name)){
+						printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					} else {
+						printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s,%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					}
 					printf("</TR>\n");
 					printf("</TABLE>\n");
 					printf("</TD>\n");
@@ -1744,7 +1753,7 @@ void show_service_detail(void){
 				printf("</TD>\n");
 
 				/* grab macros */
-				grab_service_macros(mac, temp_service);
+				grab_service_macros_r(mac, temp_service);
 
 				/* service name column */
 				printf("<TD CLASS='status%s'>",status_bg_class);
@@ -2179,7 +2188,7 @@ void show_host_detail(void){
 		total_entries++;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		if(display_type==DISPLAY_HOSTGROUPS||display_type==DISPLAY_HOSTS){
 
@@ -2242,7 +2251,11 @@ void show_host_detail(void){
 				printf("<TD ALIGN=LEFT>\n");
 				printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 				printf("<TR>\n");
-				printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				if(!strcmp(temp_host->address6,temp_host->name)){
+					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				} else {
+					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s,%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				}
 				printf("</TR>\n");
 				printf("</TABLE>\n");
 				printf("</TD>\n");
@@ -3429,7 +3442,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		printf("<TD CLASS='status%s'>",host_status_class);
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
@@ -3686,7 +3699,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	temp_host=find_host(hststatus->host_name);
 
 	/* grab macros */
-	grab_host_macros(mac, temp_host);
+	grab_host_macros_r(mac, temp_host);
 
 	if(hststatus->status==HOST_PENDING){
 		strncpy(status,"PENDING",sizeof(status));
@@ -3717,7 +3730,11 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 
 	printf("<TABLE BORDER=0 WIDTH=100%% cellpadding=0 cellspacing=0>\n");
 	printf("<TR CLASS='status%s'>\n",status_bg_class);
-	printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	if(!strcmp(temp_host->address6,temp_host->name)){
+		printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	} else {
+		printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s,%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	}
 
 	if(temp_host->icon_image!=NULL){
 		printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);
@@ -4561,7 +4578,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			continue;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		/* find the host status */
 		temp_hoststatus=find_hoststatus(temp_host->name);
@@ -4641,7 +4658,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			        }
 
 			/* grab macros */
-			grab_service_macros(mac, temp_service);
+			grab_service_macros_r(mac, temp_service);
 
 			/* get the status of the service */
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);

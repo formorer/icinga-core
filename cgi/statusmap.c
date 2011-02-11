@@ -247,7 +247,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			cgi_config_file_error(get_cgi_config_location());
+			print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -263,7 +263,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			main_config_file_error(main_config_file);
+			print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -273,7 +273,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			object_data_error();
+			print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -283,7 +283,7 @@ int main(int argc, char **argv){
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			status_data_error();
+			print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
@@ -1857,7 +1857,7 @@ void write_host_popup_text(host *hst){
 	        }
 
 	/* grab macros */
-	grab_host_macros(mac, hst);
+	grab_host_macros_r(mac, hst);
 
 	/* strip nasty stuff from plugin output */
 	sanitize_plugin_output(temp_status->plugin_output);
@@ -1878,6 +1878,7 @@ void write_host_popup_text(host *hst){
 	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->name));
 	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->alias));
 	printf("<tr><td class=\\\"popupText\\\">Address:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address,TRUE));
+	printf("<tr><td class=\\\"popupText\\\">Address6:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address6,TRUE));
 	printf("<tr><td class=\\\"popupText\\\">State:</td><td class=\\\"popupText\\\"><b>");
 
 	/* get the status of the host (pending, up, down, or unreachable) */

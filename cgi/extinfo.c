@@ -174,7 +174,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	}
@@ -183,7 +183,7 @@ int main(void){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	}
@@ -192,7 +192,7 @@ int main(void){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
         }
@@ -201,7 +201,7 @@ int main(void){
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
-		status_data_error();
+		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
@@ -252,11 +252,11 @@ int main(void){
 		if(display_type==DISPLAY_HOST_INFO || display_type==DISPLAY_SERVICE_INFO){
 
 			temp_host=find_host(host_name);
-			grab_host_macros(mac, temp_host);
+			grab_host_macros_r(mac, temp_host);
 
 			if(display_type==DISPLAY_SERVICE_INFO){
 				temp_service=find_service(host_name,service_desc);
-				grab_service_macros(mac, temp_service);
+				grab_service_macros_r(mac, temp_service);
 			}
 
 			/* write some Javascript helper functions */
@@ -267,6 +267,9 @@ int main(void){
 				printf("}\n");
 				printf("function nagios_get_host_address()\n{\n");
 				printf("return \"%s\";\n",temp_host->address);
+				printf("}\n");
+				printf("function nagios_get_host_address6()\n{\n");
+				printf("return \"%s\";\n",temp_host->address6);
 				printf("}\n");
 				if(temp_service!=NULL){
 					printf("function nagios_get_service_description()\n{\n");
@@ -280,13 +283,13 @@ int main(void){
 		/* find the hostgroup */
 		else if(display_type==DISPLAY_HOSTGROUP_INFO){
 			temp_hostgroup=find_hostgroup(hostgroup_name);
-			grab_hostgroup_macros(mac, temp_hostgroup);
+			grab_hostgroup_macros_r(mac, temp_hostgroup);
 		}
 
 		/* find the servicegroup */
 		else if(display_type==DISPLAY_SERVICEGROUP_INFO){
 			temp_servicegroup=find_servicegroup(servicegroup_name);
-			grab_servicegroup_macros(mac, temp_servicegroup);
+			grab_servicegroup_macros_r(mac, temp_servicegroup);
 		}
 
 		if((display_type==DISPLAY_HOST_INFO && temp_host!=NULL) || (display_type==DISPLAY_SERVICE_INFO && temp_host!=NULL && temp_service!=NULL) || (display_type==DISPLAY_HOSTGROUP_INFO && temp_hostgroup!=NULL) || (display_type==DISPLAY_SERVICEGROUP_INFO && temp_servicegroup!=NULL)){
@@ -377,7 +380,12 @@ int main(void){
 					printf("No hostgroups");
 
 				printf("</DIV><BR>\n");
-				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
+
+				if(!strcmp(temp_host->address6,temp_host->name)){
+					printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
+				} else {
+					printf("<DIV CLASS='data'>%s, %s</DIV>\n",temp_host->address,temp_host->address6);
+				}
 		        }
 			if(display_type==DISPLAY_SERVICE_INFO){
 
@@ -400,7 +408,11 @@ int main(void){
 					printf("No servicegroups.");
                                 printf("</DIV><BR>\n");
 
-				printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
+				if(!strcmp(temp_host->address6,temp_host->name)){
+                                        printf("<DIV CLASS='data'>%s</DIV>\n",temp_host->address);
+                                } else {
+                                        printf("<DIV CLASS='data'>%s, %s</DIV>\n",temp_host->address,temp_host->address6);
+                                }
 			}
 			if(display_type==DISPLAY_HOSTGROUP_INFO){
 

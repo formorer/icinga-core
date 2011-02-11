@@ -630,8 +630,12 @@ int idomod_rotate_sink_file(void *args){
 	char *processed_command_line_3x=NULL;
 	int early_timeout=FALSE;
 	double exectime;
+	icinga_macros *mac;
 
 	idomod_log_debug_info(IDOMOD_DEBUGL_PROCESSINFO, 2, "idomod_rotate_sink_file() start\n");
+
+	/* get global macros */
+	mac=get_global_macros();
 
 	/* close sink */
 	idomod_goodbye_sink();
@@ -644,11 +648,11 @@ int idomod_rotate_sink_file(void *args){
 	/****** ROTATE THE FILE *****/
 
 	/* get the raw command line */
-	get_raw_command_line(find_command(idomod_sink_rotation_command),idomod_sink_rotation_command,&raw_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	get_raw_command_line_r(mac, find_command(idomod_sink_rotation_command),idomod_sink_rotation_command,&raw_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 	strip(raw_command_line_3x);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line_3x,&processed_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros_r(mac, raw_command_line_3x,&processed_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 	/* run the command */
 	my_system(processed_command_line_3x,idomod_sink_rotation_timeout,&early_timeout,&exectime,NULL,0);
@@ -3182,7 +3186,7 @@ int idomod_write_config(int config_type){
         }
 
 
-#define OBJECTCONFIG_ES_ITEMS 15
+#define OBJECTCONFIG_ES_ITEMS 16
 
 /* dumps object configuration data to sink */
 int idomod_write_object_config(int config_type){
@@ -3591,9 +3595,10 @@ int idomod_write_object_config(int config_type){
 		flap_detection_on_down=temp_host->flap_detection_on_down;
 		flap_detection_on_unreachable=temp_host->flap_detection_on_unreachable;
 		es[14]=ido_escape_buffer(temp_host->display_name);
+		es[15]=ido_escape_buffer(temp_host->address6);
 
 		snprintf(temp_buffer,sizeof(temp_buffer)-1
-			 ,"\n%d:\n%d=%ld.%ld\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%lf\n%d=%lf\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%lf\n"
+			 ,"\n%d:\n%d=%ld.%ld\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%lf\n%d=%lf\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%lf\n"
 			 ,IDO_API_HOSTDEFINITION
 			 ,IDO_DATA_TIMESTAMP
 			 ,now.tv_sec
@@ -3606,6 +3611,8 @@ int idomod_write_object_config(int config_type){
 			 ,(es[1]==NULL)?"":es[1]
 			 ,IDO_DATA_HOSTADDRESS
 			 ,(es[2]==NULL)?"":es[2]
+                         ,IDO_DATA_HOSTADDRESS6
+                         ,(es[15]==NULL)?"":es[15]
 			 ,IDO_DATA_HOSTCHECKCOMMAND
 			 ,(es[3]==NULL)?"":es[3]
 			 ,IDO_DATA_HOSTEVENTHANDLER
