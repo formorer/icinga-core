@@ -279,7 +279,16 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 
 				temp_buffer=(char *)strdup(val);
 				if(config_base_dir!=NULL && val[0]!='/')
-					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+				  {
+				  if (asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer)<0)
+				    {
+				      
+				      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+					    "Asprintf failed.  Aborting.");			
+				      cleanup();					        
+				      exit(ERROR);                                              
+				    }
+				  }
 				else
 					config_file=temp_buffer;
 
@@ -298,7 +307,15 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 				
 				temp_buffer=(char *)strdup(val);
 				if(config_base_dir!=NULL && val[0]!='/')
-					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+				  {
+				    if (asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer)<0)
+				      {
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+					      "Asprintf failed.  Aborting.");			
+					cleanup();					        
+					exit(ERROR);                                              
+				      }
+				  }
 				else
 					config_file=temp_buffer;
 

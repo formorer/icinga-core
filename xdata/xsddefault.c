@@ -356,7 +356,15 @@ int xsddefault_save_status_data(void){
 	/* open a safe temp file for output */
 	if(xsddefault_temp_file==NULL)
 		return ERROR;
-	asprintf(&temp_file,"%sXXXXXX",xsddefault_temp_file);
+	if (asprintf(&temp_file,"%sXXXXXX",xsddefault_temp_file)<0)
+	  {
+
+	    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+		  "Asprintf failed.  Aborting.");			
+	    cleanup();					        
+	    exit(ERROR);                                              
+
+	  }
 	if(temp_file==NULL)
 		return ERROR;
 

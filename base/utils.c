@@ -282,6 +282,14 @@ extern int errno;
 #endif
 
 
+#define CHKASPRINTF(RET)                                                \
+  if (RET < 0 ) {							\
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      \
+		    "Asprintf failed.  Aborting.");			\
+              cleanup();					        \
+	      exit(ERROR);                                              \
+	    }
+
 
 /******************************************************************/
 /******************** SYSTEM COMMAND FUNCTIONS ********************/
@@ -373,7 +381,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 			 */
 			(void) POPs ;
 
-			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
+			CHKASPRINTF(asprintf(&temp_buffer,"%s", SvPVX(ERRSV)));
 
 			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
 
@@ -807,7 +815,7 @@ int set_environment_var(char *name, char *value, int set){
 #else
 		/* needed for Solaris and systems that don't have setenv() */
 		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
-		asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value);
+		CHKASPRINTF(asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value));
 		if(env_string)
 			putenv(env_string);
 #endif
@@ -2563,7 +2571,7 @@ int move_check_result_to_queue(char *checkresult_file){
 	old_umask=umask(new_umask);
 
 	/* create a safe temp file */
-	asprintf(&output_file,"%s/cXXXXXX",check_result_path);
+	CHKASPRINTF(asprintf(&output_file,"%s/cXXXXXX",check_result_path));
 	output_file_fd=mkstemp(output_file);
 
 	/* file created okay */
@@ -2586,7 +2594,7 @@ int move_check_result_to_queue(char *checkresult_file){
 #endif
 
 		/* create an ok-to-go indicator file */
-		asprintf(&temp_buffer,"%s.ok",output_file);
+		CHKASPRINTF(asprintf(&temp_buffer,"%s.ok",output_file));
 		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>=0)
 			close(output_file_fd);
 		my_free(temp_buffer);
@@ -2671,7 +2679,7 @@ int process_check_result_queue(char *dirname){
 			/* at this point we have a regular file... */
 
 			/* can we find the associated ok-to-go file ? */
-			asprintf(&temp_buffer,"%s.ok",file);
+			CHKASPRINTF(asprintf(&temp_buffer,"%s.ok",file));
 			result=stat(temp_buffer,&ok_stat_buf);
 			my_free(temp_buffer);
 			if(result==-1)
@@ -2877,7 +2885,7 @@ int delete_check_result_file(char *fname){
 	unlink(fname);
 
 	/* delete the ok-to-go file */
-	asprintf(&temp_buffer,"%s.ok",fname);
+	CHKASPRINTF(asprintf(&temp_buffer,"%s.ok",fname));
 	unlink(temp_buffer);
 	my_free(temp_buffer);
 
@@ -4066,7 +4074,7 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 		time(&timestamp);
 
 	/* create the command string */
-	asprintf(&newcmd,"[%lu] %s",(unsigned long)timestamp,cmd);
+	CHKASPRINTF(asprintf(&newcmd,"[%lu] %s",(unsigned long)timestamp,cmd));
 
 	/* submit the command */
 	result=submit_external_command(newcmd,buffer_items);

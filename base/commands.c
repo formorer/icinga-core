@@ -753,9 +753,21 @@ int process_external_command1(char *cmd){
 
 	/* log the external command */
 	if(log_external_commands_user==TRUE){
-		asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s;%s\n",command_id,username,args);
+	  if (asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s;%s\n",command_id,username,args)<0)
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
 	} else {
-		asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
+	  if (asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args)<0)
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR ,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
 	}
 
 	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT || command_type==CMD_PROCESS_HOST_CHECK_RESULT){
@@ -5022,7 +5034,13 @@ void process_passive_checks(void){
 
 	/* open a temp file for storing check result(s) */
 	old_umask=umask(new_umask);
-	asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path);
+	if (asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path)<0)
+	  {
+	    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,
+		  "Asprintf failed.  Aborting.");			    
+	    cleanup();
+	    exit(ERROR);
+	  }
 	checkresult_file_fd=mkstemp(checkresult_file);
 	umask(old_umask);
 

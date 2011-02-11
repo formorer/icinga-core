@@ -64,6 +64,15 @@ extern int      debug_verbosity;
 extern unsigned long max_debug_file_size;
 FILE            *debug_file_fp=NULL;
 
+
+#define CHKASPRINTF(RET)                                                \
+  if (RET < 0 ) {							\
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      \
+		    "Asprintf failed.  Aborting.");			\
+              cleanup();					        \
+	      exit(ERROR);                                              \
+	    }
+
 static pthread_mutex_t debug_fp_lock;
 
 /*
@@ -313,9 +322,23 @@ int log_service_event(service *svc){
 	/* XXX: replace the macro madness with some simple helpers instead */
 	/* either log only the output, or if enabled, add long_output */
 	if(log_long_plugin_output==TRUE && svc->long_plugin_output!=NULL) {
-		asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\\n%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output,svc->long_plugin_output);
+	  if(asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\\n%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output,svc->long_plugin_output)<0)
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
+	    
 	} else {
-		asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output);
+	  if (asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output)<0)
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
+	    
 	}
 
 	process_macros_r(&mac, temp_buffer,&processed_buffer,0);
@@ -353,9 +376,22 @@ int log_host_event(host *hst){
 	/* XXX: replace the macro madness with some simple helpers instead */
 	/* either log only the output, or if enabled, add long_output */
 	if(log_long_plugin_output==TRUE && hst->long_plugin_output!=NULL) {
-		asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\\n%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output,hst->long_plugin_output);
+	  if (asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\\n%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output,hst->long_plugin_output)<0)
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
 	} else {
-		asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output);
+	  if (asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output))
+	    {
+	      logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,
+		    "Asprintf failed.  Aborting.");			    
+	      cleanup();
+	      exit(ERROR);
+	    }
+	    
 	}
 
 	process_macros_r(&mac, temp_buffer,&processed_buffer,0);
@@ -388,7 +424,7 @@ int log_host_states(int type, time_t *timestamp){
 		/* grab the host macros */
 		grab_host_macros_r(&mac, temp_host);
 
-		asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
+		CHKASPRINTF(asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output))
 		process_macros_r(&mac, temp_buffer,&processed_buffer,0);
 
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
@@ -428,7 +464,7 @@ int log_service_states(int type, time_t *timestamp){
 		grab_service_macros_r(&mac, temp_service);
 
 		/* XXX: macro madness */
-		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output);
+		CHKASPRINTF(asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output))
 		process_macros_r(&mac, temp_buffer,&processed_buffer,0);
 
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
@@ -477,7 +513,7 @@ int rotate_log_file(time_t rotation_time){
 	stat_result = stat(log_file, &log_file_stat);
 
 	/* get the archived filename to use */
-	asprintf(&log_archive,"%s%sicinga-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/", t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
+	CHKASPRINTF(asprintf(&log_archive,"%s%sicinga-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/", t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour))
 
 	/* rotate the log file */
 	rename_result=my_rename(log_file,log_archive);
@@ -488,7 +524,7 @@ int rotate_log_file(time_t rotation_time){
 	        }
 
 	/* record the log rotation after it has been done... */
-	asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
+	CHKASPRINTF(asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string))
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);
 	my_free(temp_buffer);
 
@@ -497,7 +533,13 @@ int rotate_log_file(time_t rotation_time){
 
 	if(stat_result==0){
 		chmod(log_file, log_file_stat.st_mode);
-		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
+		if (chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid)<0)
+		  {
+		    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+			  "Chown of logfile failed with errorno %d.  Aborting.", errno);			
+		    cleanup();					        
+		    exit(ERROR);		
+		  }
 		}
 
 	/* log current host and service state if activated*/
@@ -518,7 +560,7 @@ int write_log_file_info(time_t *timestamp){
 	char *temp_buffer=NULL;
 
 	/* write log version */
-	asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
+	CHKASPRINTF(asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2))
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
 	my_free(temp_buffer);
 
@@ -599,7 +641,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 		close_debug_log();
 		
 		/* rotate the log file */
-		asprintf(&temp_path,"%s.old",debug_file);
+		CHKASPRINTF(asprintf(&temp_path,"%s.old",debug_file))
 		if(temp_path){
 
 			/* unlink the old debug file */
