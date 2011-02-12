@@ -6,8 +6,9 @@
 SRC_BASE=../common
 SRC_CGI=../cgi
 
-CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@
+CC=c99-gcc
+CFLAGS=@CFLAGS@ @DEFS@ -pedantic -Wall -g -O2 -DHAVE_CONFIG_H -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes  -DNSCORE
+
 LDFLAGS=@LDFLAGS@ @LIBS@
 
 prefix=@prefix@

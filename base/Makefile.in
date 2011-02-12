@@ -8,8 +8,9 @@ SRC_COMMON=../common
 SRC_INCLUDE=../include
 SRC_XDATA=../xdata
 
-CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@ -DNSCORE
+CC=c99-gcc
+CFLAGS=@CFLAGS@ @DEFS@ -pedantic -Wall -g -O2 -DHAVE_CONFIG_H -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes  -DNSCORE
+
 
 # Compiler flags for use with gprof
 #CFLAGS=-pg -DHAVE_CONFIG_H -DNSCORE

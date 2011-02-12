@@ -11,7 +11,7 @@ SRC_CGI=@srcdir@/cgi
 SRC_HTM=@srcdir@/html
 SRC_DOCS=@srcdir@/html/docs
 SRC_MODULE=@srcdir@/module
-SRC_INCLUDE=@srcdir@/include
+SRC_INCUDE=@srcdir@/include
 SRC_COMMON=@srcdir@/common
 SRC_XDATA=@srcdir@/xdata
 SRC_CONTRIB=@srcdir@/contrib
@@ -27,8 +27,9 @@ SRC_DOCBOOK_EN=@srcdir@/docbook/en
 ###############################
 # Compiler Settings
 ###############################
-CC=@CC@
-CFLAGS=@CFLAGS@ @DEFS@
+CC=c99-gcc
+CFLAGS=@CFLAGS@ @DEFS@ -pedantic -Wall -g -O2 -DHAVE_CONFIG_H -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes  -DNSCORE
+
 LDFLAGS=@LDFLAGS@ @LIBS@
 
 prefix=@prefix@
