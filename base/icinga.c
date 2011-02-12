@@ -474,7 +474,15 @@ int main(int argc, char **argv, char **env){
 		        }
 
 		/* get absolute path of current working directory */
-		getcwd(config_file,MAX_FILENAME_LENGTH);
+		if(getcwd(config_file,MAX_FILENAME_LENGTH)==NULL)
+		  {
+		    /*
+		      this can fail
+		      http://pubs.opengroup.org/onlinepubs/009695399/functions/getcwd.html
+		     */
+		    printf("Error getting cwd.\n");
+		    exit(ERROR);
+		  }
 
 		/* append a forward slash */
 		strncat(config_file,"/",1);
@@ -675,7 +683,13 @@ int main(int argc, char **argv, char **env){
 			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&mac->x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
+			if (asprintf(&mac->x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start)<0)
+			  {
+			    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,"Asprintf failed for format start time.  Aborting.");
+			    
+			    cleanup();
+			    exit(ERROR);
+			  }
 
 			/* open debug log */
 			open_debug_log();
@@ -800,7 +814,16 @@ int main(int argc, char **argv, char **env){
 					exit(ERROR);
 					}
 
-				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
+				
+			if (asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid())<0)
+			  {
+			    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,
+				  "Asprintf failed for PID.  Aborting.");
+			    
+			    cleanup();
+			    exit(ERROR);
+			  }
+
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 				my_free(buffer);
 
@@ -864,7 +887,14 @@ int main(int argc, char **argv, char **env){
 			/* get event start time and save as macro */
 			event_start=time(NULL);
 			my_free(mac->x[MACRO_EVENTSTARTTIME]);
-			asprintf(&mac->x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
+			
+			if (asprintf(&mac->x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start)<0)
+			  {
+			    logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,
+				  "Asprintf failed for start time.  Aborting.");			    
+			    cleanup();
+			    exit(ERROR);
+			  }
 
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
@@ -876,10 +906,25 @@ int main(int argc, char **argv, char **env){
 			if(caught_signal==TRUE){
 
 				if(sig_id==SIGHUP)
-					asprintf(&buffer,"Caught SIGHUP, restarting...\n");
+				  {
+				    if (asprintf(&buffer,"Caught SIGHUP, restarting...\n")<0)
+				      {
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,
+					      "Asprintf failed.  Aborting.");			    
+					cleanup();
+					exit(ERROR);
+				    }
+				  }
 				else if(sig_id!=SIGSEGV)
-					asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
-
+				  {
+				    if (asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id])<0)
+				      {			    
+					logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR | NSLOG_CONFIG_ERROR,TRUE,
+					      "Asprintf failed.  Aborting.");			    
+					cleanup();
+					  exit(ERROR);
+				      }			   
+				  }
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 				my_free(buffer);
 				}

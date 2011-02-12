@@ -1181,7 +1181,11 @@ void show_host_info(void){
 		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</td><td CLASS='dataVal'>%s",(temp_hoststatus->plugin_output==NULL)?"":html_encode(temp_hoststatus->plugin_output,TRUE));
 		if(enable_splunk_integration==TRUE){
 			printf("&nbsp;&nbsp;");
-			asprintf(&buf,"%s %s",temp_host->name,temp_hoststatus->plugin_output);
+			if (asprintf(&buf,"%s %s",temp_host->name,temp_hoststatus->plugin_output)<0)
+			  {
+			    printf ("asprintf failed!");
+			    exit (-1);
+			  }
 			display_splunk_generic_url(buf,1);
 			free(buf);
 			}
@@ -1503,7 +1507,11 @@ void show_service_info(void){
 		printf("<TR><TD CLASS='dataVar' VALIGN='top'>Status Information:</TD><TD CLASS='dataVal'>%s",(temp_svcstatus->plugin_output==NULL)?"":html_encode(temp_svcstatus->plugin_output,TRUE));
 		if(enable_splunk_integration==TRUE){
 			printf("&nbsp;&nbsp;");
-			asprintf(&buf,"%s %s %s",temp_service->host_name,temp_service->description,temp_svcstatus->plugin_output);
+			if (asprintf(&buf,"%s %s %s",temp_service->host_name,temp_service->description,temp_svcstatus->plugin_output)< 0)
+			  {
+			    printf ("asprintf failed!");
+			    exit (-1);			  
+			  }
 			display_splunk_generic_url(buf,1);
 			free(buf);
 			}

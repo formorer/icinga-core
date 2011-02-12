@@ -271,10 +271,26 @@ int register_downtime(int type, unsigned long downtime_id){
 	else
 		type_string="service";
 	if(temp_downtime->fixed==TRUE)
-		asprintf(&temp_buffer,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string);
+	  {
+	    if (asprintf(&temp_buffer,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string))
+	      {
+		
+		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+		      "Asprintf failed.  Aborting.");			
+		cleanup();					        
+		exit(ERROR);                                              			     
+	      }
+	  }
 	else
-		asprintf(&temp_buffer,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string);
-
+	  {
+	    if (asprintf(&temp_buffer,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string)<0)
+	      {
+		logit(NSLOG_PROCESS_INFO | NSLOG_RUNTIME_ERROR,TRUE,      
+		      "Asprintf failed.  Aborting.");			
+		cleanup();					        
+		exit(ERROR);                                              			     
+	      }
+	  }
 
 	log_debug_info(DEBUGL_DOWNTIME,0,"Scheduled Downtime Details:\n");
 	if(temp_downtime->type==HOST_DOWNTIME){
