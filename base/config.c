@@ -432,10 +432,14 @@ int read_main_config_file(char *main_config_file){
 				}
 
 			if((tmpdir=opendir((char *)value))==NULL){
-				ASPRINTF_CHK(&error_message,"Temp path is not a valid directory");
-				error=TRUE;
-				break;
-				}
+			  if (asprintf(&error_message,"Temp path (%s) is not a valid directory",value)<0)
+			    {
+			      logit(NSLOG_CONFIG_WARNING,TRUE,"Error: asprintf failed!"); 
+			      exit (-1);
+			    }
+			  error=TRUE;
+			  break;
+			}
 			closedir(tmpdir);
 
 			my_free(temp_path);
@@ -1468,7 +1472,7 @@ int read_main_config_file(char *main_config_file){
 			continue;
                 else if(strstr(input,"sync_retention_file=")==input)
                         continue;
-		else if(strstr(input,"object_cache_file=")==input)
+		else if(strstr(input,"object_cache_file=")==input) // default is /usr/local/icinga/var/objects.cache
 			continue;
 		else if(strstr(input,"precached_object_file=")==input)
 			continue;
@@ -1500,7 +1504,7 @@ int read_main_config_file(char *main_config_file){
 
 	/* handle errors */
 	if(error==TRUE){
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error in configuration file '%s' - Line %d (%s)",main_config_file,current_line,(error_message==NULL)?"NULL":error_message);
+	  logit(NSLOG_CONFIG_ERROR,TRUE,"Error in configuration file '%s' - Line %d (%s) input:(%s) variable:(%s)=value(%s)",main_config_file,current_line,(error_message==NULL)?"NULL":error_message,input,variable,value);
 		return ERROR;
 	        }
 

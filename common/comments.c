@@ -102,7 +102,7 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 
 	/* add an event to expire comment data if necessary... */
 	if(expires==TRUE)
-		schedule_new_event_comment(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,new_comment_id);
+		schedule_new_event_unsigned_long(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,new_comment_id);
 
 	/* save comment id */
 	if(comment_id!=NULL)

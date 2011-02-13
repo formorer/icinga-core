@@ -562,36 +562,28 @@ typedef union service_host_common
   struct timespec  *   time; 
   user_function_ptr_t  userfunc;
   unsigned long        unsigned_long; // for integer data (EVENT_SCHEDULED_DOWNTIME)
+  unsigned long *      unsigned_long_ptr; // for integer data (EVENT_SCHEDULED_DOWNTIME)
 } service_host_common_t;
-
-
-
-  //  struct_type_t type; is stored in the event data
-
-    typedef service_host_common_t event_param_struct_t;
-    
-    typedef event_param_struct_t  event_param_struct_ptr_t;
+  
     typedef service_struct_t *  service_ptr_t;
     typedef host_struct_t *  host_ptr_t;
+    typedef time_t (*time_function_ptr_t)(void) ;    
+    typedef service_host_common_t   event_data_obj_t;
     
-
-    typedef time_t (*time_function_ptr_t)(void) ;
-
-
-typedef event_param_struct_ptr_t event_data_ptr_t;
-typedef int *                    event_args_ptr_t;
-
-void free_event(int event_type,event_data_ptr_t event_data);
- 
-unsigned long * get_event_unsigned_long_ptr(event_data_ptr_t);
-unsigned long get_event_unsigned_long(event_data_ptr_t);
-
-service_ptr_t get_event_service(event_data_ptr_t);
-host_ptr_t get_event_host(event_data_ptr_t);
-
-
-event_data_ptr_t get_event_null(void);
-event_args_ptr_t get_event_args_null(void);
+    // also as an int *, or a unsigned long 
+    typedef unsigned long  event_args_ptr_t;
+    
+    void free_event(int event_type,event_data_obj_t event_data);
+    
+    unsigned long * get_event_unsigned_long_ptr(event_data_obj_t);
+    unsigned long get_event_unsigned_long(event_data_obj_t);
+    
+    service_ptr_t get_event_service(event_data_obj_t);
+    host_ptr_t get_event_host(event_data_obj_t);
+    
+    
+    event_data_obj_t get_event_null(void);
+    event_args_ptr_t get_event_args_null(void);
 
 
 /* ESCALATION CONDITION STRUCTURE 

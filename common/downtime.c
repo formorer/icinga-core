@@ -323,7 +323,7 @@ int register_downtime(int type, unsigned long downtime_id){
 	if(temp_downtime->triggered_by==0){
 		if((new_downtime_id=(unsigned long *)malloc(sizeof(unsigned long *)))){
 			*new_downtime_id=downtime_id;
-			schedule_new_event_unsigned_long(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,new_downtime_id);
+			schedule_new_event_unsigned_long_ptr(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,new_downtime_id);
 			}
 		}
 
@@ -406,7 +406,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 				/*** SINCE THE FLEX DOWNTIME MAY NEVER START, WE HAVE TO PROVIDE A WAY OF EXPIRING UNUSED DOWNTIME... ***/
 
-				schedule_new_event_simple(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),FALSE,0,NULL,FALSE);
+				schedule_new_event_basic(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),FALSE,0,NULL,FALSE);
 
 				return OK;
 			}
@@ -548,7 +548,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 		if((new_downtime_id=(unsigned long *)malloc(sizeof(unsigned long *)))){
 			*new_downtime_id=temp_downtime->downtime_id;
-			schedule_new_event_unsigned_long(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,new_downtime_id);
+			schedule_new_event_unsigned_long_ptr(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,new_downtime_id);
 		}
 
 		/* handle (start) downtime that is triggered by this one */

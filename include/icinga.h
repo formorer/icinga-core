@@ -295,7 +295,7 @@ typedef struct timed_event_struct{
 	unsigned long event_interval;
 	int compensate_for_time_change;
 	time_function_ptr_t timing_func;
-	event_data_ptr_t event_data;
+	event_data_obj_t event_data;
 	event_args_ptr_t event_args;
 	int event_options;
         struct timed_event_struct *next;
@@ -439,10 +439,11 @@ void display_scheduling_info(void);				/* displays service check scheduling info
 
 
 /**** Event Queue Functions ****/
-  int schedule_new_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,event_data_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+  int schedule_new_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,event_data_obj_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
 
 
-  int schedule_new_event_unsigned_long(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int event_data);	/* schedules a new timed event */
+  int schedule_new_event_unsigned_long_ptr(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int * event_data);	/* schedules a new timed event */
+  int schedule_new_event_unsigned_long(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int  event_data);	/* schedules a new timed event */
 
   int schedule_new_event_basic(int,int,time_t,int,unsigned long,time_function_ptr_t,int);	/* schedules a new timed event */
   
