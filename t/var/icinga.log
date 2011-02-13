@@ -11,3 +11,8 @@
 [1297592544] Local time is Sun Feb 13 11:22:24 CET 2011
 [1297592544] LOG VERSION: 2.0
 [1297592544] Bailing out due to one or more errors encountered in the configuration files. Run Icinga from the command line with the -v option to verify your config before restarting. (PID=14755)
+[1297592699] Error in configuration file '/mnt/sda6/experiments/icinga/mikes/t/etc/standalone/simple.cfg' - Line 4 (Temp path (t/tmp) is not a valid directory) input:(temp_path=t/tmp) variable:(temp_path)=value(t/tmp)
+[1297592699] Icinga 1.3.0 starting... (PID=14945)
+[1297592699] Local time is Sun Feb 13 11:24:59 CET 2011
+[1297592699] LOG VERSION: 2.0
+[1297592699] Bailing out due to one or more errors encountered in the configuration files. Run Icinga from the command line with the -v option to verify your config before restarting. (PID=14945)
