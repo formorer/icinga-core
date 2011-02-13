@@ -102,7 +102,7 @@ int add_new_comment(int type, int entry_type, char *host_name, char *svc_descrip
 
 	/* add an event to expire comment data if necessary... */
 	if(expires==TRUE)
-		schedule_new_event(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,(void *)new_comment_id,NULL,0);
+		schedule_new_event_comment(EVENT_EXPIRE_COMMENT,FALSE,expire_time,FALSE,0,NULL,TRUE,new_comment_id);
 
 	/* save comment id */
 	if(comment_id!=NULL)
@@ -541,9 +541,9 @@ int add_comment(int comment_type, int entry_type, char *host_name, char *svc_des
 	return OK;
         }
 
-static int comment_compar(const void *p1, const void *p2){
-	comment *c1 = *(comment **)p1;
-	comment *c2 = *(comment **)p2;
+static int comment_compar(const comment ** p1, const comment ** p2){
+	const comment *c1 = *p1;
+	const comment *c2 = *p2;
 	return (c1->comment_id < c2->comment_id) ? -1 : (c1->comment_id - c2->comment_id);
 	}
 
@@ -571,7 +571,7 @@ int sort_comments(void){
 		comment_list=comment_list->next;
 	}
 
-	qsort((void *)array, i, sizeof(*array), comment_compar);
+	qsort((void *)array, i, sizeof(*array), (__compar_fn_t)comment_compar);
 	comment_list = temp_comment = array[0];
 	for (i=1; i<unsorted_comments;i++){
 		temp_comment->next = array[i];

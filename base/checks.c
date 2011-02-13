@@ -1676,7 +1676,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 					if(temp_dependency->dependent_service_ptr==temp_service && temp_dependency->master_service_ptr!=NULL){
 						master_service=(service *)temp_dependency->master_service_ptr;
 						log_debug_info(DEBUGL_CHECKS,2,"Predictive check of service '%s' on host '%s' queued.\n",master_service->description,master_service->host_name);
-						add_object_to_objectlist(&check_servicelist,(void *)master_service);
+						add_object_to_objectlist(&check_servicelist,master_service);
 					}
 				}
 			}
@@ -1907,7 +1907,7 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 	/* see if there are any other scheduled checks of this service in the queue */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
 
-		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==(service *)temp_event->event_data){
+		if(temp_event->event_type==EVENT_SERVICE_CHECK && svc==temp_event->event_data.service){
 			found=TRUE;
 			break;
 		}
@@ -1977,8 +1977,8 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_SERVICE_CHECK;
-		new_event->event_data=(void *)svc;
-		new_event->event_args=(void *)NULL;
+		new_event->event_data.service=svc;
+		new_event->event_args=NULL;
 		new_event->event_options=options;
 		new_event->run_time=svc->next_check;
 		new_event->recurring=FALSE;
@@ -2369,7 +2369,7 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 
 	/* see if there are any other scheduled checks of this host in the queue */
 	for(temp_event=event_list_low;temp_event!=NULL;temp_event=temp_event->next){
-		if(temp_event->event_type==EVENT_HOST_CHECK && hst==(host *)temp_event->event_data){
+		if(temp_event->event_type==EVENT_HOST_CHECK && hst==temp_event->event_data.host){
 			found=TRUE;
 			break;
 		}
@@ -2439,8 +2439,8 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_HOST_CHECK;
-		new_event->event_data=(void *)hst;
-		new_event->event_args=(void *)NULL;
+		new_event->event_data.host=hst;
+		new_event->event_args=NULL;
 		new_event->event_options=options;
 		new_event->run_time=hst->next_check;
 		new_event->recurring=FALSE;
@@ -3700,7 +3700,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					continue;
 				if(parent_host->current_state!=HOST_UP){
 					log_debug_info(DEBUGL_CHECKS,1,"Check of parent host '%s' queued.\n",parent_host->name);
-					add_object_to_objectlist(&check_hostlist,(void *)parent_host);
+					add_object_to_objectlist(&check_hostlist,parent_host);
 				}
 			}
 
@@ -3713,7 +3713,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					continue;
 				if(child_host->current_state!=HOST_UP){
 					log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
-					add_object_to_objectlist(&check_hostlist,(void *)child_host);
+					add_object_to_objectlist(&check_hostlist,child_host);
 				}
 			}
 		}
@@ -3876,7 +3876,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 						continue;
 					if(child_host->current_state!=HOST_UNREACHABLE){
 						log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
-						add_object_to_objectlist(&check_hostlist,(void *)child_host);
+						add_object_to_objectlist(&check_hostlist,child_host);
 					}
 				}
 			}
@@ -3927,7 +3927,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 					if((parent_host=temp_hostsmember->host_ptr)==NULL)
 						continue;
 					if(parent_host->current_state==HOST_UP){
-						add_object_to_objectlist(&check_hostlist,(void *)parent_host);
+						add_object_to_objectlist(&check_hostlist,parent_host);
 						log_debug_info(DEBUGL_CHECKS,1,"Check of host '%s' queued.\n",parent_host->name);
 					}
 				}
@@ -3941,7 +3941,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 						continue;
 					if(child_host->current_state!=HOST_UNREACHABLE){
 						log_debug_info(DEBUGL_CHECKS,1,"Check of child host '%s' queued.\n",child_host->name);
-						add_object_to_objectlist(&check_hostlist,(void *)child_host);
+						add_object_to_objectlist(&check_hostlist,child_host);
 					}
 				}
 
@@ -3956,7 +3956,7 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 						if(temp_dependency->dependent_host_ptr==hst && temp_dependency->master_host_ptr!=NULL){
 							master_host=(host *)temp_dependency->master_host_ptr;
 							log_debug_info(DEBUGL_CHECKS,1,"Check of host '%s' queued.\n",master_host->name);
-							add_object_to_objectlist(&check_hostlist,(void *)master_host);
+							add_object_to_objectlist(&check_hostlist,master_host);
 						}
 					}
 				}

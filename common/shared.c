@@ -425,7 +425,7 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	char *months[12] =
 	    { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept",
      "Oct", "Nov", "Dec" };
-	char *tzone = "";
+	const char *tzone = "";
 
 	if (raw_time == NULL)
 		time(&t);
@@ -445,7 +445,8 @@ void get_datetime_string(time_t * raw_time, char *buffer, int buffer_length,
 	year = tm_ptr->tm_year + 1900;
 
 #ifdef HAVE_TM_ZONE
-	tzone = (char *)(tm_ptr->tm_zone);
+	//  __const char *tm_zone;
+	tzone = tm_ptr->tm_zone;
 #else
 	tzone = (tm_ptr->tm_isdst) ? tzname[1] : tzname[0];
 #endif

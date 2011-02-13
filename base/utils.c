@@ -2622,7 +2622,7 @@ int move_check_result_to_queue(char *checkresult_file){
 
 
 /* processes files in the check result queue directory */
-int process_check_result_queue(char *dirname){
+int process_check_result_queue(char *adirname){
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp=NULL;
 	struct dirent *dirfile=NULL;
@@ -2633,24 +2633,24 @@ int process_check_result_queue(char *dirname){
 	int result=OK;
 
 	/* make sure we have what we need */
-	if(dirname==NULL){
+	if(adirname==NULL){
 		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: No check result queue directory specified.\n");
 		return ERROR;
 		}
 
 	/* open the directory for reading */
-	if((dirp=opendir(dirname))==NULL){
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open check result queue directory '%s' for reading.\n",dirname);
+	if((dirp=opendir(adirname))==NULL){
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open check result queue directory '%s' for reading.\n",adirname);
 		return ERROR;
 	        }
 
-	log_debug_info(DEBUGL_CHECKS,1,"Starting to read check result queue '%s'...\n",dirname);
+	log_debug_info(DEBUGL_CHECKS,1,"Starting to read check result queue '%s'...\n",adirname);
 
 	/* process all files in the directory... */
 	while((dirfile=readdir(dirp))!=NULL){
 
 		/* create /path/to/file */
-		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
+		snprintf(file,sizeof(file),"%s/%s",adirname,dirfile->d_name);
 		file[sizeof(file)-1]='\x0';
 
 		/* process this if it's a check result file... */

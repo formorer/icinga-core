@@ -442,9 +442,9 @@ void display_scheduling_info(void);				/* displays service check scheduling info
   int schedule_new_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,event_data_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
 
 
+  int schedule_new_event_comment(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int event_data);	/* schedules a new timed event */
+
 int schedule_new_event_basic(int,int,time_t,int,unsigned long,time_function_ptr_t,int);	/* schedules a new timed event */
-
-
 
 int schedule_new_service_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,service_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
 
@@ -742,6 +742,10 @@ int submit_raw_external_command(char *,time_t *,int *);
 char *get_program_version(void);
 char *get_program_modification_date(void);
 int has_shell_metachars(const char *);
+
+
+  // missing declarations for these in utils.c
+  void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod);
 
 
 #ifdef __cplusplus

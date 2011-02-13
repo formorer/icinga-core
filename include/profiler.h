@@ -66,6 +66,9 @@ void profiler_rename(int p, char * name);
 void profiler_update(int event, struct timeval start);
 void profiler_output(FILE* fp);
 
+// in profiler.c
+void profiler_free(profiler_item *p[], int count);
+
 #endif
 
 #endif
