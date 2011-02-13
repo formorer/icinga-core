@@ -561,6 +561,7 @@ typedef union service_host_common
   host_struct_t    *   host; 
   struct timespec  *   time; 
   user_function_ptr_t  userfunc;
+  unsigned long        unsigned_long; // for integer data (EVENT_SCHEDULED_DOWNTIME)
 } service_host_common_t;
 
 

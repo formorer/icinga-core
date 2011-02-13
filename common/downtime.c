@@ -198,7 +198,7 @@ int unschedule_downtime(int type,unsigned long downtime_id){
 	for(temp_event=event_list_high;temp_event!=NULL;temp_event=temp_event->next){
 		if(temp_event->event_type!=EVENT_SCHEDULED_DOWNTIME)
 			continue;
-		if(((unsigned long)temp_event->event_data)==downtime_id)
+		if(temp_event->event_data.unsigned_long==downtime_id)
 			break;
 	        }
 	if(temp_event!=NULL)
@@ -323,7 +323,7 @@ int register_downtime(int type, unsigned long downtime_id){
 	if(temp_downtime->triggered_by==0){
 		if((new_downtime_id=(unsigned long *)malloc(sizeof(unsigned long *)))){
 			*new_downtime_id=downtime_id;
-			schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,(void *)new_downtime_id,NULL,0);
+			schedule_new_event_unsigned_long(EVENT_SCHEDULED_DOWNTIME,TRUE,temp_downtime->start_time,FALSE,0,NULL,FALSE,new_downtime_id);
 			}
 		}
 
@@ -406,7 +406,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 				/*** SINCE THE FLEX DOWNTIME MAY NEVER START, WE HAVE TO PROVIDE A WAY OF EXPIRING UNUSED DOWNTIME... ***/
 
-				schedule_new_event(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),FALSE,0,NULL,FALSE,NULL,NULL,0);
+				schedule_new_event_simple(EVENT_EXPIRE_DOWNTIME,TRUE,(temp_downtime->end_time+1),FALSE,0,NULL,FALSE);
 
 				return OK;
 			}
@@ -548,7 +548,7 @@ int handle_scheduled_downtime(scheduled_downtime *temp_downtime){
 
 		if((new_downtime_id=(unsigned long *)malloc(sizeof(unsigned long *)))){
 			*new_downtime_id=temp_downtime->downtime_id;
-			schedule_new_event(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,(void *)new_downtime_id,NULL,0);
+			schedule_new_event_unsigned_long(EVENT_SCHEDULED_DOWNTIME,TRUE,event_time,FALSE,0,NULL,FALSE,new_downtime_id);
 		}
 
 		/* handle (start) downtime that is triggered by this one */
@@ -982,9 +982,9 @@ int add_downtime(int downtime_type, char *host_name, char *svc_description, time
 	return OK;
         }
 
-static int downtime_compar(const void *p1, const void *p2){
-	scheduled_downtime *d1 = *(scheduled_downtime **)p1;
-	scheduled_downtime *d2 = *(scheduled_downtime **)p2;
+static int downtime_compar(const scheduled_downtime **p1, const scheduled_downtime **p2){
+	const scheduled_downtime *d1 = *p1;
+	const scheduled_downtime *d2 = *p2;
 	return (d1->start_time < d2->start_time) ? -1 : (d1->start_time - d2->start_time);
 	}
 
@@ -1012,7 +1012,7 @@ int sort_downtime(void){
 		scheduled_downtime_list=scheduled_downtime_list->next;
 	}
 
-	qsort((void *)array, i, sizeof(*array), downtime_compar);
+	qsort((void *)array, i, sizeof(*array), (__compar_fn_t)downtime_compar);
 	scheduled_downtime_list = temp_downtime = array[0];
 	for (i=1; i<unsorted_downtimes;i++){
 		temp_downtime->next = array[i];

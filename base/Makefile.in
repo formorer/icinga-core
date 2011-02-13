@@ -121,7 +121,7 @@ DDATAHDRS=
 DDATADEPS=$(DDATALIBS)
 
 
-OBJS=$(BROKER_O) $(SRC_COMMON)/shared.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o skiplist.o utils.o profiler.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O) $(PERLXSI_O)
+OBJS=$(BROKER_O) $(SRC_COMMON)/shared.o checks.o config.o commands.o events.o flapping.o logging.o macros-base.o netutils.o notifications.o sehandlers.o skiplist.o utils.o profiler.o helpers.o $(RDATALIBS) $(CDATALIBS) $(ODATALIBS) $(SDATALIBS) $(PDATALIBS) $(DDATALIBS) $(BASEEXTRALIBS) $(SNPRINTF_O) $(PERLXSI_O)
 OBJDEPS=$(ODATADEPS) $(ODATADEPS) $(RDATADEPS) $(CDATADEPS) $(SDATADEPS) $(PDATADEPS) $(DDATADEPS) $(BROKER_H)
 
 all: icinga icingastats
@@ -170,6 +170,9 @@ retention-base.o: sretention.c $(SRC_INCLUDE)/sretention.h
 
 xretention-base.o: $(SRC_XDATA)/$(XRDC) $(SRC_XDATA)/$(XRDH)
 	$(CC) $(CFLAGS) -c -o $@ $(SRC_XDATA)/$(XRDC)
+
+helpers.o: helpers.c
+	$(CC) $(CFLAGS) -c -o $@ helpers.c
 
 $(SRC_COMMON)/shared.o: $(SRC_COMMON)/shared.c
 	$(CC) $(CFLAGS) -c -o $@ $<

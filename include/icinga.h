@@ -442,14 +442,14 @@ void display_scheduling_info(void);				/* displays service check scheduling info
   int schedule_new_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,event_data_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
 
 
-  int schedule_new_event_comment(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int event_data);	/* schedules a new timed event */
+  int schedule_new_event_unsigned_long(int,int,time_t,int,unsigned long,time_function_ptr_t,int,long unsigned int event_data);	/* schedules a new timed event */
 
-int schedule_new_event_basic(int,int,time_t,int,unsigned long,time_function_ptr_t,int);	/* schedules a new timed event */
-
-int schedule_new_service_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,service_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
-
-int schedule_new_host_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,host_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
-
+  int schedule_new_event_basic(int,int,time_t,int,unsigned long,time_function_ptr_t,int);	/* schedules a new timed event */
+  
+  int schedule_new_service_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,service_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+  
+  int schedule_new_host_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,host_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+  
 
 void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
 void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
@@ -746,6 +746,9 @@ int has_shell_metachars(const char *);
 
   // missing declarations for these in utils.c
   void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod);
+
+  // commons/objects.c
+  escalation_condition *add_host_service_escalation_condition(hostescalation *my_hostescalation, serviceescalation *my_serviceescalation, escalation_condition *last_condition, char *host_name, char *service_description, int connector, int escalate_on_down, int escalate_on_unreachable, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_ok);
 
 
 #ifdef __cplusplus
