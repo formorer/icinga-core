@@ -33,3 +33,24 @@
 [1297593113] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
 [1297593173] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
 [1297593233] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297600867] Icinga 1.3.0 starting... (PID=7962)
+[1297600867] Local time is Sun Feb 13 13:41:07 CET 2011
+[1297600867] LOG VERSION: 2.0
+[1297600899] Icinga 1.3.0 starting... (PID=7965)
+[1297600899] Local time is Sun Feb 13 13:41:39 CET 2011
+[1297600899] LOG VERSION: 2.0
+[1297600902] Icinga 1.3.0 starting... (PID=7967)
+[1297600902] Local time is Sun Feb 13 13:41:42 CET 2011
+[1297600902] LOG VERSION: 2.0
+[1297600914] Icinga 1.3.0 starting... (PID=7969)
+[1297600914] Local time is Sun Feb 13 13:41:54 CET 2011
+[1297600914] LOG VERSION: 2.0
+[1297600916] Icinga 1.3.0 starting... (PID=7971)
+[1297600916] Local time is Sun Feb 13 13:41:56 CET 2011
+[1297600916] LOG VERSION: 2.0
+[1297600921] Icinga 1.3.0 starting... (PID=7996)
+[1297600921] Local time is Sun Feb 13 13:42:01 CET 2011
+[1297600921] LOG VERSION: 2.0
+[1297602832] Icinga 1.3.0 starting... (PID=8920)
+[1297602832] Local time is Sun Feb 13 14:13:52 CET 2011
+[1297602832] LOG VERSION: 2.0

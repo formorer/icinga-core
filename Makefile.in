@@ -288,8 +288,10 @@ devclean: distclean
 ###############################
 
 test:
+	$(MAKE) test-run_command
 	$(MAKE) test-perl
 	$(MAKE) test-tap
+
 
 test-tap: tap/src/tap.o icinga cgis
 	@if [ x$(USE_LIBTAP) = xyes ]; then \
@@ -297,6 +299,9 @@ test-tap: tap/src/tap.o icinga cgis
 	else \
 		echo "NOTE: You must run configure with --enable-libtap to run the C tap tests"; \
 	fi
+
+test-run_command : t/unit/run_command
+	cd t/unit && $(MAKE) test; 
 
 tap/src/tap.o:
 	cd tap && $(MAKE)

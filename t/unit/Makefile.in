@@ -1,0 +1,86 @@
+############################
+# Makefile for Icinga unit tests
+############################
+
+
+# Source code directories
+SRC_BASE=../../base
+SRC_COMMON=../../common
+SRC_INCLUDE=../../include
+SRC_XDATA=../../xdata
+
+CC=c99-gcc
+CFLAGS=@CFLAGS@ @DEFS@ -pedantic -Wall -g -O2 -DHAVE_CONFIG_H -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes  -DNSCORE
+
+
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+HTMLDIR=@datarootdir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+COMMAND_OPTS=@COMMAND_OPTS@
+STRIP=@STRIP@
+
+CGIURL=@cgiurl@
+HTMURL=@htmurl@
+
+MATHLIBS=-lm
+PERLLIBS=@PERLLIBS@
+PERLXSI_O=@PERLXSI_O@
+SOCKETLIBS=@SOCKETLIBS@
+THREADLIBS=@THREADLIBS@
+BROKERLIBS=@BROKERLIBS@
+
+BROKER_LDFLAGS=@BROKER_LDFLAGS@ 
+
+CP=@CP@
+
+# External data I/O code and headers
+XSDC=@XSDC@
+XSDH=@XSDH@
+XCDC=@XCDC@
+XCDH=@XCDH@
+XRDC=@XRDC@
+XRDH=@XRDH@
+XODC=@XODC@
+XODH=@XODH@
+XPDC=@XPDC@
+XPDH=@XPDH@
+XDDC=@XDDC@
+XDDH=@XDDH@
+
+# Extra base code
+BASEEXTRALIBS=@BASEEXTRALIBS@
+
+# Generated automatically from configure script
+SNPRINTF_O=@SNPRINTF_O@
+
+OBJS= $(SRC_BASE)/libicinga.a 
+OBJDEPS=
+
+all: run_command
+
+
+########## ICINGA ##########
+
+run_command: run_command.c $(OBJS) $(OBJDEPS) $(SRC_INCLUDE)/icinga.h $(SRC_INCLUDE)/locations.h
+	$(CC) $(CFLAGS) -o $@ run_command.c $(OBJS)  $(LDFLAGS) $(PERLLIBS) $(MATHLIBS) $(SOCKETLIBS) $(THREADLIBS)  $(LIBS)
+
+$(OBJS): $(SRC_INCLUDE)/locations.h
+
+clean:
+	rm -f run_command core *.o gmon.out
+	rm -f *~ *.*~
+
+distclean: clean
+	rm -f Makefile
+
+devclean: distclean
+
