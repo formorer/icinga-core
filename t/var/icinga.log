@@ -54,3 +54,13 @@
 [1297602832] Icinga 1.3.0 starting... (PID=8920)
 [1297602832] Local time is Sun Feb 13 14:13:52 CET 2011
 [1297602832] LOG VERSION: 2.0
+[1297630571] Icinga 1.3.0 starting... (PID=1259)
+[1297630571] Local time is Sun Feb 13 21:56:11 CET 2011
+[1297630571] LOG VERSION: 2.0
+[1297630571] going to exec: t/usr/local/icinga/libexec/check_me
+[1297630571] checking cmd(t/usr/local/icinga/libexec/check_me) argv[0]=(null)
+[1297630571] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297630571] checking output(checking cmd(t/usr/local/icinga/libexec/check_me) argv[0]=(null)
+)
+[1297630571] checking output(error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+)

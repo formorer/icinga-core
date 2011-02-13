@@ -150,9 +150,12 @@ static void extract_check_result(FILE *fp,dbuf *checkresult_dbuf){
 
 	/* get all lines of plugin output - escape newlines */
 	while(fgets(output_buffer,sizeof(output_buffer)-1,fp)){
-		temp_buffer=escape_newlines(output_buffer);
-		dbuf_strcat(checkresult_dbuf,temp_buffer);
-		my_free(temp_buffer);
+	  
+	  logit(NSLOG_RUNTIME_WARNING,TRUE,"checking output(%s)\n",output_buffer);
+	  
+	  temp_buffer=escape_newlines(output_buffer);
+	  dbuf_strcat(checkresult_dbuf,temp_buffer);
+	  my_free(temp_buffer);
 	}
 }
 
@@ -167,6 +170,7 @@ static int parse_command_line(char *cmd, char *argv[MAX_CMD_ARGS]){
 
 	/* Parse command line. */
 	while(*cmd&&(argc<MAX_CMD_ARGS-1)){
+	  logit(NSLOG_RUNTIME_WARNING,TRUE,"checking cmd(%s) argv[%d]=%s\n",cmd,argc,argv[argc]);
 		argv[argc++]=parsed_cmd;
 
 		switch(*cmd){
@@ -217,6 +221,8 @@ static int run_check(char *processed_command,dbuf *checkresult_dbuf){
 	int pipefds[2];
 	int retval;
 
+	logit(NSLOG_RUNTIME_WARNING,TRUE,"going to exec: %s\n", processed_command);
+			
 	/* check for check execution method (shell or execvp) */
 	if(!has_shell_metachars(processed_command)){
 
@@ -2196,7 +2202,10 @@ void check_service_result_freshness(void){
 
 		/* skip services we shouldn't be checking for freshness */
 		if(temp_service->check_freshness==FALSE)
+		  {
+		    log_debug_info(DEBUGL_CHECKS,1,"skip services we shouldn't be checking for freshness\n");
 			continue;
+		  }
 
 		/* skip services that are currently executing (problems here will be caught by orphaned service check) */
 		if(temp_service->is_executing==TRUE)
@@ -2212,7 +2221,10 @@ void check_service_result_freshness(void){
 
 		/* see if the time is right... */
 		if(check_time_against_period(current_time,temp_service->check_period_ptr)==ERROR)
+		  {
+		    log_debug_info(DEBUGL_CHECKS,2,"Service freshness period is wrong.\n");
 			continue;
+		  }
 
 		/* EXCEPTION */
 		/* don't check freshness of services without regular check intervals if we're using auto-freshness threshold */
@@ -2221,6 +2233,8 @@ void check_service_result_freshness(void){
 
 		/* the results for the last check of this service are stale! */
 		if(is_service_result_fresh(temp_service,current_time,TRUE)==FALSE){
+
+		  log_debug_info(DEBUGL_CHECKS,2,"Service freshness time right.\n");
 
 			/* set the freshen flag */
 			temp_service->is_being_freshened=TRUE;
@@ -2609,10 +2623,15 @@ void check_host_result_freshness(void){
 
 		/* see if the time is right... */
 		if(check_time_against_period(current_time,temp_host->check_period_ptr)==ERROR)
+		  {
+		    log_debug_info(DEBUGL_CHECKS,2,"Host freshness time is out of period.\n");
 			continue;
+		  }
 
 		/* the results for the last check of this host are stale */
 		if(is_host_result_fresh(temp_host,current_time,TRUE)==FALSE){
+
+		  log_debug_info(DEBUGL_CHECKS,2,"Host freshness time right.\n");
 
 			/* set the freshen flag */
 			temp_host->is_being_freshened=TRUE;
@@ -2620,6 +2639,10 @@ void check_host_result_freshness(void){
 			/* schedule an immediate forced check of the host */
 			schedule_host_check(temp_host,current_time,CHECK_OPTION_FORCE_EXECUTION | CHECK_OPTION_FRESHNESS_CHECK);
 		}
+		else
+		  {
+		    log_debug_info(DEBUGL_CHECKS,2,"Host freshness time wrong.\n");
+		  }
 	}
 
 	return;

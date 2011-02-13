@@ -277,7 +277,7 @@ int             debug_level=DEFAULT_DEBUG_LEVEL;
 int             debug_verbosity=DEFAULT_DEBUG_VERBOSITY;
 unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
-
+extern service  *service_list;
 
 
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
@@ -895,6 +895,14 @@ int main(int argc, char **argv, char **env){
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
 			//event_execution_loop();
+			//handle_timed_event(temp_event)
+			service *temp_service=NULL;
+			for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
+			  //temp_service->description
+			  run_scheduled_service_check(temp_service, 0, 0);
+			}
+
+
 
 			/* 03/01/2007 EG Moved from sighandler() to prevent FUTEX locking problems under NPTL */
 			/* 03/21/2007 EG SIGSEGV signals are still logged in sighandler() so we don't loose them */
