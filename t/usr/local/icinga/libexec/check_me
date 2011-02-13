@@ -1,0 +1,100 @@
+#!/usr/bin/perl 
+# *-*- perl -*-*
+use strict;
+use warnings;
+#use Nagios::Plugin::Performance use_die => 1;
+
+# # Constructor (also accepts a 'threshold' obj instead of warning/critical)
+#   $p = Nagios::Plugin::Performance->new(
+#       label     => 'size',
+#       value     => 1000,
+#       uom       => "kB",
+#       warning   => 10,
+#       critical  => 100,
+#       min       => 1,
+#       max       => 1000,
+#   );
+
+
+#   # Perfdata output format i.e. label=value[uom];[warn];[crit];[min];[max]
+#   print $p->perfoutput;
+
+#echo "Hello world OK| test=1";
+#exit 0;
+# Constants OK, WARNING, CRITICAL, and UNKNOWN are exported by default
+# See also Nagios::Plugin::Functions for a functional interface
+use Nagios::Plugin;
+
+# Constructor
+#$np = Nagios::Plugin->new;                               # OR
+my $np = Nagios::Plugin->new( shortname => "PAGESIZE" );    # OR
+
+
+# use Nagios::Plugin::Getopt to process the @ARGV command line options:
+#   --verbose, --help, --usage, --timeout and --host are defined automatically.
+$np = Nagios::Plugin->new(  
+    usage => "Usage: %s [ -v|--verbose ]  [-H <host>] [-t <timeout>] "
+    . "[ -c|--critical=<threshold> ] [ -w|--warning=<threshold> ]",
+    );
+
+# add valid command line options and build them into your usage/help documentation.
+$np->add_arg(
+    spec => 'warning|w=s',
+    help => '-w, --warning=INTEGER:INTEGER .  See '
+    . 'http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT '
+    . 'for the threshold format. ',
+    );
+
+   # Parse @ARGV and process standard arguments (e.g. usage, help, version)
+$np->getopts;
+
+
+   # Exit/return value methods - nagios_exit( CODE, MESSAGE ), 
+   #                             nagios_die( MESSAGE, [CODE])
+#   $page = retrieve_page($page1)
+#       or $np->nagios_exit( UNKNOWN, "Could not retrieve page" );
+       # Return code: 3; 
+       #   output: PAGESIZE UNKNOWN - Could not retrieve page 
+#   test_page($page)
+#       or $np->nagios_exit( CRITICAL, "Bad page found" );
+
+   # nagios_die() is just like nagios_exit(), but return code defaults 
+   #   to UNKNOWN
+#   $page = retrieve_page($page2)
+#     or $np->nagios_die( "Could not retrieve page" );
+     # Return code: 3; 
+     #   output: PAGESIZE UNKNOWN - Could not retrieve page
+
+   # Threshold methods 
+#   $code = $np->check_threshold(
+#     check => $value,
+#     warning => $warning_threshold,
+#     critical => $critical_threshold,
+#   );
+#   $np->nagios_exit( $code, "Threshold check failed" ) if $code != OK;
+
+
+   # Message methods (EXPERIMENTAL AND SUBJECT TO CHANGE) -
+   #   add_message( CODE, $message ); check_messages()
+ #   for (@collection) {
+#      if (m/Error/) {
+#        $np->add_message( CRITICAL, $_ );
+#      } else {
+#        $np->add_message( OK, $_ );
+#      }
+#    }
+# #
+#($code, $message) = $np->check_message();
+
+my $value=100;
+# Perfdata methods
+$np->add_perfdata( 
+    label => "size",
+    value => $value,
+    uom => "kB",
+    threshold => 10,
+    warning => 1000,
+    critical=> 10000
+    );
+
+$np->nagios_exit( OK, "page size at http://... was ${value}kB" );

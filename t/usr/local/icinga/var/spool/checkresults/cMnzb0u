@@ -1,0 +1,18 @@
+### Active Check Result File ###
+file_time=1297505724
+
+### Icinga Service Check Result ###
+# Time: Sat Feb 12 11:15:24 2011
+host_name=host1
+service_description=Dummy service
+check_type=0
+check_options=0
+scheduled_check=1
+reschedule_check=1
+latency=-13.030000
+start_time=1297505724.981825
+finish_time=1297505725.460848
+early_timeout=0
+exited_ok=1
+return_code=0
+output=checking cmd(t/usr/local/icinga/libexec/check_me) argv[0]=(null)\nME OK - page size at http://... was 100kB | size=100kB;1000;10000\n
