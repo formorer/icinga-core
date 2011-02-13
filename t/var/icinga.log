@@ -21,3 +21,15 @@
 [1297592726] LOG VERSION: 2.0
 [1297592726] Error: Could not create external command file 't/var/rw/icinga.cmd' as named pipe: (2) -> No such file or directory.  If this file already exists and you are sure that another copy of Icinga is not running, you should delete this file.
 [1297592726] Bailing out due to errors encountered while trying to initialize the external command file... (PID=14973)
+[1297592753] Icinga 1.3.0 starting... (PID=15011)
+[1297592753] Local time is Sun Feb 13 11:25:53 CET 2011
+[1297592753] LOG VERSION: 2.0
+[1297592813] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297592873] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297592933] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297592943] SERVICE ALERT: host1;Dummy service;UNKNOWN;HARD;3;error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297592993] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297593053] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297593113] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297593173] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
+[1297593233] error executing command 't/usr/local/icinga/libexec/check_me': No such file or directory. Make sure that the file actually exists (in PATH, if set) and is executable!
