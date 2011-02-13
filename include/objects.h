@@ -550,6 +550,7 @@ typedef struct service_struct{
 
 
 typedef void (*user_function_ptr_t)(void *);
+typedef int (*simple_callback_ptr_t)(void);
 
     /*
       union between services and hosts
@@ -561,6 +562,8 @@ typedef union service_host_common
   host_struct_t    *   host; 
   struct timespec  *   time; 
   user_function_ptr_t  userfunc;
+  simple_callback_ptr_t simple_callback;
+
   unsigned long        unsigned_long; // for integer data (EVENT_SCHEDULED_DOWNTIME)
   unsigned long *      unsigned_long_ptr; // for integer data (EVENT_SCHEDULED_DOWNTIME)
 } service_host_common_t;

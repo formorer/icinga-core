@@ -57,7 +57,7 @@ typedef struct nebstruct_timed_event_struct{
 	int             event_type;
 	int             recurring;
 	time_t          run_time;
-	event_data_ptr_t event_data;
+	event_data_obj_t event_data;
 	event_args_ptr_t event_ptr;
         }nebstruct_timed_event_data;
 

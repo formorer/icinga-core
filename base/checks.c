@@ -1978,7 +1978,7 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_SERVICE_CHECK;
 		new_event->event_data.service=svc;
-		new_event->event_args=NULL;
+		new_event->event_args=0;
 		new_event->event_options=options;
 		new_event->run_time=svc->next_check;
 		new_event->recurring=FALSE;
@@ -2440,7 +2440,7 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_HOST_CHECK;
 		new_event->event_data.host=hst;
-		new_event->event_args=NULL;
+		new_event->event_args=0;
 		new_event->event_options=options;
 		new_event->run_time=hst->next_check;
 		new_event->recurring=FALSE;

@@ -34,15 +34,13 @@
   extern "C" {
 #endif
 
-#ifdef NSCGI
-
+    // used by both NSCG and otherwise
 #define READ_PROGRAM_STATUS	1
 #define READ_HOST_STATUS	2
 #define READ_SERVICE_STATUS	4
 #define READ_CONTACT_STATUS     8
 
 #define READ_ALL_STATUS_DATA    READ_PROGRAM_STATUS | READ_HOST_STATUS | READ_SERVICE_STATUS | READ_CONTACT_STATUS
-
 
 
 /*************************** CHAINED HASH LIMITS ***************************/
@@ -171,10 +169,10 @@ typedef struct servicestatus_struct{
 
 /**************************** HOST STATES ****************************/
 
-#define HOST_PENDING			1
-#define HOST_UP				2
-#define HOST_DOWN			4
-#define HOST_UNREACHABLE		8
+#define STATUS_HOST_PENDING			1
+#define STATUS_HOST_UP				2
+#define STATUS_HOST_DOWN			4
+#define STATUS_HOST_UNREACHABLE		8
 
 
 
@@ -192,7 +190,7 @@ hoststatus *find_hoststatus(char *);                    /* finds status informat
 int get_servicestatus_count(char *,int);		/* gets total number of services of a certain type for a specific host */
 
 void free_status_data(void);                            /* free all memory allocated to status data */
-#endif
+
 
 #ifdef NSCORE
 int initialize_status_data(char *);                     /* initializes status data at program start */

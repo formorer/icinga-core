@@ -80,7 +80,7 @@ void broker_program_state(int type, int flags, int attr, struct timeval *timesta
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_PROCESS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_PROCESS_DATA,&ds);
 
 	return;
         }
@@ -106,10 +106,10 @@ void broker_timed_event(int type, int flags, int attr, timed_event *event, struc
 	ds.recurring=event->recurring;
 	ds.run_time=event->run_time;
 	ds.event_data=event->event_data;
-	ds.event_ptr=(void *)event;
+	ds.event_ptr=event;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_TIMED_EVENT_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_TIMED_EVENT_DATA,&ds);
 
 	return;
         }
@@ -134,7 +134,7 @@ void broker_log_data(int type, int flags, int attr, char *data, unsigned long da
 	ds.data=data;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_LOG_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_LOG_DATA,&ds);
 
 	return;
         }
@@ -167,7 +167,7 @@ void broker_system_command(int type, int flags, int attr, struct timeval start_t
 	ds.output=output;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_SYSTEM_COMMAND_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_SYSTEM_COMMAND_DATA,&ds);
 
 	return;
         }
@@ -229,7 +229,7 @@ int broker_event_handler(int type, int flags, int attr, int eventhandler_type, v
 	ds.output=output;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_EVENT_HANDLER_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_EVENT_HANDLER_DATA,&ds);
 
 	/* free memory */
 	my_free(command_buf);
@@ -268,7 +268,7 @@ int broker_host_check(int type, int flags, int attr, host *hst, int check_type, 
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	ds.host_name=hst->name;
-	ds.object_ptr=(void *)hst;
+	ds.object_ptr=hst;
 	ds.check_type=check_type;
 	ds.current_attempt=hst->current_attempt;
 	ds.max_attempts=hst->max_attempts;
@@ -289,7 +289,7 @@ int broker_host_check(int type, int flags, int attr, host *hst, int check_type, 
 	ds.perf_data=perfdata;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_HOST_CHECK_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_HOST_CHECK_DATA,&ds);
 
 	/* free data */
 	my_free(command_buf);
@@ -328,7 +328,7 @@ int broker_service_check(int type, int flags, int attr, service *svc, int check_
 
 	ds.host_name=svc->host_name;
 	ds.service_description=svc->description;
-	ds.object_ptr=(void *)svc;
+	ds.object_ptr=svc;
 	ds.check_type=check_type;
 	ds.current_attempt=svc->current_attempt;
 	ds.max_attempts=svc->max_attempts;
@@ -349,7 +349,7 @@ int broker_service_check(int type, int flags, int attr, service *svc, int check_
 	ds.perf_data=svc->perf_data;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_SERVICE_CHECK_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_SERVICE_CHECK_DATA,&ds);
 
 	/* free data */
 	my_free(command_buf);
@@ -387,7 +387,7 @@ void broker_comment_data(int type, int flags, int attr, int comment_type, int en
 	ds.comment_id=comment_id;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_COMMENT_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_COMMENT_DATA,&ds);
 
 	return;
         }
@@ -422,7 +422,7 @@ void broker_downtime_data(int type, int flags, int attr, int downtime_type, char
 	ds.downtime_id=downtime_id;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_DOWNTIME_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_DOWNTIME_DATA,&ds);
 
 	return;
         }
@@ -466,7 +466,7 @@ void broker_flapping_data(int type, int flags, int attr, int flapping_type, void
 	ds.low_threshold=low_threshold;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_FLAPPING_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_FLAPPING_DATA,&ds);
 
 	return;
         }
@@ -507,7 +507,7 @@ void broker_program_status(int type, int flags, int attr, struct timeval *timest
 	ds.global_service_event_handler=global_service_event_handler;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_PROGRAM_STATUS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_PROGRAM_STATUS_DATA,&ds);
 
 	return;
         }
@@ -527,10 +527,10 @@ void broker_host_status(int type, int flags, int attr, host *hst, struct timeval
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
-	ds.object_ptr=(void *)hst;
+	ds.object_ptr=hst;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_HOST_STATUS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_HOST_STATUS_DATA,&ds);
 
 	return;
         }
@@ -550,10 +550,10 @@ void broker_service_status(int type, int flags, int attr, service *svc, struct t
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
-	ds.object_ptr=(void *)svc;
+	ds.object_ptr=svc;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_SERVICE_STATUS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_SERVICE_STATUS_DATA,&ds);
 
 	return;
         }
@@ -573,10 +573,10 @@ void broker_contact_status(int type, int flags, int attr, contact *cntct, struct
 	ds.attr=attr;
 	ds.timestamp=get_broker_timestamp(timestamp);
 
-	ds.object_ptr=(void *)cntct;
+	ds.object_ptr=cntct;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_CONTACT_STATUS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_CONTACT_STATUS_DATA,&ds);
 
 	return;
         }
@@ -624,7 +624,7 @@ int broker_notification_data(int type, int flags, int attr, int notification_typ
 	ds.contacts_notified=contacts_notified;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_NOTIFICATION_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_NOTIFICATION_DATA,&ds);
 
 	return return_code;
         }
@@ -667,13 +667,13 @@ int broker_contact_notification_data(int type, int flags, int attr, int notifica
 		ds.output=temp_host->plugin_output;
 	        }
 	ds.object_ptr=data;
-	ds.contact_ptr=(void *)cntct;
+	ds.contact_ptr=cntct;
 	ds.ack_author=ack_author;
 	ds.ack_data=ack_data;
 	ds.escalated=escalated;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_DATA,&ds);
 
 	return return_code;
         }
@@ -727,13 +727,13 @@ int broker_contact_notification_method_data(int type, int flags, int attr, int n
 		ds.output=temp_host->plugin_output;
 	        }
 	ds.object_ptr=data;
-	ds.contact_ptr=(void *)cntct;
+	ds.contact_ptr=cntct;
 	ds.ack_author=ack_author;
 	ds.ack_data=ack_data;
 	ds.escalated=escalated;
 
 	/* make callbacks */
-	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA,(void *)&ds);
+	return_code=neb_make_callbacks(NEBCALLBACK_CONTACT_NOTIFICATION_METHOD_DATA,&ds);
 
 	/* free memory */
 	my_free(command_buf);
@@ -762,7 +762,7 @@ void broker_adaptive_program_data(int type, int flags, int attr, int command_typ
 	ds.modified_service_attributes=modsattrs;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_PROGRAM_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_PROGRAM_DATA,&ds);
 
 	return;
         }
@@ -784,10 +784,10 @@ void broker_adaptive_host_data(int type, int flags, int attr, host *hst, int com
 	ds.command_type=command_type;
 	ds.modified_attribute=modattr;
 	ds.modified_attributes=modattrs;
-	ds.object_ptr=(void *)hst;
+	ds.object_ptr=hst;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_HOST_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_HOST_DATA,&ds);
 
 	return;
         }
@@ -809,10 +809,10 @@ void broker_adaptive_service_data(int type, int flags, int attr, service *svc, i
 	ds.command_type=command_type;
 	ds.modified_attribute=modattr;
 	ds.modified_attributes=modattrs;
-	ds.object_ptr=(void *)svc;
+	ds.object_ptr=svc;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_SERVICE_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_SERVICE_DATA,&ds);
 
 	return;
         }
@@ -838,10 +838,10 @@ void broker_adaptive_contact_data(int type, int flags, int attr, contact *cntct,
 	ds.modified_host_attributes=modhattrs;
 	ds.modified_service_attribute=modsattr;
 	ds.modified_service_attributes=modsattrs;
-	ds.object_ptr=(void *)cntct;
+	ds.object_ptr=cntct;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_CONTACT_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_ADAPTIVE_CONTACT_DATA,&ds);
 
 	return;
         }
@@ -866,7 +866,7 @@ void broker_external_command(int type, int flags, int attr, int command_type, ti
 	ds.command_args=command_args;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_EXTERNAL_COMMAND_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_EXTERNAL_COMMAND_DATA,&ds);
 
 	return;
         }
@@ -886,7 +886,7 @@ void broker_aggregated_status_data(int type, int flags, int attr, struct timeval
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_AGGREGATED_STATUS_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_AGGREGATED_STATUS_DATA,&ds);
 
 	return;
         }
@@ -906,7 +906,7 @@ void broker_retention_data(int type, int flags, int attr, struct timeval *timest
 	ds.timestamp=get_broker_timestamp(timestamp);
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_RETENTION_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_RETENTION_DATA,&ds);
 
 	return;
         }
@@ -948,7 +948,7 @@ void broker_acknowledgement_data(int type, int flags, int attr, int acknowledgem
 	ds.persistent_comment=persistent_comment;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_ACKNOWLEDGEMENT_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_ACKNOWLEDGEMENT_DATA,&ds);
 
 	return;
         }
@@ -989,7 +989,7 @@ void broker_statechange_data(int type, int flags, int attr, int statechange_type
 	ds.max_attempts=max_attempts;
 
 	/* make callbacks */
-	neb_make_callbacks(NEBCALLBACK_STATE_CHANGE_DATA,(void *)&ds);
+	neb_make_callbacks(NEBCALLBACK_STATE_CHANGE_DATA,&ds);
 
 	return;
         }

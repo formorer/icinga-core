@@ -340,21 +340,21 @@ int add_host_status(hoststatus *new_hoststatus){
 	if(new_hoststatus!=NULL){
 		switch(new_hoststatus->status){
 		case 0:
-			new_hoststatus->status=HOST_UP;
+			new_hoststatus->status=STATUS_HOST_UP;
 			break;
 		case 1:
-			new_hoststatus->status=HOST_DOWN;
+			new_hoststatus->status=STATUS_HOST_DOWN;
 			break;
 		case 2:
-			new_hoststatus->status=HOST_UNREACHABLE;
+			new_hoststatus->status=STATUS_HOST_UNREACHABLE;
 			break;
 		default:
-			new_hoststatus->status=HOST_UP;
+			new_hoststatus->status=STATUS_HOST_UP;
 			break;
 		        }
 		if(new_hoststatus->has_been_checked==FALSE){
 			if(use_pending_states==TRUE)
-				new_hoststatus->status=HOST_PENDING;
+				new_hoststatus->status=STATUS_HOST_PENDING;
 			my_free(new_hoststatus->plugin_output);
 			if(new_hoststatus->should_be_scheduled==TRUE){
 				get_time_string(&new_hoststatus->next_check,date_string,sizeof(date_string),LONG_DATE_TIME);

@@ -898,7 +898,7 @@ void display_scheduling_info(void){
 
 
 /* schedule a new timed event */
-int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, time_function_ptr_t timing_func, int compensate_for_time_change, event_data_ptr_t event_data,event_args_ptr_t event_args, int event_options){
+int schedule_new_event(int event_type, int high_priority, time_t run_time, int recurring, unsigned long event_interval, time_function_ptr_t timing_func, int compensate_for_time_change, event_data_obj_t event_data,event_args_ptr_t event_args, int event_options){
 	timed_event **event_list=NULL;
 	timed_event **event_list_tail=NULL;
 	timed_event *new_event=NULL;

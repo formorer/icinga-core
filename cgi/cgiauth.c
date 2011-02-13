@@ -499,7 +499,7 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 	char *host_list2=NULL;
 	char *service_list=NULL;
 	char *list_tmp=NULL;
-	char *service=NULL;
+	char *theservice=NULL;
 	char *host2=NULL;
 	char *read_only=NULL;
 	char *list_tmp2=NULL;
@@ -561,11 +561,11 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 
 				service_list=strtok(NULL,":");
 				read_only=strtok(NULL,":");
-				service=strtok(service_list,",");
+				theservice=strtok(service_list,",");
 
-				while (service!=NULL) {
-					list_tmp2=malloc(strlen(service)+1);
-					strcpy(list_tmp2,service);
+				while (theservice!=NULL) {
+					list_tmp2=malloc(strlen(theservice)+1);
+					strcpy(list_tmp2,theservice);
 					strip(list_tmp2);
 
 					/* service group parsing */
@@ -579,7 +579,7 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 						if (is_service_member_of_servicegroup(find_servicegroup(sg_name),svc)==TRUE){
 							is_ok2=TRUE;
 						} else {
-							service=strtok(NULL,",");
+							theservice=strtok(NULL,",");
 							free(sg_name);
 							continue;
 						}
@@ -641,7 +641,7 @@ int is_authorized_for_service(service *svc, authdata *authinfo){
 						}
 					}
 
-					service=strtok(NULL,",");
+					theservice=strtok(NULL,",");
 					free(list_tmp2);
 				}
 

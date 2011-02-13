@@ -588,7 +588,7 @@ int xodtemplate_grab_config_info(char *main_config_file){
 
 
 /* process all files in a specific config directory */
-int xodtemplate_process_config_dir(char *dirname, int options){
+int xodtemplate_process_config_dir(char *adirname, int options){
 	char file[MAX_FILENAME_LENGTH];
 	DIR *dirp=NULL;
 	struct dirent *dirfile=NULL;
@@ -598,13 +598,13 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 
 #ifdef NSCORE
 	if(verify_config==TRUE)
-		printf("Processing object config directory '%s'...\n",dirname);
+		printf("Processing object config directory '%s'...\n",adirname);
 #endif
 
 	/* open the directory for reading */
-	dirp=opendir(dirname);
+	dirp=opendir(adirname);
         if(dirp==NULL){
-		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open config directory '%s' for reading.\n",dirname);
+		logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not open config directory '%s' for reading.\n",adirname);
 		return ERROR;
 	        }
 
@@ -616,7 +616,7 @@ int xodtemplate_process_config_dir(char *dirname, int options){
 			continue;
 
 		/* create /path/to/file */
-		snprintf(file,sizeof(file),"%s/%s",dirname,dirfile->d_name);
+		snprintf(file,sizeof(file),"%s/%s",adirname ,dirfile->d_name);
 		file[sizeof(file)-1]='\x0';
 
 		/* process this if it's a non-hidden config file... */
@@ -10050,6 +10050,7 @@ int xodtemplate_sort_contacts(){
 	return OK;
 	}
 
+int xodtemplate_compare_host(void *arg1, void *arg2);
 
 int xodtemplate_compare_host(void *arg1, void *arg2){
 	xodtemplate_host *h1=NULL;
@@ -10138,6 +10139,7 @@ int xodtemplate_sort_hosts(){
 	}
 
 
+int xodtemplate_compare_service(void *arg1, void *arg2);
 int xodtemplate_compare_service(void *arg1, void *arg2){
 	xodtemplate_service *s1=NULL;
 	xodtemplate_service *s2=NULL;

@@ -143,8 +143,8 @@ extern timeperiod      *timeperiod_list;
 extern contact         *contact_list;
 extern serviceescalation *serviceescalation_list;
 
-extern hoststatus      *hoststatus_list;
-extern servicestatus   *servicestatus_list;
+//extern hoststatus      *hoststatus_list;
+//extern servicestatus   *servicestatus_list;
 
 lifo            *lifo_list=NULL;
 
@@ -260,7 +260,7 @@ void reset_cgi_vars(void){
 
 
 /* free all memory for object definitions */
-void free_memory(void){
+void cgi_free_memory(void){
 
 	/* free memory for common object definitions */
 	free_object_data();
@@ -1397,7 +1397,7 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 	int year=0;
 	char *weekdays[7]={"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	char *months[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-	char *tzone="";
+	const char *tzone="";
 
 	if(raw_time==NULL)
 		time(&t);
@@ -1417,7 +1417,7 @@ void get_time_string(time_t *raw_time,char *buffer,int buffer_length,int type){
 	year=tm_ptr->tm_year+1900;
 
 #ifdef HAVE_TM_ZONE
-	tzone=(char *)tm_ptr->tm_zone;
+	tzone=tm_ptr->tm_zone;
 #else
 	tzone=(tm_ptr->tm_isdst)?tzname[1]:tzname[0];
 #endif
@@ -1544,7 +1544,7 @@ char * url_encode(char *input){
 
 
 /* escapes a string used in HTML */
-char * html_encode(char *input, int escape_newlines){
+char * html_encode(char *input, int aescape_newlines){
 	int len,output_len;
 	int x,y;
 	char temp_expansion[10];
@@ -1570,11 +1570,11 @@ char * html_encode(char *input, int escape_newlines){
 			encoded_html_string[y++]=input[x];
 
 		/* newlines turn to <BR> tags */
-		else if(escape_newlines==TRUE && (char)input[x]==(char)'\n'){
+		else if(aescape_newlines==TRUE && (char)input[x]==(char)'\n'){
 			strcpy(&encoded_html_string[y],"<BR>");
 			y+=4;
 			}
-		else if(escape_newlines==TRUE && (char)input[x]==(char)'\\' && (char)input[x+1]==(char)'n'){
+		else if(aescape_newlines==TRUE && (char)input[x]==(char)'\\' && (char)input[x+1]==(char)'n'){
 			strcpy(&encoded_html_string[y],"<BR>");
 			y+=4;
 			x++;
@@ -1892,7 +1892,7 @@ void determine_log_rotation_times(int archive){
  *************** COMMON HTML FUNCTIONS ********************
  **********************************************************/
 
-void display_info_table(char *title,int refresh, authdata *current_authdata, int daemon_check){
+void display_info_table(char *title,int dorefresh, authdata *current_authdata, int dodaemon_check){
 	time_t current_time;
 	char date_time[MAX_DATETIME_LENGTH];
 	int result;
@@ -1910,7 +1910,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata, int
 	printf("Last Updated: %s<BR>\n",date_time);
 
 	/* decide if refresh is paused or not */
-	if(refresh==TRUE) {
+	if(dorefresh==TRUE) {
 		/* if refresh, add paused query to url and set location.href */
 		printf("Updated every %d seconds <small>[<a href=\"javascript:window.location.href += ((window.location.toString().indexOf('?') != -1) ? '&' : '?') + 'paused'\">pause</a>]</small><br>\n",refresh_rate);
 	} else {
@@ -1929,7 +1929,7 @@ void display_info_table(char *title,int refresh, authdata *current_authdata, int
 	if(nagios_process_state!=STATE_OK)
 		printf("<DIV CLASS='infoBoxBadProcStatus'>Warning: Monitoring process may not be running!<BR>Click <A HREF='%s?type=%d'>here</A> for more info.</DIV>",EXTINFO_CGI,DISPLAY_PROCESS_INFO);
 
-	if(result==ERROR && daemon_check == TRUE)
+	if(result==ERROR && dodaemon_check == TRUE)
 		printf("<DIV CLASS='infoBoxBadProcStatus'>Warning: Could not read program status information!</DIV>");
 
 	else{

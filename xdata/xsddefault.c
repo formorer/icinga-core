@@ -148,12 +148,13 @@ char *xsddefault_temp_file=NULL;
 int xsddefault_grab_config_info(char *config_file){
 	char *input=NULL;
 	mmapfile *thefile;
+
+	icinga_macros *mac; // used in both NSCGI and otherwise
+
 #ifdef NSCGI
 	char *input2=NULL;
 	mmapfile *thefile2;
 	char *temp_buffer;
-#else
-	icinga_macros *mac;
 #endif
 
 

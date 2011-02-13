@@ -541,7 +541,7 @@ typedef struct lifo_struct{
 /******************************** FUNCTIONS *******************************/
 
 void reset_cgi_vars(void);
-void free_memory(void);
+void cgi_free_memory(void);
 
 char * get_cgi_config_location(void);				/* gets location of the CGI config file to read */
 char * get_cmd_file_location(void);				/* gets location of external command file to write to */

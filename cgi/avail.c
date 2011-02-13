@@ -1053,7 +1053,7 @@ int main(int argc, char **argv){
 	document_footer(CGI_ID);
 
 	/* free all other allocated memory */
-	free_memory();
+	cgi_free_memory();
 
 	return OK;
         }
@@ -1642,11 +1642,11 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 		if(subject->type==HOST_SUBJECT){
 			if(hststatus!=NULL){
 
-				if(hststatus->status==HOST_DOWN)
+				if(hststatus->status==STATUS_HOST_DOWN)
 					subject->last_known_state=AS_HOST_DOWN;
-				else if(hststatus->status==HOST_UNREACHABLE)
+				else if(hststatus->status==STATUS_HOST_UNREACHABLE)
 					subject->last_known_state=AS_HOST_UNREACHABLE;
-				else if(hststatus->status==HOST_UP)
+				else if(hststatus->status==STATUS_HOST_UP)
 					subject->last_known_state=AS_HOST_UP;
 				else
 					subject->last_known_state=AS_NO_DATA;
@@ -1737,13 +1737,13 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 			        }
 			else{
 				switch(hststatus->status){
-				case HOST_DOWN:
+				case STATUS_HOST_DOWN:
 					initial_assumed_state=AS_HOST_DOWN;
 					break;
-				case HOST_UNREACHABLE:
+				case STATUS_HOST_UNREACHABLE:
 					initial_assumed_state=AS_HOST_UNREACHABLE;
 					break;
-				case HOST_UP:
+				case STATUS_HOST_UP:
 					initial_assumed_state=AS_HOST_UP;
 					break;
 				default:
@@ -2368,11 +2368,11 @@ void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int
 /* convert current host state to archived state value */
 int convert_host_state_to_archived_state(int current_status){
 
-	if(current_status==HOST_UP)
+	if(current_status==STATUS_HOST_UP)
 		return AS_HOST_UP;
-	if(current_status==HOST_DOWN)
+	if(current_status==STATUS_HOST_DOWN)
 		return AS_HOST_DOWN;
-	if(current_status==HOST_UNREACHABLE)
+	if(current_status==STATUS_HOST_UNREACHABLE)
 		return AS_HOST_UNREACHABLE;
 
 	return AS_NO_DATA;

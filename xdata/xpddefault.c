@@ -321,11 +321,19 @@ int xpddefault_initialize_performance_data(char *config_file){
 
 	/* periodically process the host perfdata file */
 	if(xpddefault_host_perfdata_file_processing_interval>0 && xpddefault_host_perfdata_file_processing_command!=NULL)
-		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,(void *)xpddefault_process_host_perfdata_file,NULL,0);
+	  {
+	    service_host_common_t callback;
+	    callback.simple_callback=xpddefault_process_host_perfdata_file;
+		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,callback,0,0);
+	  }
 
 	/* periodically process the service perfdata file */
 	if(xpddefault_service_perfdata_file_processing_interval>0 && xpddefault_service_perfdata_file_processing_command!=NULL)
-		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,(void *)xpddefault_process_service_perfdata_file,NULL,0);
+	  {
+	     service_host_common_t callback;
+	     callback.simple_callback=xpddefault_process_service_perfdata_file;
+		schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,callback,0,0);
+	  }
 
 	/* save the host perf data file macro */
 	my_free(mac->x[MACRO_HOSTPERFDATAFILE]);
