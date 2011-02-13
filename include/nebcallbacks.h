@@ -76,9 +76,9 @@
 
 
 /***** CALLBACK FUNCTIONS *****/
-
-int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *));
-int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *));
+    typedef     int (*mod_callback_func_ptr_t)(int,void *);
+int neb_register_callback(int callback_type, module_handle_t mod_handle, int priority, mod_callback_func_ptr_t callback_func);
+int neb_deregister_callback(int callback_type, mod_callback_func_ptr_t callback_func);
 int neb_deregister_module_callbacks(nebmodule *);
 
 #ifdef __cplusplus

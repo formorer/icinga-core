@@ -281,6 +281,12 @@ extern "C" {
 
 /****************** DATA STRUCTURES *******************/
 
+
+
+  
+
+
+
 /* TIMED_EVENT structure */
 typedef struct timed_event_struct{
 	int event_type;
@@ -288,9 +294,9 @@ typedef struct timed_event_struct{
 	int recurring;
 	unsigned long event_interval;
 	int compensate_for_time_change;
-	void *timing_func;
-	void *event_data;
-	void *event_args;
+	time_function_ptr_t timing_func;
+	event_data_ptr_t event_data;
+	event_args_ptr_t event_args;
 	int event_options;
         struct timed_event_struct *next;
         struct timed_event_struct *prev;
@@ -433,7 +439,18 @@ void display_scheduling_info(void);				/* displays service check scheduling info
 
 
 /**** Event Queue Functions ****/
-int schedule_new_event(int,int,time_t,int,unsigned long,void *,int,void *,void *,int);	/* schedules a new timed event */
+  int schedule_new_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,event_data_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+
+
+int schedule_new_event_basic(int,int,time_t,int,unsigned long,time_function_ptr_t,int);	/* schedules a new timed event */
+
+
+
+int schedule_new_service_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,service_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+
+int schedule_new_host_event(int,int,time_t,int,unsigned long,time_function_ptr_t,int,host_ptr_t event_data,event_args_ptr_t event_args,int);	/* schedules a new timed event */
+
+
 void reschedule_event(timed_event *,timed_event **,timed_event **);   		/* reschedules an event */
 void add_event(timed_event *,timed_event **,timed_event **);     		/* adds an event to the execution queue */
 void remove_event(timed_event *,timed_event **,timed_event **);     		/* remove an event from the execution queue */
@@ -707,6 +724,7 @@ void disable_contact_host_notifications(contact *);     /* disables host notific
 void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
 void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
 void display_schedule(void);				/* display scheduling queue */
+void display_event_data(timed_event* event, int priority);
 
 int init_check_result_worker_thread(void);
 int shutdown_check_result_worker_thread(void);

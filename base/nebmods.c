@@ -167,9 +167,9 @@ int neb_load_all_modules(void){
 #endif
 /* load a particular module */
 int neb_load_module(nebmodule *mod){
-	int (*initfunc)(int,char *,void *);
-	int *module_version_ptr=NULL;
-	int result=OK;
+  mod_initfunc_ptr_t initfunc;
+  int *module_version_ptr=NULL;
+  int result=OK;
 
 
 	if(mod==NULL || mod->filename==NULL)
@@ -207,7 +207,7 @@ int neb_load_module(nebmodule *mod){
 #ifdef USE_LTDL
 	mod->module_handle=lt_dlopen(mod->filename);
 #else
-	mod->module_handle=(void *)dlopen(mod->filename,RTLD_NOW|RTLD_GLOBAL);
+	mod->module_handle=dlopen(mod->filename,RTLD_NOW|RTLD_GLOBAL);
 #endif
 	if(mod->module_handle==NULL){
 
@@ -242,9 +242,9 @@ int neb_load_module(nebmodule *mod){
 
 	/* locate the initialization function */
 #ifdef USE_LTDL
-	mod->init_func=lt_dlsym(mod->module_handle,"nebmodule_init");
+	assign_mod_initfunc_ptr(mod,lt_dlsym(mod->module_handle,"nebmodule_init"));
 #else
-	mod->init_func=(void *)dlsym(mod->module_handle,"nebmodule_init");
+	assign_mod_initfunc_ptr(mod,dlsym(mod->module_handle,"nebmodule_init"));
 #endif
 
 	/* if the init function could not be located, unload the module */
@@ -275,9 +275,9 @@ int neb_load_module(nebmodule *mod){
 
 	/* locate the de-initialization function (may or may not be present) */
 #ifdef USE_LTDL
-	mod->deinit_func=lt_dlsym(mod->module_handle,"nebmodule_deinit");
+	assign_mod_deinitfunc_ptr(mod,lt_dlsym(mod->module_handle,"nebmodule_deinit"));
 #else
-	mod->deinit_func=(void *)dlsym(mod->module_handle,"nebmodule_deinit");
+	assign_mod_deinitfunc_ptr(mod,dlsym(mod->module_handle,"nebmodule_deinit"));
 #endif
 
 	log_debug_info(DEBUGL_EVENTBROKER,0,"Module '%s' loaded with return code of '%d'\n",mod->filename,result);
@@ -313,7 +313,7 @@ int neb_unload_all_modules(int flags, int reason){
 
 /* close (unload) a particular module */
 int neb_unload_module(nebmodule *mod, int flags, int reason){
-	int (*deinitfunc)(int,int);
+	mod_deinitfunc_ptr_t deinitfunc;
 	int result=OK;
 
 	if(mod==NULL)
@@ -376,7 +376,7 @@ int neb_set_module_info(void *handle, int type, char *data){
 
 	/* find the module */
 	for(temp_module=neb_module_list;temp_module!=NULL;temp_module=temp_module->next){
-		if((void *)temp_module->module_handle==(void *)handle)
+		if(temp_module->module_handle==handle)
 			break;
 		}
 	if(temp_module==NULL)
@@ -401,7 +401,7 @@ int neb_set_module_info(void *handle, int type, char *data){
 /****************************************************************************/
 
 /* allows a module to register a callback function */
-int neb_register_callback(int callback_type, void *mod_handle, int priority, int (*callback_func)(int,void *)){
+int neb_register_callback(int callback_type, module_handle_t mod_handle, int priority, mod_callback_func_ptr_t callback_func){
 	nebmodule *temp_module=NULL;
 	nebcallback *new_callback=NULL;
 	nebcallback *temp_callback=NULL;
@@ -422,7 +422,7 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 
 	/* make sure module handle is valid */
 	for(temp_module=neb_module_list;temp_module;temp_module=temp_module->next){
-		if((void *)temp_module->module_handle==(void *)mod_handle)
+		if(temp_module->module_handle==mod_handle)
 			break;
 	        }
 	if(temp_module==NULL)
@@ -434,8 +434,8 @@ int neb_register_callback(int callback_type, void *mod_handle, int priority, int
 		return NEBERROR_NOMEM;
 	
 	new_callback->priority=priority;
-	new_callback->module_handle=(void *)mod_handle;
-	new_callback->callback_func=(void *)callback_func;
+	new_callback->module_handle=mod_handle;
+	new_callback->callback_func=callback_func;
 
 	/* add new function to callback list, sorted by priority (first come, first served for same priority) */
 	new_callback->next=NULL;
@@ -480,8 +480,8 @@ int neb_deregister_module_callbacks(nebmodule *mod){
 	for(callback_type=0;callback_type<NEBCALLBACK_NUMITEMS;callback_type++){
 		for(temp_callback=neb_callback_list[callback_type];temp_callback!=NULL;temp_callback=next_callback){
 			next_callback=temp_callback->next;
-			if((void *)temp_callback->module_handle==(void *)mod->module_handle)
-				neb_deregister_callback(callback_type,(int(*)(int,void*))temp_callback->callback_func);
+			if(temp_callback->module_handle==mod->module_handle)
+				neb_deregister_callback(callback_type,temp_callback->callback_func);
 		        }
 
 	        }
@@ -511,7 +511,7 @@ int neb_deregister_callback(int callback_type, int (*callback_func)(int,void *))
 		next_callback=temp_callback->next;
 
 		/* we found it */
-		if(temp_callback->callback_func==(void *)callback_func)
+		if(temp_callback->callback_func==callback_func)
 			break;
 
 		last_callback=temp_callback;

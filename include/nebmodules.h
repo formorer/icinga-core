@@ -68,33 +68,50 @@
 
 
 /***** MODULE STRUCTURES *****/
+    typedef     int (*mod_initfunc_ptr_t)(int,char *,void *);
+    typedef     int (*mod_deinitfunc_ptr_t)(int,int);
 
-/* NEB module structure */
-typedef struct nebmodule_struct{
-	char            *filename;
-	char            *args;
-	char            *info[NEBMODULE_MODINFO_NUMITEMS];
-	int             should_be_loaded;
-	int             is_currently_loaded;
+
 #ifdef USE_LTDL
-	lt_dlhandle     module_handle;
-	lt_ptr          init_func;
-	lt_ptr          deinit_func;
+    typedef lt_dlhandle  module_handle_t;
+    typedef lt_ptr       module_func_ptr_t;
 #else
-	void            *module_handle;
-	void            *init_func;
-	void            *deinit_func;
+    typedef void   *     module_handle_t;
+    typedef void   *     module_func_ptr_t;
+#endif
+
+extern      mod_initfunc_ptr_t          init_func_test;
+extern      mod_deinitfunc_ptr_t       deinit_func_test;
+    
+/* NEB module structure */
+    typedef struct nebmodule_struct{
+      char            *filename;
+      char            *args;
+      char            *info[NEBMODULE_MODINFO_NUMITEMS];
+      int             should_be_loaded;
+      int             is_currently_loaded;
+#ifdef USE_LTDL
+      lt_dlhandle                 module_handle;
+      mod_initfunc_ptr_t          init_func;
+      mod_deinitfunc_ptr_t        deinit_func;
+#else
+      module_handle_t     module_handle;
+      mod_initfunc_ptr_t    init_func;
+      mod_deinit_func_ptr_t deinit_func;
 #endif
 #ifdef HAVE_PTHREAD_H
-	pthread_t       thread_id;
+      pthread_t       thread_id;
 #endif
-	struct nebmodule_struct *next;
-        }nebmodule;
+      struct nebmodule_struct *next;
+    }nebmodule;
 
 
-
-/***** MODULE FUNCTIONS *****/
-int neb_set_module_info(void *,int,char *);
+    int assign_mod_initfunc_ptr(nebmodule * pmodule,module_func_ptr_t pfunc);
+    int assign_mod_deinitfunc_ptr(nebmodule *pmodule,module_func_ptr_t pfunc);
+    
+    
+    /***** MODULE FUNCTIONS *****/
+    int neb_set_module_info(void *,int,char *);
 
 #ifdef __cplusplus
   }

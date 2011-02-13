@@ -37,13 +37,13 @@ extern "C" {
 /***** MODULE STRUCTURES *****/
 
 /* NEB module callback list struct */
-typedef struct nebcallback_struct{
-	void            *callback_func;
-	void            *module_handle;
-	int             priority;
-	struct nebcallback_struct *next;
-        }nebcallback;
-
+  typedef struct nebcallback_struct{
+    mod_callback_func_ptr_t callback_func;
+    module_handle_t module_handle;
+    int             priority;
+    struct nebcallback_struct *next;
+  }nebcallback;
+  
 
 
 /***** MODULE FUNCTIONS *****/

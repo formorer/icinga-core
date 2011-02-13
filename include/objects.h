@@ -275,7 +275,7 @@ typedef struct hostgroup_struct{
 
 
 /* HOST structure */
-struct host_struct{
+typedef struct host_struct{
 	char    *name;
 	char    *display_name;
 	char	*alias;
@@ -407,7 +407,7 @@ struct host_struct{
 	/* 2011-02-07 MF: added for dualstack IPv6 support as
 	   $HOSTADDRESS6$ macro  */
 	char    *address6;
-        };
+        } host_struct_t;
 
 
 /* SERVICEGROUP structure */
@@ -424,7 +424,7 @@ typedef struct servicegroup_struct{
 
 
 /* SERVICE structure */
-struct service_struct{
+typedef struct service_struct{
 	char	*host_name;
 	char	*description;
 	char    *display_name;
@@ -546,7 +546,52 @@ struct service_struct{
 	/* 2011-02-07 MF: added for keeping the command for NEB callback
 	   PROCESSED state on host|service checks  */
 	char	*processed_command;
-	};
+	} service_struct_t;
+
+
+typedef void (*user_function_ptr_t)(void *);
+
+    /*
+      union between services and hosts
+     */
+typedef union service_host_common
+{
+  void * anything;// does not matter
+  service_struct_t *   service;
+  host_struct_t    *   host; 
+  struct timespec  *   time; 
+  user_function_ptr_t  userfunc;
+} service_host_common_t;
+
+
+
+  //  struct_type_t type; is stored in the event data
+
+    typedef service_host_common_t event_param_struct_t;
+    
+    typedef event_param_struct_t  event_param_struct_ptr_t;
+    typedef service_struct_t *  service_ptr_t;
+    typedef host_struct_t *  host_ptr_t;
+    
+
+    typedef time_t (*time_function_ptr_t)(void) ;
+
+
+typedef event_param_struct_ptr_t event_data_ptr_t;
+typedef int *                    event_args_ptr_t;
+
+void free_event(int event_type,event_data_ptr_t event_data);
+ 
+unsigned long * get_event_unsigned_long_ptr(event_data_ptr_t);
+unsigned long get_event_unsigned_long(event_data_ptr_t);
+
+service_ptr_t get_event_service(event_data_ptr_t);
+host_ptr_t get_event_host(event_data_ptr_t);
+
+
+event_data_ptr_t get_event_null(void);
+event_args_ptr_t get_event_args_null(void);
+
 
 /* ESCALATION CONDITION STRUCTURE 
  * Vitali Voroth, 25.10.2009
