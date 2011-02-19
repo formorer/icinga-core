@@ -191,8 +191,8 @@ extern int navbar_search;
  * source-files once. A decent linker will make the call
  * a no-op anyway, so it's not a big issue
  */
-void logit(int data_type, int display, const char *fmt, ...) { return; }
-int log_debug_info(int leve, int verbosity, const char *fmt, ...) { return 0; }
+void cgi_logit(int data_type, int display, const char *fmt, ...) { return; }
+int cgi_log_debug_info(int leve, int verbosity, const char *fmt, ...) { return 0; }
 
 /**********************************************************
  ***************** CLEANUP FUNCTIONS **********************
@@ -558,7 +558,7 @@ int read_cgi_config_file(char *filename){
 
 
 /* read the main configuration file */
-int read_main_config_file(char *filename){
+int cgi_read_main_config_file(char *filename){
 	char *input=NULL;
 	char *temp_buffer;
 	mmapfile *thefile;
@@ -1287,7 +1287,7 @@ char *unescape_newlines(char *rawbuf){
 	}
 
 /* escapes newlines in a string */
-char *escape_newlines(char *rawbuf) {
+char *cgi_escape_newlines(char *rawbuf) {
 	char *newbuf=NULL;
 	register int x,y;
 

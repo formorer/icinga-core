@@ -202,6 +202,8 @@ int update_service_status(service *,int);               /* updates service statu
 int update_contact_status(contact *,int);               /* updates contact status data */
 #endif
 
+    int xsddefault_read_status_data(char *config_file,int options);
+
 #ifdef __cplusplus
   }
 #endif

@@ -61,9 +61,9 @@
 #include "../include/icinga.h"
 #endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 /**** DATA INPUT-SPECIFIC HEADER FILES ****/
 
@@ -344,10 +344,10 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 		gettimeofday(&tv[1],NULL);
 #endif
 
-#ifdef NSCGI
+	//#ifdef NSCGI
 	/* CGIs process only one file - the cached objects file */
 	result=xodtemplate_process_config_file(xodtemplate_cache_file,options);
-#endif
+	//#endif
 
 #ifdef NSCORE
 

@@ -33,9 +33,9 @@
 #include "../include/icinga.h"
 #include "../include/broker.h"
 #endif
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 
@@ -48,7 +48,7 @@
 extern int      aggregate_status_updates;
 #endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 hoststatus      *hoststatus_list=NULL;
 hoststatus      *hoststatus_list_tail=NULL;
 servicestatus   *servicestatus_list=NULL;
@@ -58,7 +58,7 @@ hoststatus      **hoststatus_hashlist=NULL;
 servicestatus   **servicestatus_hashlist=NULL;
 
 extern int      use_pending_states;
-#endif
+//#endif
 
 
 
@@ -204,7 +204,7 @@ int update_contact_status(contact *cntct,int aggregated_dump){
 
 
 
-#ifdef NSCGI
+//#ifdef NSCGI
 
 /******************************************************************/
 /******************* TOP-LEVEL INPUT FUNCTIONS ********************/
@@ -578,5 +578,5 @@ int get_servicestatus_count(char *host_name, int type){
 
 
 
-#endif
+//#endif
 

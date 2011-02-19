@@ -538,8 +538,12 @@ typedef struct lifo_struct{
         }lifo;
 
 
-/******************************** FUNCTIONS *******************************/
+  void cgi_logit(int data_type, int display, const char *fmt, ...);
+  int cgi_log_debug_info(int leve, int verbosity, const char *fmt, ...);
+  int cgi_read_main_config_file(char *filename);
+  char *cgi_escape_newlines(char *rawbuf);
 
+/******************************** FUNCTIONS *******************************/
 void reset_cgi_vars(void);
 void cgi_free_memory(void);
 

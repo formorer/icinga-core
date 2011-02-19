@@ -45,9 +45,9 @@
 #include "../include/icinga.h"
 #endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
@@ -55,7 +55,7 @@
 
 
 
-#ifdef NSCGI
+//#ifdef oNSCGI
 time_t program_start;
 int daemon_mode;
 time_t last_command_check;
@@ -80,7 +80,7 @@ int program_stats[MAX_CHECK_STATS_TYPES][3];
 #ifndef GCCTOOOLD
 int event_profiling_enabled;
 profile_object* profiled_data = NULL;
-#endif
+//#endif
 #endif
 
 #ifdef NSCORE
@@ -150,13 +150,6 @@ int xsddefault_grab_config_info(char *config_file){
 	mmapfile *thefile;
 
 	icinga_macros *mac; // used in both NSCGI and otherwise
-
-#ifdef NSCGI
-	char *input2=NULL;
-	mmapfile *thefile2;
-	char *temp_buffer;
-#endif
-
 
 	/*** CORE PASSES IN MAIN CONFIG FILE, CGIS PASS IN CGI CONFIG FILE! ***/
 
@@ -753,7 +746,7 @@ int xsddefault_save_status_data(void){
 
 
 
-#ifdef NSCGI
+//#ifdef NSCGI
 
 /******************************************************************/
 /****************** DEFAULT DATA INPUT FUNCTIONS ******************/
@@ -1381,5 +1374,5 @@ int xsddefault_read_status_data(char *config_file,int options){
 	return OK;
         }
 
-#endif
+//#endif
 

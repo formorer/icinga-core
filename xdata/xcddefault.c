@@ -37,9 +37,9 @@
 #include "../include/icinga.h"
 #endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/

@@ -752,6 +752,26 @@ int has_shell_metachars(const char *);
   escalation_condition *add_host_service_escalation_condition(hostescalation *my_hostescalation, serviceescalation *my_serviceescalation, escalation_condition *last_condition, char *host_name, char *service_description, int connector, int escalate_on_down, int escalate_on_unreachable, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_ok);
 
 
+  //cleanup_status_data
+  int cleanup_status_data(char *config_file,int delete_status_data);
+  //initialize_status_data
+  int initialize_status_data(char *config_file);
+
+  //initialize_comment_data
+  int initialize_comment_data(char *config_file);
+
+  //initialize_downtime_data
+  int initialize_downtime_data(char *config_file);
+
+  //update_all_status_data
+  int update_all_status_data(void);
+
+  //cleanup_downtime_data
+  int cleanup_downtime_data(char *config_file);
+
+  //cleanup_comment_data
+  int cleanup_comment_data(char *config_file);
+
 #ifdef __cplusplus
 }
 #endif
