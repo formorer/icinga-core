@@ -427,6 +427,9 @@ AC_CHECK_FUNCS([strtol]) # wanted by: base/commands.c:2745
 AC_CHECK_FUNCS([tzset]) # wanted by: base/config.c:1492
 #AC_PROG_RANLIB # wanted by: ltmain.sh:1601
 
+AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([wchar.h])
+
 AC_CHECK_HEADER([stdio.h],
                 [AC_DEFINE([HAVE_STDIO_H])],
                 [AC_MSG_ERROR([Sorry, can't do anything for you])])
@@ -1054,6 +1057,8 @@ AC_ARG_ENABLE(ssl,AC_HELP_STRING([--enable-ssl],[enables native SSL support]),[
 
 
 AC_DEFINE([HAVE_KRB5_H], [], [autoheader found this])
+
+AC_DEFINE([HAVE_STDIO_H], [], [Why would this be missing])
 
 AC_CHECK_LIB([m], [main])
 
