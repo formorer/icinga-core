@@ -2,6 +2,11 @@
 Icinga 1.3.x Change Log
 #######################
 
+
+Mdupont Branch : 
+* using automake 
+
+
 1.3.0 - 16/02/2011
 
 ENHANCEMENTS
