@@ -72,8 +72,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
 	time_t current_time;
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int escalated=FALSE;
 	int result=OK;
 	int contacts_notified=0;
@@ -87,7 +87,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 
 	/* get the current time */
 	time(&current_time);
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Service Notification Attempt ** Host: '%s', Service: '%s', Type: %d, Options: %d, Current State: %d, Last Notification: %s",svc->host_name,svc->description,type,options,svc->current_state,ctime(&svc->last_notification));
 
@@ -144,7 +145,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,not_author,not_data,escalated,0,NULL);
 	if(NEBERROR_CALLBACKCANCEL==neb_result)
 		return ERROR;
@@ -336,7 +337,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	        }
 
 	/* get the time we finished */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -737,8 +739,8 @@ int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, 
 	char *processed_buffer=NULL;
 	int early_timeout=FALSE;
 	double exectime;
-	struct timeval start_time,end_time;
-	struct timeval method_start_time,method_end_time;
+	timeval_t start_time,end_time;
+	timeval_t method_start_time,method_end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 	int neb_result;
 
@@ -753,12 +755,13 @@ int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, 
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
 
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,start_time,end_time,(void *)svc,cntct,not_author,not_data,escalated,NULL);
 	if(NEBERROR_CALLBACKCANCEL==neb_result)
 		return ERROR;
@@ -770,12 +773,13 @@ int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, 
 	for(temp_commandsmember=cntct->service_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
 		/* get start time */
-		gettimeofday(&method_start_time,NULL);
+		//gettimeofday(&method_start_time,NULL);
+	  clock_gettime(CLOCK_REALTIME, &method_start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		method_end_time.tv_sec=0L;
-		method_end_time.tv_usec=0L;
+		method_end_time.tv_nsec=0L;
 		neb_result=broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_NOTIFICATION,type,method_start_time,method_end_time,(void *)svc,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 		if(NEBERROR_CALLBACKCANCEL==neb_result)
 			break ;
@@ -856,7 +860,8 @@ int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, 
 		my_free(processed_command);
 
 		/* get end time */
-		gettimeofday(&method_end_time,NULL);
+		//gettimeofday(&method_end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &method_end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -865,7 +870,8 @@ int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, 
 	        }
 
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	/* update the contact's last service notification time */
 	cntct->last_service_notification=start_time.tv_sec;
@@ -1209,8 +1215,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	notification *temp_notification=NULL;
 	contact *temp_contact=NULL;
 	time_t current_time;
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int escalated=FALSE;
 	int result=OK;
 	int contacts_notified=0;
@@ -1220,7 +1226,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	/* get the current time */
 	time(&current_time);
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,0,"** Host Notification Attempt ** Host: '%s', Type: %d, Options: %d, Current State: %d, Last Notification: %s",hst->name,type,options,hst->current_state,ctime(&hst->last_host_notification));
 
@@ -1267,7 +1274,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_notification_data(NEBTYPE_NOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,not_author,not_data,escalated,0,NULL);
 	if(NEBERROR_CALLBACKCANCEL==neb_result)
 		return ERROR;
@@ -1450,7 +1457,8 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	        }
 
 	/* get the time we finished */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -1803,10 +1811,10 @@ int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int ty
 	char *processed_command=NULL;
 	int early_timeout=FALSE;
 	double exectime;
-	struct timeval start_time;
-	struct timeval end_time;
-	struct timeval method_start_time;
-	struct timeval method_end_time;
+	timeval_t start_time;
+	timeval_t end_time;
+	timeval_t method_start_time;
+	timeval_t method_end_time;
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
 	int neb_result;
 
@@ -1821,12 +1829,13 @@ int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int ty
 	log_debug_info(DEBUGL_NOTIFICATIONS,2,"** Notifying contact '%s'\n",cntct->name);
 
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_contact_notification_data(NEBTYPE_CONTACTNOTIFICATION_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,start_time,end_time,(void *)hst,cntct,not_author,not_data,escalated,NULL);
 	if(NEBERROR_CALLBACKCANCEL==neb_result)
 		return ERROR;
@@ -1838,12 +1847,13 @@ int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int ty
 	for(temp_commandsmember=cntct->host_notification_commands;temp_commandsmember!=NULL;temp_commandsmember=temp_commandsmember->next){
 
 		/* get start time */
-		gettimeofday(&method_start_time,NULL);
+	  //gettimeofday(&method_start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &method_start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
 		method_end_time.tv_sec=0L;
-		method_end_time.tv_usec=0L;
+		method_end_time.tv_nsec=0L;
 		neb_result=broker_contact_notification_method_data(NEBTYPE_CONTACTNOTIFICATIONMETHOD_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_NOTIFICATION,type,method_start_time,method_end_time,(void *)hst,cntct,temp_commandsmember->command,not_author,not_data,escalated,NULL);
 		if(NEBERROR_CALLBACKCANCEL==neb_result)
 			break;
@@ -1924,7 +1934,8 @@ int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int ty
 		my_free(processed_command);
 
 		/* get end time */
-		gettimeofday(&method_end_time,NULL);
+		//gettimeofday(&method_end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &method_end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
@@ -1933,7 +1944,8 @@ int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int ty
 	        }
 
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	/* update the contact's last host notification time */
 	cntct->last_host_notification=start_time.tv_sec;

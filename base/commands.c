@@ -23,6 +23,10 @@
  *
  *****************************************************************************/
 
+
+
+#define NSCORE 1
+#include "../include/stdheaders.h"
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/comments.h"
@@ -2093,7 +2097,7 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 	char *real_host_name=NULL;
-	struct timeval tv;
+	timeval_t tv;
 	int result=OK;
 
 	/* skip this service check result if we aren't accepting passive service checks */
@@ -2175,8 +2179,12 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	new_pcr->check_time=check_time;
 
 	/* calculate latency */
-	gettimeofday(&tv,NULL);
-	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0)/1000.0);
+	//gettimeofday(&tv,NULL);
+	  clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
+	
+	// NOW USING NANOSECONDS (1/1000000)
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_nsec/1000000.0 )/1000000.0);
+
 	if(new_pcr->latency<0.0)
 		new_pcr->latency=0.0;
 
@@ -2234,7 +2242,7 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	passive_check_result *new_pcr=NULL;
 	host *temp_host=NULL;
 	char *real_host_name=NULL;
-	struct timeval tv;
+	timeval_t tv;
 	int result=OK;
 
 	/* skip this host check result if we aren't accepting passive host checks */
@@ -2312,8 +2320,9 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	new_pcr->check_time=check_time;
 
 	/* calculate latency */
-	gettimeofday(&tv,NULL);
-	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_usec/1000.0)/1000.0);
+	//gettimeofday(&tv,NULL);
+	  clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
+	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_nsec/1000000.0)/1000000.0);
 	if(new_pcr->latency<0.0)
 		new_pcr->latency=0.0;
 

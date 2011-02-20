@@ -26,8 +26,17 @@
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/netutils.h"
-
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <string.h>
+#include <memory.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <errno.h>
+#include <stdlib.h>
 /* connect to a TCP socket in nonblocking fashion */
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout){
 	struct addrinfo hints;

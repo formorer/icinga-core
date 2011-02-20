@@ -26,11 +26,15 @@
  *
  *****************************************************************************/
 
+#include "../include/stdheaders.h"
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/icinga.h"
 #include "../include/locations.h"
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
 #include "../include/statsprofiler.h"
@@ -261,7 +265,7 @@ int main(int argc, char **argv){
 		c=getopt(argc,argv,"+hVLc:ms:d:D:");
 #endif
 
-		if(c==-1 || c==EOF)
+		if(c==-1 ) // EOF  == -1
 			break;
 
 		switch(c){

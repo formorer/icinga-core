@@ -8537,11 +8537,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:8540: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
    echo "$as_me:8544: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:8544: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:8548: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8876,11 +8884,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:8879: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
    echo "$as_me:8883: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:8883: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:8887: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8981,11 +8997,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:8984: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:8988: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:8988: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:8992: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -9036,11 +9060,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:9039: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:9043: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:9043: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:9047: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11403,7 +11435,11 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< HEAD:configure
 #line 11406 "configure"
+=======
+#line 11410 "configure"
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11499,7 +11535,11 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
+<<<<<<< HEAD:configure
 #line 11502 "configure"
+=======
+#line 11506 "configure"
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -13455,11 +13495,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:13458: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
    echo "$as_me:13462: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:13462: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>conftest.err)
+   ac_status=$?
+   cat conftest.err >&5
+   echo "$as_me:13466: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13554,11 +13602,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:13557: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:13561: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:13561: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:13565: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13606,11 +13662,19 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
+<<<<<<< HEAD:configure
    (eval echo "\"\$as_me:13609: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
    echo "$as_me:13613: \$? = $ac_status" >&5
+=======
+   (eval echo "\"\$as_me:13613: $lt_compile\"" >&5)
+   (eval "$lt_compile" 2>out/conftest.err)
+   ac_status=$?
+   cat out/conftest.err >&5
+   echo "$as_me:13617: \$? = $ac_status" >&5
+>>>>>>> 24ba0feb312b0afc3058db059da4afbb4595d3bb:configure
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15141,6 +15205,9 @@ $as_echo "#define gid_t int" >>confdefs.h
 
 fi
 
+
+#AC_TYPE_FILE_T
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
 $as_echo_n "checking for inline... " >&6; }
 if test "${ac_cv_c_inline+set}" = set; then :
@@ -16402,6 +16469,25 @@ else
 fi
 
 
+
+$as_echo "#define HAVE_OCILIB_H /**/" >>confdefs.h
+
+
+$as_echo "#define HAVE_SSL /**/" >>confdefs.h
+
+
+$as_echo "#define USE_LIBDBI /**/" >>confdefs.h
+
+
+$as_echo "#define USE_ORACLE /**/" >>confdefs.h
+
+
+$as_echo "#define USE_PGSQL /**/" >>confdefs.h
+
+
+$as_echo "#define USE_ST_BASED_ESCAL_RANGES /**/" >>confdefs.h
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C99 vsnprintf" >&5
 $as_echo_n "checking for C99 vsnprintf... " >&6; }
 if test "${ac_cv_HAVE_C99_VSNPRINTF+set}" = set; then :
@@ -17342,6 +17428,382 @@ XODCOMMENT="Template-based (text file)"
 echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data I/O..."
 
 
+
+for ac_func in alarm
+do :
+  ac_fn_c_check_func "$LINENO" "alarm" "ac_cv_func_alarm"
+if test "x$ac_cv_func_alarm" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ALARM 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:471
+for ac_func in bzero
+do :
+  ac_fn_c_check_func "$LINENO" "bzero" "ac_cv_func_bzero"
+if test "x$ac_cv_func_bzero" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_BZERO 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/netutils.c:235
+for ac_func in dup2
+do :
+  ac_fn_c_check_func "$LINENO" "dup2" "ac_cv_func_dup2"
+if test "x$ac_cv_func_dup2" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DUP2 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/checks.c:239
+for ac_func in endgrent
+do :
+  ac_fn_c_check_func "$LINENO" "endgrent" "ac_cv_func_endgrent"
+if test "x$ac_cv_func_endgrent" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ENDGRENT 1
+_ACEOF
+
+fi
+done
+# wanted by: module/idoutils/src/ido2db.c:719
+for ac_func in endpwent
+do :
+  ac_fn_c_check_func "$LINENO" "endpwent" "ac_cv_func_endpwent"
+if test "x$ac_cv_func_endpwent" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ENDPWENT 1
+_ACEOF
+
+fi
+done
+# wanted by: module/idoutils/src/ido2db.c:745
+for ac_func in floor
+do :
+  ac_fn_c_check_func "$LINENO" "floor" "ac_cv_func_floor"
+if test "x$ac_cv_func_floor" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FLOOR 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/statusmap.c:2659
+for ac_func in ftruncate
+do :
+  ac_fn_c_check_func "$LINENO" "ftruncate" "ac_cv_func_ftruncate"
+if test "x$ac_cv_func_ftruncate" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_FTRUNCATE 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:2426
+for ac_func in getcwd
+do :
+  ac_fn_c_check_func "$LINENO" "getcwd" "ac_cv_func_getcwd"
+if test "x$ac_cv_func_getcwd" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETCWD 1
+_ACEOF
+
+fi
+done
+ #wanted by: t/unit/run_command.c:473
+for ac_func in gethostbyname
+do :
+  ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
+if test "x$ac_cv_func_gethostbyname" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETHOSTBYNAME 1
+_ACEOF
+
+fi
+done
+ #wanted by: module/idoutils/src/io.c:220
+for ac_func in gettimeofday
+do :
+  ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
+if test "x$ac_cv_func_gettimeofday" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETTIMEOFDAY 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/notifications.c:90
+for ac_func in isascii
+do :
+  ac_fn_c_check_func "$LINENO" "isascii" "ac_cv_func_isascii"
+if test "x$ac_cv_func_isascii" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ISASCII 1
+_ACEOF
+
+fi
+done
+ #wanted by: module/idoutils/src/io.c:370
+for ac_func in localtime_r
+do :
+  ac_fn_c_check_func "$LINENO" "localtime_r" "ac_cv_func_localtime_r"
+if test "x$ac_cv_func_localtime_r" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LOCALTIME_R 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/shared.c:438
+for ac_func in memmove
+do :
+  ac_fn_c_check_func "$LINENO" "memmove" "ac_cv_func_memmove"
+if test "x$ac_cv_func_memmove" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MEMMOVE 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:3160
+for ac_func in memset
+do :
+  ac_fn_c_check_func "$LINENO" "memset" "ac_cv_func_memset"
+if test "x$ac_cv_func_memset" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MEMSET 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/snprintf.c:1384
+for ac_func in mkfifo
+do :
+  ac_fn_c_check_func "$LINENO" "mkfifo" "ac_cv_func_mkfifo"
+if test "x$ac_cv_func_mkfifo" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MKFIFO 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:3238
+for ac_func in munmap
+do :
+  ac_fn_c_check_func "$LINENO" "munmap" "ac_cv_func_munmap"
+if test "x$ac_cv_func_munmap" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_MUNMAP 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/shared.c:171
+for ac_func in pow
+do :
+  ac_fn_c_check_func "$LINENO" "pow" "ac_cv_func_pow"
+if test "x$ac_cv_func_pow" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_POW 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/snprintf.c:1439
+for ac_func in putenv
+do :
+  ac_fn_c_check_func "$LINENO" "putenv" "ac_cv_func_putenv"
+if test "x$ac_cv_func_putenv" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PUTENV 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:820
+for ac_func in regcomp
+do :
+  ac_fn_c_check_func "$LINENO" "regcomp" "ac_cv_func_regcomp"
+if test "x$ac_cv_func_regcomp" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_REGCOMP 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/status.c:1473
+for ac_func in select
+do :
+  ac_fn_c_check_func "$LINENO" "select" "ac_cv_func_select"
+if test "x$ac_cv_func_select" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SELECT 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:3955
+for ac_func in socket
+do :
+  ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
+if test "x$ac_cv_func_socket" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SOCKET 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/netutils.c:62
+for ac_func in strcasecmp
+do :
+  ac_fn_c_check_func "$LINENO" "strcasecmp" "ac_cv_func_strcasecmp"
+if test "x$ac_cv_func_strcasecmp" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCASECMP 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/extinfo.c:3271
+for ac_func in strchr
+do :
+  ac_fn_c_check_func "$LINENO" "strchr" "ac_cv_func_strchr"
+if test "x$ac_cv_func_strchr" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCHR 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/macros.c:130
+for ac_func in strcspn
+do :
+  ac_fn_c_check_func "$LINENO" "strcspn" "ac_cv_func_strcspn"
+if test "x$ac_cv_func_strcspn" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRCSPN 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/utils.c:344
+for ac_func in strerror
+do :
+  ac_fn_c_check_func "$LINENO" "strerror" "ac_cv_func_strerror"
+if test "x$ac_cv_func_strerror" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRERROR 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/icingastats.c:449
+for ac_func in strncasecmp
+do :
+  ac_fn_c_check_func "$LINENO" "strncasecmp" "ac_cv_func_strncasecmp"
+if test "x$ac_cv_func_strncasecmp" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRNCASECMP 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/getcgi.c:175
+for ac_func in strpbrk
+do :
+  ac_fn_c_check_func "$LINENO" "strpbrk" "ac_cv_func_strpbrk"
+if test "x$ac_cv_func_strpbrk" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRPBRK 1
+_ACEOF
+
+fi
+done
+ #wanted by: common/shared.c:90
+for ac_func in strrchr
+do :
+  ac_fn_c_check_func "$LINENO" "strrchr" "ac_cv_func_strrchr"
+if test "x$ac_cv_func_strrchr" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRRCHR 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/cgiutils.c:2012
+for ac_func in strspn
+do :
+  ac_fn_c_check_func "$LINENO" "strspn" "ac_cv_func_strspn"
+if test "x$ac_cv_func_strspn" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRSPN 1
+_ACEOF
+
+fi
+done
+ #wanted by: cgi/statuswml.c:329
+for ac_func in strtol
+do :
+  ac_fn_c_check_func "$LINENO" "strtol" "ac_cv_func_strtol"
+if test "x$ac_cv_func_strtol" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOL 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/commands.c:2745
+for ac_func in tzset
+do :
+  ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
+if test "x$ac_cv_func_tzset" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TZSET 1
+_ACEOF
+
+fi
+done
+ # wanted by: base/config.c:1492
+#AC_PROG_RANLIB # wanted by: ltmain.sh:1601
+
+for ac_header in stddef.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "stddef.h" "ac_cv_header_stddef_h" "$ac_includes_default"
+if test "x$ac_cv_header_stddef_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDDEF_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_header in wchar.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "wchar.h" "ac_cv_header_wchar_h" "$ac_includes_default"
+if test "x$ac_cv_header_wchar_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WCHAR_H 1
+_ACEOF
+
+fi
+
+done
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "stdio.h" "ac_cv_header_stdio_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdio_h" = x""yes; then :
+  $as_echo "#define HAVE_STDIO_H 1" >>confdefs.h
+
+else
+  as_fn_error "Sorry, can't do anything for you" "$LINENO" 5
+fi
 
 
 
@@ -18657,6 +19119,10 @@ fi
 
 
 $as_echo "#define HAVE_KRB5_H /**/" >>confdefs.h
+
+
+
+$as_echo "#define HAVE_STDIO_H /**/" >>confdefs.h
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lm" >&5
@@ -21551,7 +22017,7 @@ fi
 
 
 
-#perl subst $srcdir/include/locations.h
+perl subst $srcdir/include/locations.h
 #perl subst $srcdir/html/index.html
 #perl subst $srcdir/html/menu.html
 #perl subst $srcdir/html/top.html

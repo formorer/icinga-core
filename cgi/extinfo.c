@@ -41,6 +41,8 @@ static icinga_macros *mac;
 #include "../include/getcgi.h"
 #include "../include/cgiauth.h"
 
+
+
 extern char             nagios_check_command[MAX_INPUT_BUFFER];
 extern char             nagios_process_info[MAX_INPUT_BUFFER];
 extern int              nagios_process_state;
@@ -203,7 +205,7 @@ int main(void){
 		document_header(CGI_ID,FALSE);
 		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
 	}
 
@@ -661,7 +663,7 @@ int main(void){
 	document_footer(CGI_ID);
 
 	/* free all allocated memory */
-	free_memory();
+	cgi_free_memory();
 	free_comment_data();
 	free_downtime_data();
 
@@ -1163,15 +1165,15 @@ void show_host_info(void){
 			snprintf(state_duration,sizeof(state_duration)-1,"%2dd %2dh %2dm %2ds%s",days,hours,minutes,seconds,(temp_hoststatus->last_state_change==(time_t)0)?"+":"");
 		state_duration[sizeof(state_duration)-1]='\x0';
 
-		if(temp_hoststatus->status==HOST_UP){
+		if(temp_hoststatus->status==STATUS_HOST_UP){
 			strcpy(state_string,"UP");
 			bg_class="hostUP";
 		        }
-		else if(temp_hoststatus->status==HOST_DOWN){
+		else if(temp_hoststatus->status==STATUS_HOST_DOWN){
 			strcpy(state_string,"DOWN");
 			bg_class="hostDOWN";
 		        }
-		else if(temp_hoststatus->status==HOST_UNREACHABLE){
+		else if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE){
 			strcpy(state_string,"UNREACHABLE");
 			bg_class="hostUNREACHABLE";
 		        }
@@ -1323,7 +1325,7 @@ void show_host_info(void){
 		else
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Start Obsessing Over This Host' TITLE='Start Obsessing Over This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Start obsessing over this host</a></td></tr>\n",url_images_path,ENABLED_ICON,CMD_CGI,CMD_START_OBSESSING_OVER_HOST,url_encode(host_name));
 
-		if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE){
+		if(temp_hoststatus->status==STATUS_HOST_DOWN || temp_hoststatus->status==STATUS_HOST_UNREACHABLE){
 			if(temp_hoststatus->problem_has_been_acknowledged==FALSE)
 				printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Acknowledge This Host Problem' TITLE='Acknowledge This Host Problem'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Acknowledge this host problem</a></td></tr>\n",url_images_path,ACKNOWLEDGEMENT_ICON,CMD_CGI,CMD_ACKNOWLEDGE_HOST_PROBLEM,url_encode(host_name));
 			else
@@ -1337,7 +1339,7 @@ void show_host_info(void){
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Send Custom Notification' TITLE='Send Custom Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Send custom host notification</a></td></tr>\n",url_images_path,NOTIFICATION_ICON,CMD_CGI,CMD_SEND_CUSTOM_HOST_NOTIFICATION,url_encode(host_name));
 
-		if(temp_hoststatus->status!=HOST_UP)
+		if(temp_hoststatus->status!=STATUS_HOST_UP)
 			printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Delay Next Host Notification' TITLE='Delay Next Host Notification'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Delay next host notification</a></td></tr>\n",url_images_path,DELAY_ICON,CMD_CGI,CMD_DELAY_HOST_NOTIFICATION,url_encode(host_name));
 
 		printf("<tr CLASS='command'><td><img src='%s%s' border=0 ALT='Schedule Downtime For This Host' TITLE='Schedule Downtime For This Host'></td><td CLASS='command'><a href='%s?cmd_typ=%d&host=%s'>Schedule downtime for this host</a></td></tr>\n",url_images_path,DOWNTIME_ICON,CMD_CGI,CMD_SCHEDULE_HOST_DOWNTIME,url_encode(host_name));

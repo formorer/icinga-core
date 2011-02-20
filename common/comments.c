@@ -34,14 +34,14 @@
 #include "../xdata/xcddefault.h"
 #endif
 
-#ifdef NSCORE
+//#ifdef NSCORE
 #include "../include/icinga.h"
 #include "../include/broker.h"
-#endif
+//#endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 
 comment     *comment_list=NULL;

@@ -23,6 +23,9 @@
 #ifndef _ICINGA_H
 #define _ICINGA_H
 
+#include "stdheaders.h"
+
+
 #ifndef __GNUC__
 # define __attribute__(x) /* nothing */
 #endif
@@ -30,12 +33,17 @@
 # define NSCORE
 #endif
 
+
 #include "config.h"
 #include "logging.h"
 #include "common.h"
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
+
+
+typedef struct timespec timeval_t; // using nanoseconds
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -320,11 +328,15 @@ typedef struct check_result_struct{
 	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
 	int reschedule_check;                           /* should we reschedule the next check */
 	char *output_file;                              /* what file is the output stored in? */
+
 	FILE *output_file_fp;
+
 	int output_file_fd;
 	double latency;
-	struct timeval start_time;			/* time the service check was initiated */
-	struct timeval finish_time;			/* time the service check was completed */
+
+	timeval_t start_time;			/* time the service check was initiated */
+	timeval_t finish_time;			/* time the service check was completed */
+
 	int early_timeout;                              /* did the service check timeout? */
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
@@ -373,6 +385,8 @@ typedef struct passive_check_result_struct{
 	}passive_check_result;
 
 
+#include <pthread.h>
+
 /* CIRCULAR_BUFFER structure - used by worker threads */
 typedef struct circular_buffer_struct{
 	void            **buffer;
@@ -381,7 +395,12 @@ typedef struct circular_buffer_struct{
 	int             items;
 	int		high;		/* highest number of items that has ever been stored in buffer */
 	unsigned long   overflow;
-	pthread_mutex_t buffer_lock;
+       #ifdef pthread_mutex_t
+pthread_mutex_t buffer_lock;
+#else
+  //#warn "no pthread_mutex_t"
+pthread_mutex_t buffer_lock;
+#endif
         }circular_buffer;
 
 
@@ -771,6 +790,65 @@ int has_shell_metachars(const char *);
 
   //cleanup_comment_data
   int cleanup_comment_data(char *config_file);
+  // events.c
+  int update_service_status(service *svc,int aggregated_dump);
+  int update_host_status(host *hst,int aggregated_dump);
+  int update_program_status(int aggregated_dump);
+  int check_for_expired_comment(unsigned long comment_id);
+
+  //xcddefault_initialize_comment_data
+int xcddefault_initialize_comment_data(char *main_config_file);
+  //xcddefault_cleanup_comment_data
+  int xcddefault_cleanup_comment_data(char *main_config_file);
+
+  //add_new_host_comment
+  int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+
+  //add_new_service_comment
+  int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+
+  //xcddefault_add_new_host_comment
+  int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+
+  //xcddefault_add_new_service_comment
+  int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+
+  //xcddefault_delete_host_comment
+  int xcddefault_delete_host_comment(unsigned long comment_id);
+
+  //xcddefault_delete_service_comment
+  int xcddefault_delete_service_comment(unsigned long comment_id);
+
+  int delete_service_comment(unsigned long comment_id);
+  int delete_host_comment(unsigned long comment_id);
+
+  int set_all_macro_environment_vars_r(icinga_macros *mac, int set);
+
+  int delete_service_acknowledgement_comments(service *svc);
+  int delete_host_acknowledgement_comments(host *host);
+  int update_contact_status(contact *cntct,int aggregated_dump);
+  //delete_all_host_comments
+  int delete_all_host_comments(char *host_name);
+  //delete_all_service_comments
+  int delete_all_service_comments(char *host_name, char *svc_description);
+
+  //xdddefault_initialize_downtime_data
+  int xdddefault_initialize_downtime_data(char *main_config_file);
+
+  //xdddefault_cleanup_downtime_data
+  int xdddefault_cleanup_downtime_data(char *main_config_file);
+  //add_new_comment
+  int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+
+  //xdddefault_add_new_host_downtime
+  int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
+  //xdddefault_add_new_service_downtime
+  int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
+
+  //xdddefault_delete_host_downtime
+  int xdddefault_delete_host_downtime(unsigned long downtime_id);
+  //xdddefault_delete_service_downtime
+  int xdddefault_delete_service_downtime(unsigned long downtime_id);
 
 #ifdef __cplusplus
 }

@@ -25,6 +25,8 @@
 
 
 /*********** COMMON HEADER FILES ***********/
+#define NSCORE 1
+#define NSCGI 1 
 
 #include "../include/config.h"
 #include "../include/common.h"
@@ -36,23 +38,22 @@
 #include "../include/skiplist.h"
 
 /* make sure gcc3 won't hit here */
+
+//#ifdef NSCORE
+#include "../include/icinga.h"
+//#endif
+
+//#ifdef NSCGI
+#include "../include/cgiutils.h"
+//#endif
 #ifndef GCCTOOOLD
 #include "../include/statsprofiler.h"
 #include "../include/profiler.h"
 #endif
 
-#ifdef NSCORE
-#include "../include/icinga.h"
-#endif
-
-//#ifdef NSCGI
-#include "../include/cgiutils.h"
-//#endif
-
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 #include "xsddefault.h"
-
 
 
 //#ifdef oNSCGI
@@ -83,7 +84,7 @@ profile_object* profiled_data = NULL;
 //#endif
 #endif
 
-#ifdef NSCORE
+//#ifdef NSCORE
 extern time_t program_start;
 extern int nagios_pid;
 extern int daemon_mode;
@@ -131,7 +132,7 @@ extern check_stats    check_statistics[MAX_CHECK_STATS_TYPES];
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
 extern int event_profiling_enabled;
-#endif
+//#endif
 #endif
 
 
@@ -176,12 +177,13 @@ int xsddefault_grab_config_info(char *config_file){
 #ifdef NSCGI
 		/* CGI needs to find and read contents of main config file, since it was passed the name of the CGI config file */
 		if(strstr(input,"main_config_file")==input){
-
+		  char * temp_buffer=0; //[MAX_INPUT_BUFFER];
+		  char * input2=0;
 			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
 			if(temp_buffer==NULL)
 				continue;
-
+			mmapfile *thefile2=NULL;
 			if((thefile2=mmap_fopen(temp_buffer))==NULL)
 				continue;
 
@@ -760,6 +762,7 @@ int xsddefault_read_status_data(char *config_file,int options){
 #else
 	char *input=NULL;
 	mmapfile *thefile=NULL;
+
 #endif
 	int data_type=XSDDEFAULT_NO_DATA;
 	hoststatus *temp_hoststatus=NULL;

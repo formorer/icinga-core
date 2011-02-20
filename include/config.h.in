@@ -1,381 +1,493 @@
-/************************************************************************
- *
- * Icinga Config Header File
- *
- * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
- * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************/
+/* include/config.h.in.  Generated from configure.in by autoheader.  */
 
+/* group name to run nagios */
+#undef DEFAULT_ICINGA_GROUP
 
-/***** ICINGA STUFF *****/
+/* user name to run nagios */
+#undef DEFAULT_ICINGA_USER
 
-#define DEFAULT_ICINGA_USER icinga
-#define DEFAULT_ICINGA_GROUP icinga
+/* group name to run nagios */
+#undef DEFAULT_NAGIOS_GROUP
 
-/* stop gcc from bitching about implicit asprintf declarations */
-#define _GNU_SOURCE 1
+/* user name to run nagios */
+#undef DEFAULT_NAGIOS_USER
 
-/* check if gcc3 */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2)
-#undef GCCTOOOLD
-#else
-#define GCCTOOOLD 1
-#endif
+/* whether to clean cached compiled perl */
+#undef DO_CLEAN
 
-/* Event broker integration */
-#undef USE_EVENT_BROKER
-
-/* Embed a PERL interpreter into Nagios with optional cache for compiled code (contributed by Stephen Davies) */
+/* Is embedded Perl being compiled in? */
 #undef EMBEDDEDPERL
-#undef THREADEDPERL
-/* 0 = cache, 1 = do not cache */
-#define DO_CLEAN		"1"
 
-/* commands used by CGIs */
-#undef TRACEROUTE_COMMAND
-#undef PING_COMMAND
-#undef PING_PACKETS_FIRST
+/* Define to the type of elements in the array set by `getgroups'. Usually
+   this is either `int' or `gid_t'. */
+#undef GETGROUPS_T
 
-/* Debugging options */
-/* function entry and exit */
-#undef DEBUG0
-/* general info messages */
-#undef DEBUG1
-/* warning messages */
-#undef DEBUG2
-/* service and host checks, other events */
-#undef DEBUG3
-/* service and host notifications */
-#undef DEBUG4
-/* SQL queries (defunct) */
-#undef DEBUG5
+/* Define to 1 if you have the `alarm' function. */
+#undef HAVE_ALARM
 
-/* I/O implementations */
-#undef USE_XSDDEFAULT
-#undef USE_XCDDEFAULT
-#undef USE_XRDDEFAULT
-#undef USE_XODTEMPLATE
-#undef USE_XPDDEFAULT
-#undef USE_XDDDEFAULT
-
-/***** CGI COMPILE OPTIONS *****/
-/* should we compile and use the statusmap CGI? */
-#undef USE_STATUSMAP
-/* should we compile and use the statuswrl CGI? */
-#undef USE_STATUSWRL
-/* should we compile and use the trends CGI? */
-#undef USE_TRENDS
-/* should we compile and use the histogram CGI? */
-#undef USE_HISTOGRAM
-
-
-/***** FUNCTION DEFINITIONS *****/
-
-#undef HAVE_SETENV
-#undef HAVE_UNSETENV
-#undef HAVE_SOCKET
-#undef HAVE_STRDUP
-#undef HAVE_STRSTR
-#undef HAVE_STRTOUL
-#undef HAVE_INITGROUPS
-#undef HAVE_GETLOADAVG
-#undef HAVE_GDIMAGECREATETRUECOLOR
-
-
-
-/***** ASPRINTF() AND FRIENDS *****/
-
-#undef HAVE_VSNPRINTF
-#undef HAVE_SNPRINTF
-#undef HAVE_ASPRINTF
-#undef HAVE_VASPRINTF
-#undef HAVE_C99_VSNPRINTF
-#undef HAVE_VA_COPY
-#undef HAVE___VA_COPY
-
-
-
-/***** MISC DEFINITIONS *****/
-
-#undef USE_NANOSLEEP
-#undef STDC_HEADERS
-#undef HAVE_TM_ZONE
-#undef HAVE_TZNAME
-#undef USE_PROC
-#define SOCKET_SIZE_TYPE ""
-#define GETGROUPS_T ""
-#define RETSIGTYPE ""
-
-
-
-/***** HEADER FILES *****/
-
-#include <stdio.h>
-#include <stdlib.h>
-
-/* needed for the time_t structures we use later... */
-/* this include must come before sys/resource.h or we can have problems on some OSes */
-#undef TIME_WITH_SYS_TIME
-#undef HAVE_SYS_TIME_H
-#if TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#if HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
-
-#undef HAVE_SYS_RESOURCE_H
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
-
-#undef HAVE_LIMITS_H
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-
-#undef HAVE_PWD_H
-#ifdef HAVE_PWD_H
-#include <pwd.h>
-#endif
- 
-#undef HAVE_GRP_H
-#ifdef HAVE_GRP_H
-#include <grp.h>
-#endif
-
-#undef HAVE_STRINGS_H
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
-#undef HAVE_STRING_H
-#ifdef HAVE_STRINGS_H
-#include <string.h>
-#endif
-
-#undef HAVE_UNISTD_H
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#undef HAVE_SYSLOG_H
-#ifdef HAVE_SYSLOG_H
-#include <syslog.h>
-#endif
-
-#undef HAVE_SIGNAL_H
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
-
-#undef HAVE_SYS_STAT_H
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-
-#undef HAVE_SYS_MMAN_H
-#ifdef HAVE_SYS_MMAN_H
-#include <sys/mman.h>
-#endif
-
-#undef HAVE_FCNTL_H
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#undef HAVE_STDARG_H
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-
-#undef HAVE_SYS_TYPES_H
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#undef HAVE_SYS_WAIT_H
-#ifdef HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#undef HAVE_ERRNO_H
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-
-#undef HAVE_SYS_TIMEB_H
-#if HAVE_SYS_TIMEB_H
-#include <sys/timeb.h>
-#endif
-
-#undef HAVE_SYS_IPC_H
-#ifdef HAVE_SYS_IPC_H
-#include <sys/ipc.h>
-#endif
-
-#undef HAVE_SYS_MSG_H
-#ifdef HAVE_SYS_MSG_H
-#include <sys/msg.h>
-#endif
-
-#undef HAVE_MATH_H
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
-
-#undef HAVE_CTYPE_H
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-
-#undef HAVE_DIRENT_H
-#ifdef HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-
-#undef HAVE_PTHREAD_H
-#ifdef HAVE_PTHREAD_H
-#include <pthread.h>
-#endif
-
-#undef HAVE_REGEX_H
-#ifdef HAVE_REGEX_H
-#include <regex.h>
-
-#undef HAVE_SYS_SOCKET_H
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-
-#undef HAVE_SOCKET
-#ifdef HAVE_SOCKET_H
-#include <socket.h>
-#endif
-
-#undef HAVE_NETINET_IN_H
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
+/* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
-#ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
-#endif
 
-#undef HAVE_NETDB_H
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
+/* Define to 1 if you have the `bzero' function. */
+#undef HAVE_BZERO
 
-#undef HAVE_LIBGEN_H
-#ifdef HAVE_LIBGEN_H
-#include <libgen.h>
-#endif
+/* Define if system has C99 compatible vsnprintf */
+#undef HAVE_C99_VSNPRINTF
 
-#undef HAVE_SYS_UN_H
-#ifdef HAVE_SYS_UN_H
-#include <sys/un.h>
-#endif
+/* Define to 1 if your system has a working `chown' function. */
+#undef HAVE_CHOWN
 
-#undef HAVE_SYS_POLL_H
-#ifdef HAVE_SYS_POLL_H
-#include <sys/poll.h>
-#endif
-
-#undef HAVE_GETOPT_H
-#ifdef HAVE_GETOPT_H
-#include <getopt.h>
-#endif
-
-#undef HAVE_LINUX_MODULE_H
-#ifdef HAVE_LINUX_MODULE_H
-#include <linux/module.h>
-#endif
-
-#undef HAVE_SSL
-#ifdef HAVE_SSL
-#include <rsa.h>
-#include <crypto.h>
-#include <dh.h>
-#include <pem.h>
-#include <ssl.h>
-#include <err.h>
-#include <rand.h>
-#endif
-
-
-/* configure script should allow user to override ltdl choice, but this will do for now... */
-#undef USE_LTDL
-#undef HAVE_LTDL_H
-#ifdef HAVE_LTDL_H
-#define USE_LTDL
-#endif
-
-#ifdef USE_LTDL
-#include <ltdl.h>
-#else
-#undef HAVE_DLFCN_H
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
-#endif
-
-
-/* moved to end to prevent AIX compiler warnings */
-#ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL 0
-#endif
-
-#ifndef RTLD_NOW
-#define RTLD_NOW 0
-#endif
-
-
-/***** MARO DEFINITIONS *****/
-
-/* this needs to come after all system include files, so we don't accidentally attempt to redefine it */
-#ifndef WEXITSTATUS
-# define WEXITSTATUS(stat_val) ((unsigned)(stat_val) >> 8)
-#endif
-#ifndef WIFEXITED
-# define WIFEXITED(stat_val) (((stat_val) & 255) == 0)
-#endif
-
-/* define to use state based escalation ranges */
-#undef USE_ST_BASED_ESCAL_RANGES
+/* Define to 1 if you have the <ctype.h> header file. */
+#undef HAVE_CTYPE_H
 
 /* Define to 1 if you have the <dbi/dbi.h> header file. */
 #undef HAVE_DBI_DBI_H
+
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Which loader library should we use? libtdl or dl? */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the `dup2' function. */
+#undef HAVE_DUP2
+
+/* Define to 1 if you have the `endgrent' function. */
+#undef HAVE_ENDGRENT
+
+/* Define to 1 if you have the `endpwent' function. */
+#undef HAVE_ENDPWENT
+
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `floor' function. */
+#undef HAVE_FLOOR
+
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
+
+/* Define to 1 if you have the `ftruncate' function. */
+#undef HAVE_FTRUNCATE
+
+/* Define if your gd library has gdImageCreateTrueColor */
+#undef HAVE_GDIMAGECREATETRUECOLOR
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `gethostbyname' function. */
+#undef HAVE_GETHOSTBYNAME
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the `getopt_long' function. */
+#undef HAVE_GETOPT_LONG
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define to 1 if you have the <grp.h> header file. */
+#undef HAVE_GRP_H
+
+/* Define to 1 if you have the `initgroups' function. */
+#undef HAVE_INITGROUPS
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `isascii' function. */
+#undef HAVE_ISASCII
+
+/* autoheader found this */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the <libpq-fe.h> header file. */
+#undef HAVE_LIBPQ_FE_H
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the `localtime_r' function. */
+#undef HAVE_LOCALTIME_R
+
+/* Which loader library should we use? libtdl or dl? */
+#undef HAVE_LTDL_H
+
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
+#undef HAVE_MALLOC
+
+/* Define to 1 if you have the <math.h> header file. */
+#undef HAVE_MATH_H
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `mkfifo' function. */
+#undef HAVE_MKFIFO
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `munmap' function. */
+#undef HAVE_MUNMAP
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* octave */
+#undef HAVE_OCILIB_H
+
+/* Define to 1 if you have the `pow' function. */
+#undef HAVE_POW
+
+/* Define to 1 if you have the <pthreads.h> header file. */
+#undef HAVE_PTHREADS_H
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `putenv' function. */
+#undef HAVE_PUTENV
+
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
+/* Define to 1 if your system has a GNU libc compatible `realloc' function,
+   and to 0 otherwise. */
+#undef HAVE_REALLOC
+
+/* Define to 1 if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
+
+/* Define to 1 if you have the <regex.h> header file. */
+#undef HAVE_REGEX_H
+
+/* Define to 1 if you have the `select' function. */
+#undef HAVE_SELECT
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
+/* Define to 1 if you have the `socket' function. */
+#undef HAVE_SOCKET
+
+/* Define to 1 if you have the <socket.h> header file. */
+#undef HAVE_SOCKET_H
+
+/* ssl check */
+#undef HAVE_SSL
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if stdbool.h conforms to C99. */
+#undef HAVE_STDBOOL_H
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Why would this be missing */
+#undef HAVE_STDIO_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the `strcspn' function. */
+#undef HAVE_STRCSPN
+
+/* Define to 1 if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the `strpbrk' function. */
+#undef HAVE_STRPBRK
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
+
+/* Define to 1 if you have the `strspn' function. */
+#undef HAVE_STRSPN
+
+/* Define to 1 if you have the `strstr' function. */
+#undef HAVE_STRSTR
+
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define to 1 if you have the `strtoul' function. */
+#undef HAVE_STRTOUL
+
+/* Define to 1 if `tm_zone' is a member of `struct tm'. */
+#undef HAVE_STRUCT_TM_TM_ZONE
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/ipc.h> header file. */
+#undef HAVE_SYS_IPC_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/msg.h> header file. */
+#undef HAVE_SYS_MSG_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/poll.h> header file. */
+#undef HAVE_SYS_POLL_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#undef HAVE_SYS_TIMEB_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/wait.h> header file. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
+   `HAVE_STRUCT_TM_TM_ZONE' instead. */
+#undef HAVE_TM_ZONE
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+   `tzname'. */
+#undef HAVE_TZNAME
+
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
+/* Define to 1 if you have the <uio.h> header file. */
+#undef HAVE_UIO_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `unsetenv' function. */
+#undef HAVE_UNSETENV
+
+/* Whether va_copy() is available */
+#undef HAVE_VA_COPY
+
+/* Define to 1 if you have the `vfork' function. */
+#undef HAVE_VFORK
+
+/* Define to 1 if you have the <vfork.h> header file. */
+#undef HAVE_VFORK_H
+
+/* Define to 1 if you have the <wchar.h> header file. */
+#undef HAVE_WCHAR_H
+
+/* Define to 1 if `fork' works. */
+#undef HAVE_WORKING_FORK
+
+/* Define to 1 if `vfork' works. */
+#undef HAVE_WORKING_VFORK
+
+/* Define to 1 if the system has the type `_Bool'. */
+#undef HAVE__BOOL
+
+/* Whether __va_copy() is available */
+#undef HAVE___VA_COPY
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* defined if va_list fails to compile */
+#undef NEED_VA_LIST
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* typedef for socket size */
+#undef SOCKET_SIZE_TYPE
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* defined if we're using threaded Perl */
+#undef THREADEDPERL
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* traceroute command to use */
+#undef TRACEROUTE_COMMAND
+
+/* defined to bring in the event broker objects */
+#undef USE_EVENT_BROKER
+
+/* compile histogram CGI */
+#undef USE_HISTOGRAM
+
+/* lib dbi */
 #undef USE_LIBDBI
 
-/* define to 1 if you have the libpq-fe.h header file. */
-#undef HAVE_LIBPQ_FE_H
-#undef USE_PGSQL
+/* enables use of nanosleep (instead of sleep) */
+#undef USE_NANOSLEEP
 
 /* oracle */
 #undef USE_ORACLE
-#undef HAVE_ORACLE
-#ifdef USE_ORACLE
-#define HAVE_ORACLE 1
+
+/* postgres */
+#undef USE_PGSQL
+
+/* defined if the user chose to include status map */
+#undef USE_STATUSMAP
+
+/* statuswrl CGI enabled by default, unless users chooses not to use it */
+#undef USE_STATUSWRL
+
+/* Description */
+#undef USE_ST_BASED_ESCAL_RANGES
+
+/* compile trends CGI */
+#undef USE_TRENDS
+
+/* use default routines (in xdata/xcddefault.*) for comment data I/O... */
+#undef USE_XCDDEFAULT
+
+/* use default routines (in xdata/xdddefault.*) for scheduled downtime data
+   I/O... */
+#undef USE_XDDDEFAULT
+
+/* use template-based routines (in xdata/xodtemplate.*) for object data I/O...
+   */
+#undef USE_XODTEMPLATE
+
+/* use default routines (in xdata/xpddefault.*) for performance data I/O... */
+#undef USE_XPDDEFAULT
+
+/* use default routines (in xdata/xrddefault.*) for retention data I/O... */
+#undef USE_XRDDEFAULT
+
+/* use default routines (in xdata/xsddefault.*) for status data I/O... */
+#undef USE_XSDDEFAULT
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
 #endif
 
-#endif
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef mode_t
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
+
+/* Define to rpl_realloc if the replacement function should be used. */
+#undef realloc
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef uid_t
+
+/* Define as `fork' if `vfork' does not work. */
+#undef vfork

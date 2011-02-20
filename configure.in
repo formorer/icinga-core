@@ -52,6 +52,9 @@ AC_TYPE_GETGROUPS
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
+
+#AC_TYPE_FILE_T
+
 AC_C_INLINE
 AC_HEADER_STDBOOL
 
@@ -98,6 +101,13 @@ AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
 AC_CHECK_FUNC(snprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
 AC_CHECK_FUNC(asprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
 AC_CHECK_FUNC(vasprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
+
+AC_DEFINE([HAVE_OCILIB_H], [], [octave])
+AC_DEFINE([HAVE_SSL], [], [ssl check])
+AC_DEFINE([USE_LIBDBI], [], [lib dbi])
+AC_DEFINE([USE_ORACLE], [], [oracle])
+AC_DEFINE([USE_PGSQL], [], [postgres])
+AC_DEFINE([USE_ST_BASED_ESCAL_RANGES], [], [Description])
 
 AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([
@@ -384,7 +394,45 @@ echo "We'll use template-based routines (in xdata/xodtemplate.*) for object data
 AC_SUBST(XODC)
 AC_SUBST(XODH)
 
+AC_CHECK_FUNCS([alarm]) # wanted by: base/utils.c:471
+AC_CHECK_FUNCS([bzero]) # wanted by: base/netutils.c:235
+AC_CHECK_FUNCS([dup2]) # wanted by: base/checks.c:239
+AC_CHECK_FUNCS([endgrent])# wanted by: module/idoutils/src/ido2db.c:719
+AC_CHECK_FUNCS([endpwent])# wanted by: module/idoutils/src/ido2db.c:745
+AC_CHECK_FUNCS([floor]) #wanted by: cgi/statusmap.c:2659
+AC_CHECK_FUNCS([ftruncate]) # wanted by: base/utils.c:2426
+AC_CHECK_FUNCS([getcwd]) #wanted by: t/unit/run_command.c:473
+AC_CHECK_FUNCS([gethostbyname]) #wanted by: module/idoutils/src/io.c:220
+AC_CHECK_FUNCS([gettimeofday]) # wanted by: base/notifications.c:90
+AC_CHECK_FUNCS([isascii]) #wanted by: module/idoutils/src/io.c:370
+AC_CHECK_FUNCS([localtime_r]) #wanted by: common/shared.c:438
+AC_CHECK_FUNCS([memmove]) # wanted by: base/utils.c:3160
+AC_CHECK_FUNCS([memset]) #wanted by: common/snprintf.c:1384
+AC_CHECK_FUNCS([mkfifo]) # wanted by: base/utils.c:3238
+AC_CHECK_FUNCS([munmap]) #wanted by: common/shared.c:171
+AC_CHECK_FUNCS([pow]) #wanted by: common/snprintf.c:1439
+AC_CHECK_FUNCS([putenv]) # wanted by: base/utils.c:820
+AC_CHECK_FUNCS([regcomp]) #wanted by: cgi/status.c:1473
+AC_CHECK_FUNCS([select]) # wanted by: base/utils.c:3955
+AC_CHECK_FUNCS([socket]) # wanted by: base/netutils.c:62
+AC_CHECK_FUNCS([strcasecmp]) #wanted by: cgi/extinfo.c:3271
+AC_CHECK_FUNCS([strchr]) #wanted by: common/macros.c:130
+AC_CHECK_FUNCS([strcspn]) # wanted by: base/utils.c:344
+AC_CHECK_FUNCS([strerror]) # wanted by: base/icingastats.c:449
+AC_CHECK_FUNCS([strncasecmp]) #wanted by: cgi/getcgi.c:175
+AC_CHECK_FUNCS([strpbrk]) #wanted by: common/shared.c:90
+AC_CHECK_FUNCS([strrchr]) #wanted by: cgi/cgiutils.c:2012
+AC_CHECK_FUNCS([strspn]) #wanted by: cgi/statuswml.c:329
+AC_CHECK_FUNCS([strtol]) # wanted by: base/commands.c:2745
+AC_CHECK_FUNCS([tzset]) # wanted by: base/config.c:1492
+#AC_PROG_RANLIB # wanted by: ltmain.sh:1601
 
+AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([wchar.h])
+
+AC_CHECK_HEADER([stdio.h],
+                [AC_DEFINE([HAVE_STDIO_H])],
+                [AC_MSG_ERROR([Sorry, can't do anything for you])])
 
 dnl Performance data
 AC_DEFINE_UNQUOTED(USE_XPDDEFAULT,,[use default routines (in xdata/xpddefault.*) for performance data I/O...])
@@ -1010,6 +1058,8 @@ AC_ARG_ENABLE(ssl,AC_HELP_STRING([--enable-ssl],[enables native SSL support]),[
 
 AC_DEFINE([HAVE_KRB5_H], [], [autoheader found this])
 
+AC_DEFINE([HAVE_STDIO_H], [], [Why would this be missing])
+
 AC_CHECK_LIB([m], [main])
 
 dnl Optional SSL library and include paths
@@ -1182,7 +1232,7 @@ AC_MSG_CHECKING(for -Wall based on os/compiler)
 AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile  cgi/Makefile xdata/Makefile daemon-init daemon-init-redhat rc.ido2db  t/Makefile  t/unit/Makefile )
 
 
-#perl subst $srcdir/include/locations.h
+perl subst $srcdir/include/locations.h
 #perl subst $srcdir/html/index.html
 #perl subst $srcdir/html/menu.html
 #perl subst $srcdir/html/top.html

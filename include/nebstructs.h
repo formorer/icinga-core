@@ -43,7 +43,7 @@ typedef struct nebstruct_process_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
         }nebstruct_process_data;
 
 
@@ -52,7 +52,7 @@ typedef struct nebstruct_timed_event_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             event_type;
 	int             recurring;
@@ -67,7 +67,7 @@ typedef struct nebstruct_log_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	time_t          entry_time;
 	int             data_type;
@@ -80,10 +80,10 @@ typedef struct nebstruct_system_command_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	int             timeout;
 	char            *command_line;
 	int             early_timeout;
@@ -98,7 +98,7 @@ typedef struct nebstruct_event_handler_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             eventhandler_type;
 	char            *host_name;
@@ -109,8 +109,8 @@ typedef struct nebstruct_event_handler_struct{
 	char            *command_name;
 	char            *command_args;
 	char            *command_line;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	int             early_timeout;
 	double          execution_time;
 	int             return_code;
@@ -125,7 +125,7 @@ typedef struct nebstruct_host_check_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	char            *host_name;
 	int             current_attempt;
@@ -137,8 +137,8 @@ typedef struct nebstruct_host_check_struct{
 	char            *command_name;
 	char            *command_args;
 	char            *command_line;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	int             early_timeout;
 	double          execution_time;
 	double          latency;
@@ -156,7 +156,7 @@ typedef struct nebstruct_service_check_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	char            *host_name;
 	char            *service_description;
@@ -169,8 +169,8 @@ typedef struct nebstruct_service_check_struct{
 	char            *command_name;
 	char            *command_args;
 	char            *command_line;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	int             early_timeout;
 	double          execution_time;
 	double          latency;
@@ -188,7 +188,7 @@ typedef struct nebstruct_comment_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             comment_type;
 	char            *host_name;
@@ -212,7 +212,7 @@ typedef struct nebstruct_downtime_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             downtime_type;
 	char            *host_name;
@@ -236,7 +236,7 @@ typedef struct nebstruct_flapping_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             flapping_type;
 	char            *host_name;
@@ -255,7 +255,7 @@ typedef struct nebstruct_program_status_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	time_t          program_start;
 	int             pid;
@@ -285,7 +285,7 @@ typedef struct nebstruct_host_status_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	object_ptr_t object_ptr;
         }nebstruct_host_status_data;
@@ -296,7 +296,7 @@ typedef struct nebstruct_service_status_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	object_ptr_t object_ptr;
         }nebstruct_service_status_data;
@@ -307,7 +307,7 @@ typedef struct nebstruct_contact_status_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	object_ptr_t object_ptr;
         }nebstruct_contact_status_data;
@@ -318,11 +318,11 @@ typedef struct nebstruct_notification_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             notification_type;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	char            *host_name;
 	char            *service_description;
 	int             reason_type;
@@ -342,11 +342,11 @@ typedef struct nebstruct_contact_notification_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             notification_type;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	char            *host_name;
 	char            *service_description;
 	char            *contact_name;
@@ -367,11 +367,11 @@ typedef struct nebstruct_contact_notification_method_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             notification_type;
-	struct timeval  start_time;
-	struct timeval  end_time;
+	timeval_t  start_time;
+	timeval_t  end_time;
 	char            *host_name;
 	char            *service_description;
 	char            *contact_name;
@@ -394,7 +394,7 @@ typedef struct nebstruct_adaptive_program_data_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             command_type;
 	unsigned long   modified_host_attribute;
@@ -409,7 +409,7 @@ typedef struct nebstruct_adaptive_host_data_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             command_type;
 	unsigned long   modified_attribute;
@@ -424,7 +424,7 @@ typedef struct nebstruct_adaptive_service_data_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             command_type;
 	unsigned long   modified_attribute;
@@ -439,7 +439,7 @@ typedef struct nebstruct_adaptive_contact_data_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             command_type;
 	unsigned long   modified_attribute;
@@ -458,7 +458,7 @@ typedef struct nebstruct_external_command_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             command_type;
 	time_t          entry_time;
@@ -472,7 +472,7 @@ typedef struct nebstruct_aggregated_status_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
         }nebstruct_aggregated_status_data;
 
@@ -482,7 +482,7 @@ typedef struct nebstruct_retention_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
         }nebstruct_retention_data;
 
@@ -492,7 +492,7 @@ typedef struct nebstruct_acknowledgement_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             acknowledgement_type;
 	char            *host_name;
@@ -513,7 +513,7 @@ typedef struct nebstruct_statechange_struct{
 	int             type;
 	int             flags;
 	int             attr;
-	struct timeval  timestamp;
+	timeval_t  timestamp;
 
 	int             statechange_type;
 	char            *host_name;

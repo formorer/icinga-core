@@ -185,34 +185,34 @@
 /****** EVENT BROKER FUNCTIONS *************/
 
 #ifdef USE_EVENT_BROKER
-struct timeval get_broker_timestamp(struct timeval *);
-void broker_program_state(int,int,int,struct timeval *);
-void broker_timed_event(int,int,int,timed_event *,struct timeval *);
-void broker_log_data(int,int,int,char *,unsigned long,time_t,struct timeval *);
-int broker_event_handler(int,int,int,int,void *,int,int,struct timeval,struct timeval,double,int,int,int,char *,char *,char *,struct timeval *);
-void broker_ocp_data(int,int,int,void *,int,int,double,int,int,struct timeval *);
-void broker_system_command(int,int,int,struct timeval,struct timeval,double,int,int,int,char *,char *,struct timeval *);
-int broker_host_check(int,int,int,host *,int,int,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,char *,char *,char *,struct timeval *);
-int broker_service_check(int,int,int,service *,int,struct timeval,struct timeval,char *,double,double,int,int,int,char *,struct timeval *);
-void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,struct timeval *);
-void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,struct timeval *);
-void broker_flapping_data(int,int,int,int,void *,double,double,double,struct timeval *);
-void broker_program_status(int,int,int,struct timeval *);
-void broker_host_status(int,int,int,host *,struct timeval *);
-void broker_service_status(int,int,int,service *,struct timeval *);
-void broker_contact_status(int,int,int,contact *,struct timeval *);
-int broker_notification_data(int,int,int,int,int,struct timeval,struct timeval,void *,char *,char *,int,int,struct timeval *);
-int broker_contact_notification_data(int,int,int,int,int,struct timeval,struct timeval,void *,contact *,char *,char *,int,struct timeval *);
-int broker_contact_notification_method_data(int,int,int,int,int,struct timeval,struct timeval,void *,contact *,char *,char *,char *,int,struct timeval *);
-void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,unsigned long,unsigned long,struct timeval *);
-void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,struct timeval *);
-void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,struct timeval *);
-void broker_adaptive_contact_data(int,int,int,contact *,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long, struct timeval *);
-void broker_external_command(int,int,int,int,time_t,char *,char *,struct timeval *);
-void broker_aggregated_status_data(int,int,int,struct timeval *);
-void broker_retention_data(int,int,int,struct timeval *);
-void broker_acknowledgement_data(int,int,int,int,void *,char *,char *,int,int,int,struct timeval *);
-void broker_statechange_data(int,int,int,int,void *,int,int,int,int,struct timeval *);
+timeval_t get_broker_timestamp(timeval_t *);
+void broker_program_state(int,int,int,timeval_t *);
+void broker_timed_event(int,int,int,timed_event *,timeval_t *);
+void broker_log_data(int,int,int,char *,unsigned long,time_t,timeval_t *);
+int broker_event_handler(int,int,int,int,void *,int,int,timeval_t,timeval_t,double,int,int,int,char *,char *,char *,timeval_t *);
+void broker_ocp_data(int,int,int,void *,int,int,double,int,int,timeval_t *);
+void broker_system_command(int,int,int,timeval_t,timeval_t,double,int,int,int,char *,char *,timeval_t *);
+int broker_host_check(int,int,int,host *,int,int,int,timeval_t,timeval_t,char *,double,double,int,int,int,char *,char *,char *,char *,timeval_t *);
+int broker_service_check(int,int,int,service *,int,timeval_t,timeval_t,char *,double,double,int,int,int,char *,timeval_t *);
+void broker_comment_data(int,int,int,int,int,char *,char *,time_t,char *,char *,int,int,int,time_t,unsigned long,timeval_t *);
+void broker_downtime_data(int,int,int,int,char *,char *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long,unsigned long,timeval_t *);
+void broker_flapping_data(int,int,int,int,void *,double,double,double,timeval_t *);
+void broker_program_status(int,int,int,timeval_t *);
+void broker_host_status(int,int,int,host *,timeval_t *);
+void broker_service_status(int,int,int,service *,timeval_t *);
+void broker_contact_status(int,int,int,contact *,timeval_t *);
+int broker_notification_data(int,int,int,int,int,timeval_t,timeval_t,void *,char *,char *,int,int,timeval_t *);
+int broker_contact_notification_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact *,char *,char *,int,timeval_t *);
+int broker_contact_notification_method_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact *,char *,char *,char *,int,timeval_t *);
+void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,unsigned long,unsigned long,timeval_t *);
+void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,timeval_t *);
+void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,timeval_t *);
+void broker_adaptive_contact_data(int,int,int,contact *,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long, timeval_t *);
+void broker_external_command(int,int,int,int,time_t,char *,char *,timeval_t *);
+void broker_aggregated_status_data(int,int,int,timeval_t *);
+void broker_retention_data(int,int,int,timeval_t *);
+void broker_acknowledgement_data(int,int,int,int,void *,char *,char *,int,int,int,timeval_t *);
+void broker_statechange_data(int,int,int,int,void *,int,int,int,int,timeval_t *);
 #endif
 
 

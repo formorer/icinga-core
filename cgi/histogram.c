@@ -35,9 +35,6 @@
 #include <gdfonts.h>		/* GD library small font definition */
 
 
-/*#define DEBUG			1*/
-
-
 #define HISTOGRAM_IMAGE         "histogram.png"
 
 /* archived state types */
@@ -303,7 +300,7 @@ int main(int argc, char **argv){
 			print_error(NULL, ERROR_CGI_STATUS_DATA);
 			document_footer(CGI_ID);
 		        }
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
                 }
 
@@ -553,7 +550,7 @@ int main(int argc, char **argv){
 		}
 
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
 	}
 
@@ -987,7 +984,7 @@ int main(int argc, char **argv){
 	document_footer(CGI_ID);
 
 	/* free all other allocated memory */
-	free_memory();
+	cgi_free_memory();
 
 	return OK;
         }

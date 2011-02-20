@@ -272,8 +272,8 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 	double exectime=0.0;
 	int result=0;
 #ifdef USE_EVENT_BROKER
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int neb_result=OK;
 #endif
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
@@ -296,7 +296,8 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -323,7 +324,7 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_event_handler(NEBTYPE_EVENTHANDLER_START,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_service_event_handler,processed_command,NULL,NULL);
 
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
@@ -345,7 +346,8 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -376,8 +378,8 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 	double exectime=0.0;
 	int result=0;
 #ifdef USE_EVENT_BROKER
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int neb_result=OK;
 #endif
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
@@ -396,7 +398,8 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -422,7 +425,7 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_event_handler(NEBTYPE_EVENTHANDLER_START,NEBFLAG_NONE,NEBATTR_NONE,SERVICE_EVENTHANDLER,(void *)svc,svc->current_state,svc->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,svc->event_handler,processed_command,NULL,NULL);
 
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
@@ -444,7 +447,8 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -519,8 +523,8 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 	double exectime=0.0;
 	int result=0;
 #ifdef USE_EVENT_BROKER
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int neb_result=OK;
 #endif
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
@@ -543,7 +547,8 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -569,7 +574,7 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_event_handler(NEBTYPE_EVENTHANDLER_START,NEBFLAG_NONE,NEBATTR_NONE,GLOBAL_HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,global_host_event_handler,processed_command,NULL,NULL);
 
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
@@ -591,7 +596,8 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -621,8 +627,8 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 	double exectime=0.0;
 	int result=0;
 #ifdef USE_EVENT_BROKER
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	int neb_result=OK;
 #endif
 	int macro_options=STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS;
@@ -641,7 +647,8 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -667,7 +674,7 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 #ifdef USE_EVENT_BROKER
 	/* send event data to broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	neb_result=broker_event_handler(NEBTYPE_EVENTHANDLER_START,NEBFLAG_NONE,NEBATTR_NONE,HOST_EVENTHANDLER,(void *)hst,hst->current_state,hst->state_type,start_time,end_time,exectime,event_handler_timeout,early_timeout,result,hst->event_handler,processed_command,NULL,NULL);
 
 	/* neb module wants to override (or cancel) the event handler - perhaps it will run the eventhandler itself */
@@ -689,7 +696,8 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER

@@ -37,6 +37,8 @@
 #include "../include/profiler.h"
 #endif
 
+#include <sys/wait.h> //WNOHANG
+
 extern char	*config_file;
 
 extern int      test_scheduling;
@@ -125,7 +127,7 @@ void init_timing_loop(void){
 	time_t next_valid_time=0L;
 	int schedule_check=0;
 	double max_inter_check_delay=0.0;
-	struct timeval tv[9];
+	timeval_t tv[9];
 	double runtime[9];
 
 
@@ -150,7 +152,10 @@ void init_timing_loop(void){
 	scheduling_info.average_host_inter_check_delay=0.0;
 		
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[0],NULL);
+	  {
+	    //gettimeofday(&tv[0],NULL);
+	    clock_gettime(CLOCK_REALTIME, &tv[0]); // nanoseconds
+	  }
 
 	/* get info on service checks to be scheduled */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -193,8 +198,10 @@ void init_timing_loop(void){
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[1],NULL);
-
+	  {
+	  //		gettimeofday(&tv[1],NULL);
+	    clock_gettime(CLOCK_REALTIME, &tv[1]); // nanoseconds
+	  }
 	/* get info on host checks to be scheduled */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
@@ -233,7 +240,10 @@ void init_timing_loop(void){
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[2],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[2]); // nanoseconds
+	    //gettimeofday(&tv[2],NULL);
+	  }
 
 	scheduling_info.average_services_per_host=(double)((double)scheduling_info.total_services/(double)scheduling_info.total_hosts);
 	scheduling_info.average_scheduled_services_per_host=(double)((double)scheduling_info.total_scheduled_services/(double)scheduling_info.total_hosts);
@@ -335,8 +345,10 @@ void init_timing_loop(void){
 	
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[3],NULL);
-
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[2]); // nanoseconds
+	    //gettimeofday(&tv[3],NULL);
+	  }
 	/******** SCHEDULE SERVICE CHECKS  ********/
 
 	log_debug_info(DEBUGL_EVENTS,2,"Scheduling service checks...");
@@ -397,7 +409,10 @@ void init_timing_loop(void){
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[4],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[4]); // nanoseconds
+	    //gettimeofday(&tv[4],NULL);
+	  }
 
 	/* add scheduled service checks to event queue */
 	for(temp_service=service_list;temp_service!=NULL;temp_service=temp_service->next){
@@ -414,12 +429,26 @@ void init_timing_loop(void){
 			}
 
 		/* create a new service check event */
-		schedule_new_service_event(EVENT_SERVICE_CHECK,FALSE,temp_service->next_check,FALSE,0,NULL,TRUE,temp_service,NULL,temp_service->check_options);
+		event_args_types_t nullarg;
+		nullarg.anything=NULL;
+		schedule_new_service_event(EVENT_SERVICE_CHECK, //1
+					   FALSE,
+					   temp_service->next_check,
+					   FALSE,
+					   0,
+					   NULL,
+					   TRUE,
+					   temp_service,
+					   nullarg,
+					   temp_service->check_options);
 	        }
 
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[5],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[5]); // nanoseconds
+	  //		gettimeofday(&tv[5],NULL);
+	  }
 
 	/******** DETERMINE HOST SCHEDULING PARAMS  ********/
 
@@ -484,7 +513,10 @@ void init_timing_loop(void){
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[6],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[6]); // nanoseconds
+	    //gettimeofday(&tv[6],NULL);
+	  }
 
 
 	/******** SCHEDULE HOST CHECKS  ********/
@@ -532,7 +564,10 @@ void init_timing_loop(void){
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[7],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[7]); // nanoseconds
+	    //gettimeofday(&tv[7],NULL);
+	  }
 
 	/* add scheduled host checks to event queue */
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
@@ -549,11 +584,16 @@ void init_timing_loop(void){
 			}
 
 		/* schedule a new host check event */
-		schedule_new_host_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,temp_host,NULL,temp_host->check_options);
+		event_args_types_t nullarg;
+		nullarg.anything=NULL;
+		schedule_new_host_event(EVENT_HOST_CHECK,FALSE,temp_host->next_check,FALSE,0,NULL,TRUE,temp_host,nullarg,temp_host->check_options);
 	        }
 
 	if(test_scheduling==TRUE)
-		gettimeofday(&tv[8],NULL);
+	  {
+	    clock_gettime(CLOCK_REALTIME, &tv[8]); // nanoseconds
+	  //		gettimeofday(&tv[8],NULL);
+	  }
 
 
 	/******** SCHEDULE MISC EVENTS ********/
@@ -600,16 +640,16 @@ void init_timing_loop(void){
 
 	if(test_scheduling==TRUE){
 
-		runtime[0]=(double)((double)(tv[1].tv_sec-tv[0].tv_sec)+(double)((tv[1].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
-		runtime[1]=(double)((double)(tv[2].tv_sec-tv[1].tv_sec)+(double)((tv[2].tv_usec-tv[1].tv_usec)/1000.0)/1000.0);
-		runtime[2]=(double)((double)(tv[3].tv_sec-tv[2].tv_sec)+(double)((tv[3].tv_usec-tv[2].tv_usec)/1000.0)/1000.0);
-		runtime[3]=(double)((double)(tv[4].tv_sec-tv[3].tv_sec)+(double)((tv[4].tv_usec-tv[3].tv_usec)/1000.0)/1000.0);
-		runtime[4]=(double)((double)(tv[5].tv_sec-tv[4].tv_sec)+(double)((tv[5].tv_usec-tv[4].tv_usec)/1000.0)/1000.0);
-		runtime[5]=(double)((double)(tv[6].tv_sec-tv[5].tv_sec)+(double)((tv[6].tv_usec-tv[5].tv_usec)/1000.0)/1000.0);
-		runtime[6]=(double)((double)(tv[7].tv_sec-tv[6].tv_sec)+(double)((tv[7].tv_usec-tv[6].tv_usec)/1000.0)/1000.0);
-		runtime[7]=(double)((double)(tv[8].tv_sec-tv[7].tv_sec)+(double)((tv[8].tv_usec-tv[7].tv_usec)/1000.0)/1000.0);
+		runtime[0]=(double)((double)(tv[1].tv_sec-tv[0].tv_sec)+(double)((tv[1].tv_nsec-tv[0].tv_nsec)/1000000.0)/1000000.0);
+		runtime[1]=(double)((double)(tv[2].tv_sec-tv[1].tv_sec)+(double)((tv[2].tv_nsec-tv[1].tv_nsec)/1000000.0)/1000000.0);
+		runtime[2]=(double)((double)(tv[3].tv_sec-tv[2].tv_sec)+(double)((tv[3].tv_nsec-tv[2].tv_nsec)/1000000.0)/1000000.0);
+		runtime[3]=(double)((double)(tv[4].tv_sec-tv[3].tv_sec)+(double)((tv[4].tv_nsec-tv[3].tv_nsec)/1000000.0)/1000000.0);
+		runtime[4]=(double)((double)(tv[5].tv_sec-tv[4].tv_sec)+(double)((tv[5].tv_nsec-tv[4].tv_nsec)/1000000.0)/1000000.0);
+		runtime[5]=(double)((double)(tv[6].tv_sec-tv[5].tv_sec)+(double)((tv[6].tv_nsec-tv[5].tv_nsec)/1000000.0)/1000000.0);
+		runtime[6]=(double)((double)(tv[7].tv_sec-tv[6].tv_sec)+(double)((tv[7].tv_nsec-tv[6].tv_nsec)/1000000.0)/1000000.0);
+		runtime[7]=(double)((double)(tv[8].tv_sec-tv[7].tv_sec)+(double)((tv[8].tv_nsec-tv[7].tv_nsec)/1000000.0)/1000000.0);
 
-		runtime[8]=(double)((double)(tv[8].tv_sec-tv[0].tv_sec)+(double)((tv[8].tv_usec-tv[0].tv_usec)/1000.0)/1000.0);
+		runtime[8]=(double)((double)(tv[8].tv_sec-tv[0].tv_sec)+(double)((tv[8].tv_nsec-tv[0].tv_nsec)/1000000.0)/1000000.0);
 
 		printf("EVENT SCHEDULING TIMES\n");
 		printf("-------------------------------------\n");
@@ -1087,7 +1127,7 @@ int event_execution_loop(void){
 
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
-	struct timeval start;
+	timeval_t start;
 #endif
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"event_execution_loop() start\n");
@@ -1102,7 +1142,9 @@ int event_execution_loop(void){
 	sleep_event.compensate_for_time_change=FALSE;
 	sleep_event.timing_func=NULL;
 	sleep_event.event_data=get_event_null();
-	sleep_event.event_args=NULL;
+	event_args_types_t nullarg;
+	nullarg.anything=NULL;
+	sleep_event.event_args=nullarg;
 	sleep_event.event_options=0;
 	sleep_event.next=NULL;
 	sleep_event.prev=NULL;
@@ -1112,7 +1154,10 @@ int event_execution_loop(void){
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
 		if(event_profiling_enabled)
-        		gettimeofday(&start,NULL);
+		  {
+		    //gettimeofday(&start,NULL);
+		    clock_gettime(CLOCK_REALTIME, &start); // nanoseconds
+		  }
 #endif
 
 		/* see if we should exit or restart (a signal was encountered) */
@@ -1398,12 +1443,13 @@ int handle_timed_event(timed_event *event){
 	service *temp_service=NULL;
 
 	user_function_ptr_t userfunc;
-	struct timeval tv;
+	timeval_t tv;
 	double latency=0.0;
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
-	struct timeval start;
-	gettimeofday(&start,NULL);
+	timeval_t start;
+	//gettimeofday(&start,NULL);
+	clock_gettime(CLOCK_REALTIME, &start); // nanoseconds
 #endif
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_timed_event() start\n");
@@ -1423,8 +1469,9 @@ int handle_timed_event(timed_event *event){
 	  temp_service= get_event_service(event->event_data);
 
 		/* get check latency */
-		gettimeofday(&tv,NULL);
-		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+	  //gettimeofday(&tv,NULL);
+		    clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
+		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_nsec/1000000.0)/1000000.0);
 
 		log_debug_info(DEBUGL_EVENTS,0,"** Service Check Event ==> Host: '%s', Service: '%s', Options: %d, Latency: %f sec\n",temp_service->host_name,temp_service->description,event->event_options,latency);
 
@@ -1438,8 +1485,9 @@ int handle_timed_event(timed_event *event){
 		temp_host=get_event_host(event->event_data);
 
 		/* get check latency */
-		gettimeofday(&tv,NULL);
-		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_usec/1000)/1000.0);
+		//gettimeofday(&tv,NULL);
+		    clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
+		latency=(double)((double)(tv.tv_sec-event->run_time)+(double)(tv.tv_nsec/1000000.0)/1000000.0);
 
 		log_debug_info(DEBUGL_EVENTS,0,"** Host Check Event ==> Host: '%s', Options: %d, Latency: %f sec\n",temp_host->name,event->event_options,latency);
 

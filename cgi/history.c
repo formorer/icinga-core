@@ -284,7 +284,7 @@ int main(void){
 	document_footer(CGI_ID);
 
 	/* free allocated memory */
-	free_memory();
+	cgi_free_memory();
 	
 	return OK;
         }

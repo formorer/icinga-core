@@ -58,7 +58,7 @@ int assign_mod_initfunc_ptr(nebmodule * pmodule,module_func_ptr_t pfunc)
 {
   if (sizeof (pmodule->init_func) ==sizeof(pfunc))
     {
-      pmodule->init_func = (mod_initfunc_ptr_t)pfunc;
+      pmodule->init_func = (mod_initfunc_ptr_t)pfunc; //IGNORE ! ISO C forbids conversion of object pointer to function pointer type
       return 0;
     }
   else
@@ -72,7 +72,7 @@ int assign_mod_deinitfunc_ptr(nebmodule *pmodule,module_func_ptr_t pfunc)
 {
   if (sizeof (pmodule->init_func) ==sizeof(pfunc))
     {
-        pmodule->deinit_func= (mod_deinitfunc_ptr_t)pfunc;
+      pmodule->deinit_func= (mod_deinitfunc_ptr_t)pfunc; ////IGNORE ! ISO C forbids conversion of object pointer to function pointer type
 	return 0;
     }
   else
@@ -116,7 +116,8 @@ event_data_obj_t get_event_null(void)
 
 event_args_ptr_t get_event_args_null(void)
 {
-  event_args_ptr_t ret=0;
+  event_args_ptr_t ret;
+  ret.anything=NULL;
   return ret;
 
 }
@@ -128,6 +129,8 @@ int event_type, int high_priority, time_t run_time, int recurring, unsigned long
 {
   event_data_obj_t argobj;
   argobj.anything =0;
+  event_args_ptr_t argval;
+  argval.anything=NULL;
   return schedule_new_event(event_type, 
 			    high_priority, 
 			    run_time, 
@@ -136,7 +139,7 @@ int event_type, int high_priority, time_t run_time, int recurring, unsigned long
 			    timing_func, 
 			    compensate_for_time_change, 
 			    argobj,
-			    0,
+			    argval,
 			    0);
 }
 
@@ -178,6 +181,9 @@ int schedule_new_event_unsigned_long_ptr(int event_type, int high_priority, time
 {
   event_data_obj_t argobj;
   argobj.unsigned_long_ptr =args;
+  event_args_ptr_t argval;
+  argval.anything=NULL;
+
   return schedule_new_event(event_type, 
 			    high_priority, 
 			    run_time, 
@@ -185,7 +191,8 @@ int schedule_new_event_unsigned_long_ptr(int event_type, int high_priority, time
 			    event_interval, 
 			    timing_func, 
 			    compensate_for_time_change, 
-			    argobj,0,0);
+			    argobj,
+			    argval,0);
 }
 
 
@@ -193,6 +200,9 @@ int schedule_new_event_unsigned_long(int event_type, int high_priority, time_t r
 {
   event_data_obj_t argobj;
   argobj.unsigned_long =args;
+  event_args_ptr_t argval;
+  argval.anything=NULL;
+
   return schedule_new_event(event_type, 
 			    high_priority, 
 			    run_time, 
@@ -200,7 +210,8 @@ int schedule_new_event_unsigned_long(int event_type, int high_priority, time_t r
 			    event_interval, 
 			    timing_func, 
 			    compensate_for_time_change, 
-			    argobj,0,0);
+			    argobj,
+			    argval,0);
 }
 
 

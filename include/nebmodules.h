@@ -65,6 +65,9 @@
 #define NEBMODULE_ERROR_BAD_INIT    4    /* _module_init() function returned a bad code */
 #define NEBMODULE_ERROR_API_VERSION 5    /* module version is incompatible with current api */
 
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif 
 
 
 /***** MODULE STRUCTURES *****/

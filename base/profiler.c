@@ -165,11 +165,12 @@ void profiler_rename(int p, char * name)
 		profiler[p].name = strdup(name);
 }
 
-void profiler_update(int event, struct timeval start)
+void profiler_update(int event, timeval_t start)
 {
 	static int counter;
-	struct timeval end;
-	gettimeofday(&end,NULL);
+	timeval_t end;
+	//gettimeofday(&end,NULL);
+	clock_gettime(CLOCK_REALTIME, &end); // nanoseconds
 
 	//We do this to prevent segfaulting since it could be a we end up with a sparse array
 	//It's ugly but it saves having to try and know everything that may be profiled in advance.
@@ -184,7 +185,7 @@ void profiler_update(int event, struct timeval start)
 
 	if(profiler[event].state)
 	{
-		profiler[event].elapsed+=(double)((end.tv_usec - start.tv_usec)/1000000) + ((end.tv_sec - start.tv_sec));
+		profiler[event].elapsed+=(double)((end.tv_nsec - start.tv_nsec)/1000000.0) + ((end.tv_sec - start.tv_sec));
 		profiler[event].counter++;
 	}
 }

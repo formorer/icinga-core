@@ -63,7 +63,7 @@ void profiler_item_reset(profiler_item *p);
 void profiler_add(int event, char *name);
 void profiler_setstate(int event,int state);
 void profiler_rename(int p, char * name);
-void profiler_update(int event, struct timeval start);
+void profiler_update(int event, timeval_t start);
 void profiler_output(FILE* fp);
 
 // in profiler.c

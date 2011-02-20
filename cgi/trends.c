@@ -404,7 +404,7 @@ int main(int argc, char **argv){
 
 			if(display_type==DISPLAY_HOST_TRENDS){
 				for(temp_as=as_list;temp_as!=NULL;temp_as=temp_as->next){
-					if((temp_as->entry_type==HOST_DOWN || temp_as->entry_type==HOST_UNREACHABLE) && temp_as->time_stamp>t1){
+					if((temp_as->entry_type==STATUS_HOST_DOWN || temp_as->entry_type==STATUS_HOST_UNREACHABLE) && temp_as->time_stamp>t1){
 						problem_t1=temp_as->time_stamp;
 						problem_found=TRUE;
 						break;
@@ -667,7 +667,7 @@ int main(int argc, char **argv){
 		}
 
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
 	        }
 #endif
@@ -676,7 +676,7 @@ int main(int argc, char **argv){
 		print_generic_error_message("No problem found between end of display and end of recording.",NULL,0);
 
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
 	}
 
@@ -1195,7 +1195,7 @@ int main(int argc, char **argv){
 	free_archived_state_list();
 
 	/* free all other allocated memory */
-	free_memory();
+	cgi_free_memory();
 
 	return OK;
         }
@@ -1717,9 +1717,9 @@ void graph_all_trend_data(void){
 		if(display_type==DISPLAY_HOST_TRENDS){
 			if(hststatus!=NULL){
 
-				if(hststatus->status==HOST_DOWN)
+				if(hststatus->status==STATUS_HOST_DOWN)
 					last_known_state=AS_HOST_DOWN;
-				else if(hststatus->status==HOST_UNREACHABLE)
+				else if(hststatus->status==STATUS_HOST_UNREACHABLE)
 					last_known_state=AS_HOST_UNREACHABLE;
 				else
 					last_known_state=AS_HOST_UP;
@@ -1782,13 +1782,13 @@ void graph_all_trend_data(void){
 		if(((display_type==DISPLAY_HOST_TRENDS && initial_assumed_host_state==AS_CURRENT_STATE) || (display_type==DISPLAY_SERVICE_TRENDS && initial_assumed_service_state==AS_CURRENT_STATE)) && error==FALSE){
 			if(display_type==DISPLAY_HOST_TRENDS){
 				switch(hststatus->status){
-				case HOST_DOWN:
+				case STATUS_HOST_DOWN:
 					initial_assumed_state=AS_HOST_DOWN;
 					break;
-				case HOST_UNREACHABLE:
+				case STATUS_HOST_UNREACHABLE:
 					initial_assumed_state=AS_HOST_UNREACHABLE;
 					break;
-				case HOST_UP:
+				case STATUS_HOST_UP:
 					initial_assumed_state=AS_HOST_UP;
 					break;
 				default:
@@ -2276,11 +2276,11 @@ void graph_trend_data(int first_state,int last_state,time_t real_start_time,time
 /* convert current host state to archived state value */
 int convert_host_state_to_archived_state(int current_status){
 
-	if(current_status==HOST_UP)
+	if(current_status==STATUS_HOST_UP)
 		return AS_HOST_UP;
-	if(current_status==HOST_DOWN)
+	if(current_status==STATUS_HOST_DOWN)
 		return AS_HOST_DOWN;
-	if(current_status==HOST_UNREACHABLE)
+	if(current_status==STATUS_HOST_UNREACHABLE)
 		return AS_HOST_UNREACHABLE;
 
 	return AS_NO_DATA;

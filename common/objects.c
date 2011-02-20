@@ -28,13 +28,9 @@
 #include "../include/objects.h"
 #include "../include/skiplist.h"
 
-#ifdef NSCORE
 #include "../include/icinga.h"
-#endif
-
-#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+
 
 /**** IMPLEMENTATION-SPECIFIC HEADER FILES ****/
 

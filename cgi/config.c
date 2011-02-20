@@ -2573,7 +2573,14 @@ void display_serviceescalations(void){
 #ifndef USE_ST_BASED_ESCAL_RANGES
 			printf("%s%d%s%s",csv_data_enclosure,temp_se->first_notification,csv_data_enclosure,csv_delimiter);
 #else
-			printf("%s%d, %d, %d%s%s",csv_data_enclosure,temp_se->first_notification,temp_se->first_warning_notification,temp_se->first_critical_notification,temp_se->first_unknown_notification,csv_data_enclosure,csv_delimiter);
+			printf("%s%d, %d, %d %d %s%s",
+			       csv_data_enclosure, // 1 %s
+			       temp_se->first_notification, // 2 %d
+			       temp_se->first_warning_notification, // 3 %d
+			       temp_se->first_critical_notification, // 4 %d
+			       temp_se->first_unknown_notification, // 5 %d
+			       csv_data_enclosure,  // 6 %s
+			       csv_delimiter); // 7 %s
 #endif
 			printf("%s",csv_data_enclosure);
 		}else{

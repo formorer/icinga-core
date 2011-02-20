@@ -35,6 +35,19 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
+/*#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+
+#include <sys/poll.h>
+#include <sys/stat.h> // S_IWGRP S_IWOTH
+
+#include <grp.h>
+#include <pwd.h>
+#include <dirent.h>
+*/
+
+
 
 #ifdef EMBEDDEDPERL
 #include "../include/epn_icinga.h"
@@ -306,7 +319,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
-	struct timeval start_time,end_time;
+	timeval_t start_time,end_time;
 	dbuf output_dbuf;
 	int dbuf_chunk=1024;
 	int flags;
@@ -419,12 +432,13 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 	fcntl(fd[1],F_SETFL,O_NONBLOCK);
 
 	/* get the command start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	broker_system_command(NEBTYPE_SYSTEM_COMMAND_START,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,NULL,NULL);
 #endif
 
@@ -592,10 +606,11 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		waitpid(pid,&status,0);
 
 		/* get the end time for running the command */
-		gettimeofday(&end_time,NULL);
+		//gettimeofday(&end_time,NULL);
+		clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 		/* return execution time in milliseconds */
-		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_usec-start_time.tv_usec)/1000)/1000.0);
+		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_nsec-start_time.tv_nsec)/1000000.0)/1000000.0);
 		if(*exectime<0.0)
 			*exectime=0.0;
 
@@ -2219,10 +2234,11 @@ void sighandler(int sig){
 /* handle timeouts when executing service checks */
 /* 07/16/08 EG also called when parent process gets a TERM signal */
 void service_check_sighandler(int sig){
-	struct timeval end_time;
+	timeval_t end_time;
 
 	/* get the current time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	check_result_info.return_code=service_check_timeout_state;
 	check_result_info.finish_time=end_time;
@@ -2231,7 +2247,7 @@ void service_check_sighandler(int sig){
 	/* write check result to file */
 	if(check_result_info.output_file_fp){
 
-		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 		fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 		fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 		fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -2259,10 +2275,11 @@ void service_check_sighandler(int sig){
 /* handle timeouts when executing host checks */
 /* 07/16/08 EG also called when parent process gets a TERM signal */
 void host_check_sighandler(int sig){
-	struct timeval end_time;
+	timeval_t end_time;
 
 	/* get the current time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	check_result_info.return_code=STATE_CRITICAL;
 	check_result_info.finish_time=end_time;
@@ -2271,7 +2288,7 @@ void host_check_sighandler(int sig){
 	/* write check result to file */
 	if(check_result_info.output_file_fp){
 
-		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 		fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 		fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 		fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -2821,7 +2838,7 @@ int process_check_result_file(char *fname){
 				if((v2=strtok(NULL,"\n"))==NULL)
 					continue;
 				new_cr->start_time.tv_sec=strtoul(v1,NULL,0);
-				new_cr->start_time.tv_usec=strtoul(v2,NULL,0);
+				new_cr->start_time.tv_nsec=strtoul(v2,NULL,0);
 				}
 			else if(!strcmp(var,"finish_time")){
 				if((v1=strtok(val,"."))==NULL)
@@ -2829,7 +2846,7 @@ int process_check_result_file(char *fname){
 				if((v2=strtok(NULL,"\n"))==NULL)
 					continue;
 				new_cr->finish_time.tv_sec=strtoul(v1,NULL,0);
-				new_cr->finish_time.tv_usec=strtoul(v2,NULL,0);
+				new_cr->finish_time.tv_nsec=strtoul(v2,NULL,0);
 				}
 			else if(!strcmp(var,"early_timeout"))
 				new_cr->early_timeout=atoi(val);
@@ -2928,9 +2945,9 @@ int init_check_result(check_result *info){
 	info->output_file_fd=-1;
 	info->latency=0.0;
 	info->start_time.tv_sec=0;
-	info->start_time.tv_usec=0;
+	info->start_time.tv_nsec=0;
 	info->finish_time.tv_sec=0;
-	info->finish_time.tv_usec=0;
+	info->finish_time.tv_nsec=0;
 	info->early_timeout=FALSE;
 	info->exited_ok=TRUE;
 	info->return_code=0;
@@ -2959,7 +2976,7 @@ int add_check_result_to_list(check_result *new_cr){
 		if(temp_cr->finish_time.tv_sec >= new_cr->finish_time.tv_sec){
 			if(temp_cr->finish_time.tv_sec > new_cr->finish_time.tv_sec)
 				break;
-			else if(temp_cr->finish_time.tv_usec > new_cr->finish_time.tv_usec)
+			else if(temp_cr->finish_time.tv_nsec > new_cr->finish_time.tv_nsec)
 				break;
 			}
 		last_cr=temp_cr;
@@ -3879,6 +3896,7 @@ void * command_file_worker_thread(void *arg){
 	char input_buffer[MAX_EXTERNAL_COMMAND_LENGTH];
  	struct pollfd pfd;
  	int pollval;
+	//	timeval_t tv;
 	struct timeval tv;
 	int buffer_items=0;
 	int result=0;
