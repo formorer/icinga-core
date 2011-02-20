@@ -15,6 +15,8 @@ libcgicore_adir = $(includedir)/cgi
 libcgicore_a_HEADERS =    
 
 # the sources to add to the library and to add to the source distribution
-libcgicore_a_SOURCES =   avail.c    cgiutils.c  config.c       extinfo.c  histogram.c  notifications.c  showlog.c  statusmap.c  statuswrl.c  tac.c cgiauth.c  cmd.c       extcmd_list.c  getcgi.c   history.c    outages.c        status.c   statuswml.c  summary.c    trends.c
+libcgicore_a_SOURCES =  cgiutils.c                   cgiauth.c           getcgi.c                 
+
+#avail.c   config.c cmd.c  extcmd_list.c extinfo.c histogram.c history.c notifications.c outages.c showlog.c status.c   statuswml.c statusmap.c summary.c    trends.c statuswrl.c tac.c
  
 

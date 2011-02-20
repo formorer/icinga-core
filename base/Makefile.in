@@ -61,12 +61,12 @@ ARFLAGS = cru
 libicingacore_a_AR = $(AR) $(ARFLAGS)
 libicingacore_a_LIBADD =
 am_libicingacore_a_OBJECTS = broker.$(OBJEXT) commands.$(OBJEXT) \
-	events.$(OBJEXT) helpers.$(OBJEXT) icingastats.$(OBJEXT) \
-	nebmods.$(OBJEXT) notifications.$(OBJEXT) profiler.$(OBJEXT) \
+	events.$(OBJEXT) helpers.$(OBJEXT) nebmods.$(OBJEXT) \
+	notifications.$(OBJEXT) profiler.$(OBJEXT) \
 	sretention.$(OBJEXT) utils.$(OBJEXT) checks.$(OBJEXT) \
-	config.$(OBJEXT) flapping.$(OBJEXT) icinga.$(OBJEXT) \
-	logging.$(OBJEXT) netutils.$(OBJEXT) perfdata.$(OBJEXT) \
-	sehandlers.$(OBJEXT) statsprofiler.$(OBJEXT)
+	config.$(OBJEXT) flapping.$(OBJEXT) logging.$(OBJEXT) \
+	netutils.$(OBJEXT) perfdata.$(OBJEXT) sehandlers.$(OBJEXT) \
+	statsprofiler.$(OBJEXT)
 libicingacore_a_OBJECTS = $(am_libicingacore_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -285,7 +285,7 @@ libicingacore_a_HEADERS =
 
 # the sources to add to the library and to add to the source distribution
 libicingacore_a_SOURCES = \
-                        broker.c  commands.c  events.c    helpers.c  icingastats.c  nebmods.c   notifications.c  profiler.c    sretention.c     utils.c checks.c  config.c    flapping.c  icinga.c   logging.c      netutils.c  perfdata.c       sehandlers.c  statsprofiler.c
+                        broker.c  commands.c  events.c    helpers.c    nebmods.c   notifications.c  profiler.c    sretention.c     utils.c checks.c  config.c    flapping.c     logging.c      netutils.c  perfdata.c       sehandlers.c  statsprofiler.c
 
 all: all-am
 
@@ -367,8 +367,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/events.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flapping.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/icinga.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/icingastats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nebmods.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netutils.Po@am__quote@
@@ -605,6 +603,8 @@ uninstall-am: uninstall-libLIBRARIES uninstall-libicingacore_aHEADERS
 	uninstall-am uninstall-libLIBRARIES \
 	uninstall-libicingacore_aHEADERS
 
+
+#icingastats.c main routine
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

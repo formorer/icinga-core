@@ -19,5 +19,8 @@ libicingacore_a_HEADERS =
 
 # the sources to add to the library and to add to the source distribution
 libicingacore_a_SOURCES =    \
-                        broker.c  commands.c  events.c    helpers.c  icingastats.c  nebmods.c   notifications.c  profiler.c    sretention.c     utils.c checks.c  config.c    flapping.c  icinga.c   logging.c      netutils.c  perfdata.c       sehandlers.c  statsprofiler.c
+                        broker.c  commands.c  events.c    helpers.c    nebmods.c   notifications.c  profiler.c    sretention.c     utils.c checks.c  config.c    flapping.c     logging.c      netutils.c  perfdata.c       sehandlers.c  statsprofiler.c
 
+
+##icinga.c main routine
+#icingastats.c main routine

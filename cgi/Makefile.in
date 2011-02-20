@@ -59,13 +59,8 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libcgicore_a_AR = $(AR) $(ARFLAGS)
 libcgicore_a_LIBADD =
-am_libcgicore_a_OBJECTS = avail.$(OBJEXT) cgiutils.$(OBJEXT) \
-	config.$(OBJEXT) extinfo.$(OBJEXT) histogram.$(OBJEXT) \
-	notifications.$(OBJEXT) showlog.$(OBJEXT) statusmap.$(OBJEXT) \
-	statuswrl.$(OBJEXT) tac.$(OBJEXT) cgiauth.$(OBJEXT) \
-	cmd.$(OBJEXT) extcmd_list.$(OBJEXT) getcgi.$(OBJEXT) \
-	history.$(OBJEXT) outages.$(OBJEXT) status.$(OBJEXT) \
-	statuswml.$(OBJEXT) summary.$(OBJEXT) trends.$(OBJEXT)
+am_libcgicore_a_OBJECTS = cgiutils.$(OBJEXT) cgiauth.$(OBJEXT) \
+	getcgi.$(OBJEXT)
 libcgicore_a_OBJECTS = $(am_libcgicore_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -282,7 +277,7 @@ libcgicore_adir = $(includedir)/cgi
 libcgicore_a_HEADERS = 
 
 # the sources to add to the library and to add to the source distribution
-libcgicore_a_SOURCES = avail.c    cgiutils.c  config.c       extinfo.c  histogram.c  notifications.c  showlog.c  statusmap.c  statuswrl.c  tac.c cgiauth.c  cmd.c       extcmd_list.c  getcgi.c   history.c    outages.c        status.c   statuswml.c  summary.c    trends.c
+libcgicore_a_SOURCES = cgiutils.c                   cgiauth.c           getcgi.c                 
 all: all-am
 
 .SUFFIXES:
@@ -356,26 +351,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avail.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cgiauth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cgiutils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmd.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extcmd_list.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/extinfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getcgi.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/histogram.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/history.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/notifications.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/outages.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/showlog.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/status.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statusmap.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statuswml.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statuswrl.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/summary.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tac.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/trends.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -601,6 +579,8 @@ uninstall-am: uninstall-libLIBRARIES uninstall-libcgicore_aHEADERS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-libLIBRARIES uninstall-libcgicore_aHEADERS
 
+
+#avail.c   config.c cmd.c  extcmd_list.c extinfo.c histogram.c history.c notifications.c outages.c showlog.c status.c   statuswml.c statusmap.c summary.c    trends.c statuswrl.c tac.c
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

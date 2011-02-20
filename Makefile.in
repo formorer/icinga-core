@@ -37,10 +37,9 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/daemon-init.in $(srcdir)/pkginfo.in \
 	$(srcdir)/rc.ido2db.in $(srcdir)/subst.in \
 	$(top_srcdir)/configure $(top_srcdir)/include/config.h.in \
-	$(top_srcdir)/include/snprintf.h.in \
-	$(top_srcdir)/t/Makefile.in $(top_srcdir)/t/unit/Makefile.in \
-	AUTHORS COPYING ChangeLog INSTALL NEWS THANKS config.guess \
-	config.sub depcomp install-sh ltmain.sh missing
+	$(top_srcdir)/include/snprintf.h.in AUTHORS COPYING ChangeLog \
+	INSTALL NEWS THANKS config.guess config.sub depcomp install-sh \
+	ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -54,7 +53,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/include/config.h \
 	$(top_builddir)/include/snprintf.h
 CONFIG_CLEAN_FILES = subst pkginfo daemon-init daemon-init-redhat \
-	rc.ido2db t/Makefile t/unit/Makefile
+	rc.ido2db
 SOURCES =
 DIST_SOURCES =
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -265,10 +264,11 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 
 # the subdirectories of the project to go into
 SUBDIRS = \
-            base/ \
-            cgi/ \
-            common/ \
-            xdata/ 
+	base/ \
+	cgi/ \
+	common/ \
+	xdata/ \
+	t/
 
 all: all-recursive
 
@@ -342,10 +342,6 @@ daemon-init: $(top_builddir)/config.status $(srcdir)/daemon-init.in
 daemon-init-redhat: $(top_builddir)/config.status $(srcdir)/daemon-init-redhat.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 rc.ido2db: $(top_builddir)/config.status $(srcdir)/rc.ido2db.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-t/Makefile: $(top_builddir)/config.status $(top_srcdir)/t/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-t/unit/Makefile: $(top_builddir)/config.status $(top_srcdir)/t/unit/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:

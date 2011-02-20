@@ -1,6 +1,8 @@
 #ifndef INC_STDHEADERS_H
 #define INC_STDHEADERS_H
 
+#define NSCORE 1
+#define NSCGI 1 
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>

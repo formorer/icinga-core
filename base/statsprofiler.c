@@ -27,7 +27,7 @@
 #include "../include/locations.h"
 
 /* make sure gcc3 won't hit here */
-#ifndef GCCTOOOLD
+//#ifndef GCCTOOOLD
 
 #include "../include/statsprofiler.h"
 
@@ -154,4 +154,4 @@ void profile_data_output_mrtg(char * name, char * delim)
 		printf("%.4f%s",safe_divide(t->elapsed,p->count,1),delim);
 }
 
-#endif
+//#endif
