@@ -1,6 +1,6 @@
 # additional include paths necessary to compile the C++ library
 AM_CXXFLAGS = -I$(top_srcdir)/include @AM_CXXFLAGS@
-
+CFLAGS = --pedantic -Wall -std=c99 -O2
 ###############################################################################
 # THE LIBRARIES TO BUILD
 ###############################################################################

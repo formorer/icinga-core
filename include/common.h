@@ -23,6 +23,7 @@
  ************************************************************************/
 
 #include "shared.h"
+#include "stdheaders.h"
 
 #define PROGRAM_NAME "Icinga"
 #define PROGRAM_NAME_UC "ICINGA"

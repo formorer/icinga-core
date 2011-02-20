@@ -23,20 +23,8 @@
 #ifndef _ICINGA_H
 #define _ICINGA_H
 
-#include <stdio.h>
-#include <stdarg.h>
+#include "stdheaders.h"
 
-#ifndef _STDIO_H
-#define __need_FILE 1
-#include <stdio.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-#include <errno.h>
-#include <stddef.h>
-#include <bits/types.h>
-#include <math.h>
 
 #ifndef __GNUC__
 # define __attribute__(x) /* nothing */

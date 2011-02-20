@@ -97,7 +97,7 @@ BROKER_LDFLAGS = @BROKER_LDFLAGS@
 BROKER_O = @BROKER_O@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
+CFLAGS = --pedantic -Wall -std=c99 -O2
 CGIEXTRAS = @CGIEXTRAS@
 CHECKRESULTDIR = @CHECKRESULTDIR@
 COMMAND_OPTS = @COMMAND_OPTS@
@@ -264,7 +264,6 @@ top_srcdir = @top_srcdir@
 
 # additional include paths necessary to compile the C++ library
 AM_CXXFLAGS = -I$(top_srcdir)/include @AM_CXXFLAGS@
-
 ###############################################################################
 # THE LIBRARIES TO BUILD
 ###############################################################################

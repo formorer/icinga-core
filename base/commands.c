@@ -26,6 +26,7 @@
 
 
 #define NSCORE 1
+#include "../include/stdheaders.h"
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/comments.h"

@@ -26,6 +26,7 @@
  *
  *****************************************************************************/
 
+#include "../include/stdheaders.h"
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/icinga.h"
