@@ -97,7 +97,7 @@ extern      mod_deinitfunc_ptr_t       deinit_func_test;
 #else
       module_handle_t     module_handle;
       mod_initfunc_ptr_t    init_func;
-      mod_deinit_func_ptr_t deinit_func;
+      mod_deinitfunc_ptr_t deinit_func;
 #endif
 #ifdef HAVE_PTHREAD_H
       pthread_t       thread_id;
