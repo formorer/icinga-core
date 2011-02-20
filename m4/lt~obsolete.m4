@@ -1,1 +1,1 @@
-/home/h4ck3rm1k3/install/share/aclocal/lt~obsolete.m4
+/usr/share/aclocal/lt~obsolete.m4

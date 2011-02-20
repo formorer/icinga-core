@@ -1,1 +1,1 @@
-/home/h4ck3rm1k3/install/share/libtool/config/ltmain.sh
+/usr/share/libtool/config/ltmain.sh

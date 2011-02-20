@@ -1,1 +1,1 @@
-/home/h4ck3rm1k3/install/share/aclocal/libtool.m4
+/usr/share/aclocal/libtool.m4
