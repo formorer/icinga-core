@@ -31,6 +31,9 @@
 #include "../include/icinga.h"
 #include "../include/locations.h"
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
 #include "../include/statsprofiler.h"

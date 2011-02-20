@@ -58,6 +58,10 @@
 #include <mcheck.h>
 #endif
 
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#endif
+#include <signal.h>
 
 char		*config_file=NULL;
 char		*log_file=NULL;

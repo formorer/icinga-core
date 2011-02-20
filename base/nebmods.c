@@ -28,7 +28,14 @@
 #include "../include/nebmods.h"
 #include "../include/neberrors.h"
 #include "../include/icinga.h"
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif 
 
+#ifdef USE_LTDL
+#else
+#include <dlfcn.h>
+#endif
 
 #ifdef USE_EVENT_BROKER
 

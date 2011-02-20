@@ -23,6 +23,21 @@
 #ifndef _ICINGA_H
 #define _ICINGA_H
 
+#include <stdio.h>
+#include <stdarg.h>
+
+#ifndef _STDIO_H
+#define __need_FILE 1
+#include <stdio.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+#include <errno.h>
+#include <stddef.h>
+#include <bits/types.h>
+#include <math.h>
+
 #ifndef __GNUC__
 # define __attribute__(x) /* nothing */
 #endif
@@ -30,12 +45,21 @@
 # define NSCORE
 #endif
 
+
 #include "config.h"
 #include "logging.h"
 #include "common.h"
 #include "locations.h"
 #include "objects.h"
 #include "macros.h"
+
+#define __need_timespec
+#include <time.h>
+#ifdef __timespec_defined
+//__USE_POSIX199309
+typedef struct timespec timeval_t; // using nanoseconds
+//#include <time.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -320,11 +344,21 @@ typedef struct check_result_struct{
 	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
 	int reschedule_check;                           /* should we reschedule the next check */
 	char *output_file;                              /* what file is the output stored in? */
+
+#ifdef FILE
 	FILE *output_file_fp;
+#else
+	FILE *output_file_fp;
+
+  //  int NOFILEDEFINED ;
+  //#error "NO FILE DEFINED";
+#endif
 	int output_file_fd;
 	double latency;
-	struct timeval start_time;			/* time the service check was initiated */
-	struct timeval finish_time;			/* time the service check was completed */
+
+	timeval_t start_time;			/* time the service check was initiated */
+	timeval_t finish_time;			/* time the service check was completed */
+
 	int early_timeout;                              /* did the service check timeout? */
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
@@ -373,6 +407,8 @@ typedef struct passive_check_result_struct{
 	}passive_check_result;
 
 
+#include <pthread.h>
+
 /* CIRCULAR_BUFFER structure - used by worker threads */
 typedef struct circular_buffer_struct{
 	void            **buffer;
@@ -381,7 +417,12 @@ typedef struct circular_buffer_struct{
 	int             items;
 	int		high;		/* highest number of items that has ever been stored in buffer */
 	unsigned long   overflow;
-	pthread_mutex_t buffer_lock;
+       #ifdef pthread_mutex_t
+pthread_mutex_t buffer_lock;
+#else
+  //#warn "no pthread_mutex_t"
+pthread_mutex_t buffer_lock;
+#endif
         }circular_buffer;
 
 

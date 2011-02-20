@@ -33,6 +33,8 @@
 #include "../include/nebmodules.h"
 
 
+#include <dirent.h>
+
 extern char	*log_file;
 extern char     *command_file;
 extern char     *temp_file;

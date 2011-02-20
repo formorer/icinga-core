@@ -141,9 +141,9 @@ typedef struct timeperiod_struct{
 /* CONTACTSMEMBER structure */
 typedef struct contactsmember_struct{
 	char    *contact_name;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	contact *contact_ptr;
-#endif
+  //#endif
 	struct  contactsmember_struct *next;
         }contactsmember;
 
@@ -161,9 +161,9 @@ typedef struct contactgroup_struct{
 /* CONTACTGROUPSMEMBER structure */
 typedef struct contactgroupsmember_struct{
 	char    *group_name;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	contactgroup *group_ptr;
-#endif
+  //#endif
 	struct contactgroupsmember_struct *next;
         }contactgroupsmember;
 
@@ -189,9 +189,9 @@ typedef struct command_struct{
 /* COMMANDSMEMBER structure */
 typedef struct commandsmember_struct{
 	char	*command;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	command *command_ptr;
-#endif
+  //#endif
 	struct	commandsmember_struct *next;
 	}commandsmember;
 
@@ -224,7 +224,7 @@ struct contact_struct{
 	int     retain_status_information;
 	int     retain_nonstatus_information;
 	customvariablesmember *custom_variables;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	time_t  last_host_notification;
 	time_t  last_service_notification;
 	unsigned long modified_attributes;
@@ -234,7 +234,7 @@ struct contact_struct{
 	timeperiod *host_notification_period_ptr;
 	timeperiod *service_notification_period_ptr;
 	objectlist *contactgroups_ptr;
-#endif
+  //#endif
 	struct	contact_struct *next;
 	struct	contact_struct *nexthash;
         };
@@ -244,9 +244,9 @@ struct contact_struct{
 typedef struct servicesmember_struct{
 	char    *host_name;
 	char    *service_description;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	service *service_ptr;
-#endif
+  //#endif
 	struct servicesmember_struct *next;
         }servicesmember;
 
@@ -254,9 +254,9 @@ typedef struct servicesmember_struct{
 /* HOSTSMEMBER structure */
 typedef struct hostsmember_struct{
 	char    *host_name;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	host    *host_ptr;
-#endif
+  //#endif
 	struct hostsmember_struct *next;
         }hostsmember;
 
@@ -336,7 +336,7 @@ typedef struct host_struct{
 	double  z_3d;
 	int     should_be_drawn;
 	customvariablesmember *custom_variables;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     check_type;
@@ -398,7 +398,7 @@ typedef struct host_struct{
 	timeperiod *check_period_ptr;
 	timeperiod *notification_period_ptr;
 	objectlist *hostgroups_ptr;
-#endif
+  //#endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
 	/* 2011-02-07 MF: added for keeping the command for NEB callback
@@ -477,7 +477,7 @@ typedef struct service_struct{
 	char    *icon_image;
 	char    *icon_image_alt;
 	customvariablesmember *custom_variables;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	int     problem_has_been_acknowledged;
 	int     acknowledgement_type;
 	int     host_problem_at_last_check;
@@ -540,7 +540,7 @@ typedef struct service_struct{
 	timeperiod *check_period_ptr;
 	timeperiod *notification_period_ptr;
 	objectlist *servicegroups_ptr;
-#endif
+  //#endif
 	struct service_struct *next;
 	struct service_struct *nexthash;
 	/* 2011-02-07 MF: added for keeping the command for NEB callback
@@ -548,8 +548,17 @@ typedef struct service_struct{
 	char	*processed_command;
 	} service_struct_t;
 
+    struct timed_event_struct; // forward
+    typedef  struct timed_event_struct * timed_event_ptr_t; // pointer to timed event
 
-typedef void (*user_function_ptr_t)(void *);
+    typedef union event_args_types_union{
+      void * anything; 
+      unsigned long unsigned_long;
+      int * int_ptr;
+      timed_event_ptr_t timed_event_ptr;
+    } event_args_types_t; // args for the user function
+
+typedef void (*user_function_ptr_t)(event_args_types_t );
 typedef int (*simple_callback_ptr_t)(void);
 
     /*
@@ -573,8 +582,9 @@ typedef union service_host_common
     typedef time_t (*time_function_ptr_t)(void) ;    
     typedef service_host_common_t   event_data_obj_t;
     
+
     // also as an int *, or a unsigned long 
-    typedef unsigned long  event_args_ptr_t;
+    typedef event_args_types_t  event_args_ptr_t;
     
     void free_event(int event_type,event_data_obj_t event_data);
     
@@ -641,10 +651,10 @@ typedef struct serviceescalation_struct{
         escalation_condition *condition;
 	contactgroupsmember *contact_groups;
 	contactsmember *contacts;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	service *service_ptr;
 	timeperiod *escalation_period_ptr;
-#endif
+  //#endif
 	struct  serviceescalation_struct *next;
 	struct  serviceescalation_struct *nexthash;
         }serviceescalation;
@@ -664,14 +674,14 @@ typedef struct servicedependency_struct{
 	int     fail_on_unknown;
 	int     fail_on_critical;
 	int     fail_on_pending;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	int     circular_path_checked;
 	int     contains_circular_path;
 
 	service *master_service_ptr;
 	service *dependent_service_ptr;
 	timeperiod *dependency_period_ptr;
-#endif
+  //#endif
 	struct servicedependency_struct *next;
 	struct servicedependency_struct *nexthash;
         }servicedependency;
@@ -696,10 +706,10 @@ typedef struct hostescalation_struct{
         escalation_condition *condition;
 	contactgroupsmember *contact_groups;
 	contactsmember *contacts;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	host    *host_ptr;
 	timeperiod *escalation_period_ptr;
-#endif
+  //#endif
 	struct  hostescalation_struct *next;
 	struct  hostescalation_struct *nexthash;
         }hostescalation;
@@ -716,14 +726,14 @@ typedef struct hostdependency_struct{
 	int     fail_on_down;
 	int     fail_on_unreachable;
 	int     fail_on_pending;
-#ifdef NSCORE
+  //#ifdef NSCORE
 	int     circular_path_checked;
 	int     contains_circular_path;
 
 	host    *master_host_ptr;
 	host    *dependent_host_ptr;
 	timeperiod *dependency_period_ptr;
-#endif
+  //#endif
 	struct hostdependency_struct *next;
 	struct hostdependency_struct *nexthash;
         }hostdependency;
@@ -844,10 +854,10 @@ hostdependency *get_next_hostdependency_by_dependent_host(char *, void **);
 servicedependency *get_first_servicedependency_by_dependent_service(char *,char *, void **);
 servicedependency *get_next_servicedependency_by_dependent_service(char *,char *,void **);
 
-#ifdef NSCORE
+    //#ifdef NSCORE
 int add_object_to_objectlist(objectlist **,void *);
 int free_objectlist(objectlist **);
-#endif
+    //#endif
 
 /**** Object Hash Functions ****/
 int add_servicedependency_to_hashlist(servicedependency *);
@@ -874,10 +884,10 @@ int number_of_total_child_hosts(host *);				/* counts the number of total child 
 int number_of_immediate_parent_hosts(host *);				/* counts the number of immediate parents hosts for a particular host */
 int number_of_total_parent_hosts(host *);				/* counts the number of total parents hosts for a particular host */
 
-#ifdef NSCORE
+    //#ifdef NSCORE
 int check_for_circular_servicedependency_path(servicedependency *,servicedependency *,int);   /* checks if a circular dependency exists for a given service */
 int check_for_circular_hostdependency_path(hostdependency *,hostdependency *,int);   /* checks if a circular dependency exists for a given host */
-#endif
+    //#endif
 
 
 /**** Object Cleanup Functions ****/

@@ -27,6 +27,8 @@
 #include "../include/comments.h"
 #include "../include/common.h"
 
+#include <signal.h>
+
 /*
   macro for checking the return value of asprintf and returning some error
 */
@@ -45,7 +47,7 @@ return FALSE; /* TODO: what is the right error code? */          \
 
 /*#define DEBUG_CHECKS*/
 /*#define DEBUG_HOST_CHECKS 1*/
-
+#include <unistd.h>
 
 #ifdef EMBEDDEDPERL
 #include "../include/epn_icinga.h"
@@ -515,7 +517,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	icinga_macros mac;
 	char *raw_command=NULL;
 	char *processed_command=NULL;
-	struct timeval start_time,end_time;
+	timeval_t start_time,end_time;
 	pid_t pid=0;
 	int fork_error=FALSE;
 	int wait_result=0;
@@ -564,9 +566,9 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 #ifdef USE_EVENT_BROKER
 	/* initialize start/end times */
 	start_time.tv_sec=0L;
-	start_time.tv_usec=0L;
+	start_time.tv_nsec=0L;
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 
 	/* send data to event broker */
 	neb_result=broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,0,FALSE,0,NULL,NULL);
@@ -708,7 +710,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
 		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
 		fprintf(check_result_info.output_file_fp,"latency=%f\n",svc->latency);
-		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_nsec);
 
 		/* flush output or it'll get written again when we fork() */
 		fflush(check_result_info.output_file_fp);
@@ -799,7 +801,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* write check result to file */
 			if(check_result_info.output_file_fp){
 
-				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -940,7 +942,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				/* write check result to file */
 				if(check_result_info.output_file_fp){
 
-					fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+					fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 					fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 					fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 					fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -995,7 +997,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			/* write check result to file */
 			if(check_result_info.output_file_fp){
 
-				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -1142,7 +1144,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 	temp_service->latency=queued_check_result->latency;
 
 	/* update the execution time for this check (millisecond resolution) */
-	temp_service->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_usec-queued_check_result->start_time.tv_usec)/1000.0)/1000.0);
+	temp_service->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_nsec-queued_check_result->start_time.tv_nsec)/1000000.0)/1000000.0);
 	if(temp_service->execution_time<0.0)
 		temp_service->execution_time=0.0;
 
@@ -1984,7 +1986,7 @@ void schedule_service_check(service *svc, time_t check_time, int options){
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_SERVICE_CHECK;
 		new_event->event_data.service=svc;
-		new_event->event_args=0;
+		new_event->event_args.anything=0;
 		new_event->event_options=options;
 		new_event->run_time=svc->next_check;
 		new_event->recurring=FALSE;
@@ -2454,7 +2456,7 @@ void schedule_host_check(host *hst, time_t check_time, int options){
 		/* place the new event in the event queue */
 		new_event->event_type=EVENT_HOST_CHECK;
 		new_event->event_data.host=hst;
-		new_event->event_args=0;
+		new_event->event_args.anything=0;
 		new_event->event_options=options;
 		new_event->run_time=hst->next_check;
 		new_event->recurring=FALSE;
@@ -2741,8 +2743,8 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 	time_t current_time=0L;
 	int host_result=HOST_UP;
 	char *old_plugin_output=NULL;
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"run_sync_host_check_3x()\n");
@@ -2829,7 +2831,7 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	broker_host_check(NEBTYPE_HOSTCHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
 #endif
 
@@ -2866,8 +2868,8 @@ int execute_sync_host_check_3x(host *hst){
 	int return_result=HOST_UP;
 	char *processed_command=NULL;
 	char *raw_command=NULL;
-	struct timeval start_time;
-	struct timeval end_time;
+	timeval_t start_time;
+	timeval_t end_time;
 	char *temp_ptr;
 	int early_timeout=FALSE;
 	double exectime;
@@ -2887,9 +2889,9 @@ int execute_sync_host_check_3x(host *hst){
 #ifdef USE_EVENT_BROKER
 	/* initialize start/end times */
 	start_time.tv_sec=0L;
-	start_time.tv_usec=0L;
+	start_time.tv_nsec=0L;
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 
 	/* send data to event broker */
 	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_SYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
@@ -2934,7 +2936,7 @@ int execute_sync_host_check_3x(host *hst){
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 	broker_host_check(NEBTYPE_HOSTCHECK_RAW_START,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,return_result,hst->state_type,start_time,end_time,hst->host_check_command,0.0,0.0,host_check_timeout,early_timeout,result,processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
@@ -3102,7 +3104,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	icinga_macros mac;
 	char *raw_command=NULL;
 	char *processed_command=NULL;
-	struct timeval start_time,end_time;
+	timeval_t start_time,end_time;
 	pid_t pid=0;
 	int fork_error=FALSE;
 	int wait_result=0;
@@ -3140,9 +3142,9 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 #ifdef USE_EVENT_BROKER
 	/* initialize start/end times */
 	start_time.tv_sec=0L;
-	start_time.tv_usec=0L;
+	start_time.tv_nsec=0L;
 	end_time.tv_sec=0L;
-	end_time.tv_usec=0L;
+	end_time.tv_nsec=0L;
 
 	/* send data to event broker */
 	neb_result=broker_host_check(NEBTYPE_HOSTCHECK_ASYNC_PRECHECK,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,0.0,host_check_timeout,FALSE,0,NULL,NULL,NULL,NULL,NULL);
@@ -3260,7 +3262,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		fprintf(check_result_info.output_file_fp,"scheduled_check=%d\n",check_result_info.scheduled_check);
 		fprintf(check_result_info.output_file_fp,"reschedule_check=%d\n",check_result_info.reschedule_check);
 		fprintf(check_result_info.output_file_fp,"latency=%f\n",hst->latency);
-		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_usec);
+		fprintf(check_result_info.output_file_fp,"start_time=%lu.%lu\n",check_result_info.start_time.tv_sec,check_result_info.start_time.tv_nsec);
 
 		/* flush buffer or we'll end up writing twice when we fork() */
 		fflush(check_result_info.output_file_fp);
@@ -3364,7 +3366,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			/* write check result to file */
 			if(check_result_info.output_file_fp){
 
-				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_usec);
+				fprintf(check_result_info.output_file_fp,"finish_time=%lu.%lu\n",check_result_info.finish_time.tv_sec,check_result_info.finish_time.tv_nsec);
 				fprintf(check_result_info.output_file_fp,"early_timeout=%d\n",check_result_info.early_timeout);
 				fprintf(check_result_info.output_file_fp,"exited_ok=%d\n",check_result_info.exited_ok);
 				fprintf(check_result_info.output_file_fp,"return_code=%d\n",check_result_info.return_code);
@@ -3443,8 +3445,8 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	int reschedule_check=FALSE;
 	char *old_plugin_output=NULL;
 	char *temp_ptr=NULL;
-	struct timeval start_time_hires;
-	struct timeval end_time_hires;
+	timeval_t start_time_hires;
+	timeval_t end_time_hires;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"handle_async_host_check_result_3x()\n");
 
@@ -3509,7 +3511,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	temp_host->latency=queued_check_result->latency;
 
 	/* update the execution time for this check (millisecond resolution) */
-	temp_host->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_usec-queued_check_result->start_time.tv_usec)/1000.0)/1000.0);
+	temp_host->execution_time=(double)((double)(queued_check_result->finish_time.tv_sec-queued_check_result->start_time.tv_sec)+(double)((queued_check_result->finish_time.tv_nsec-queued_check_result->start_time.tv_nsec)/1000000.0)/1000000.0);
 	if(temp_host->execution_time<0.0)
 		temp_host->execution_time=0.0;
 

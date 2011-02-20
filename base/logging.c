@@ -30,6 +30,8 @@
 #include "../include/icinga.h"
 #include "../include/broker.h"
 
+#include <syslog.h> 
+#include <sys/stat.h>
 
 extern char	*log_file;
 extern char     *temp_file;
@@ -602,7 +604,7 @@ int close_debug_log(void){
 int log_debug_info(int level, int verbosity, const char *fmt, ...){
 	va_list ap;
 	char *temp_path=NULL;
-	struct timeval current_time;
+	timeval_t current_time;
 
 	if(!(debug_level==DEBUGL_ALL || (level & debug_level)))
 		return OK;
@@ -624,7 +626,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 
 	/* write the timestamp */
 	gettimeofday(&current_time,NULL);
-	fprintf(debug_file_fp,"[%lu.%06lu] [%03d.%d] [pid=%lu] ",current_time.tv_sec,current_time.tv_usec,level,verbosity,(unsigned long)getpid());
+	fprintf(debug_file_fp,"[%lu.%06lu] [%03d.%d] [pid=%lu] ",current_time.tv_sec,current_time.tv_nsec,level,verbosity,(unsigned long)getpid());
 
 	/* write the data */
 	va_start(ap,fmt);
