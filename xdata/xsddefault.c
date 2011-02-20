@@ -1020,13 +1020,13 @@ int xsddefault_read_status_data(char *config_file,int options){
 
 				else if(strstr(var,"PROFILE_")){
 /* make sure gcc3 won't hit here */
-#ifndef GCCTOOOLD
+
                                         if(strstr(var,"COUNTER"))
                                                 profile_object_update_count(var+strlen("PROFILE_COUNTER_"),strtod(val,NULL));
 
                                         if(strstr(var,"ELAPSED"))
                                                 profile_object_update_elapsed(var+strlen("PROFILE_ELAPSED_"),atoi(val));
-#endif
+
                                 }
 
 				else if (!strcmp(var,"total_external_command_buffer_slots"))

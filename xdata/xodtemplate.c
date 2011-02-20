@@ -68,6 +68,7 @@
 /**** DATA INPUT-SPECIFIC HEADER FILES ****/
 
 #include "xodtemplate.h"
+#include <regex.h>
 
 
 #ifdef NSCORE

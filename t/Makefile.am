@@ -5,9 +5,12 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 
 # the subdirectories of the project to go into
 SUBDIRS =   \
-	base/ \
-	cgi/ \
-	common/ \
-	xdata/ \
-	t/
+	unit/ 
+
+
+#test:
+#	prove -v *.t 2>&1 |tee tests.log
+#
+#clean:
+#	rm -f tests.log
 

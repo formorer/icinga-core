@@ -44,6 +44,8 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
+#include <getopt.h>
+
 /* make sure gcc3 won't hit here */
 #ifndef GCCTOOOLD
 #include "../include/profiler.h"
@@ -54,6 +56,10 @@
 #include <mcheck.h>
 #endif
 
+// also defined in cgi
+extern int             interval_length;
+extern int             log_rotation_method; // defined in cgi
+extern char            *illegal_output_chars;
 
 char		*config_file=NULL;
 char		*log_file=NULL;
@@ -79,7 +85,7 @@ command         *ocsp_command_ptr=NULL;
 command         *ochp_command_ptr=NULL;
 
 char            *illegal_object_chars=NULL;
-char            *illegal_output_chars=NULL;
+
 
 int             use_regexp_matches=FALSE;
 int             use_true_regexp_matching=FALSE;
@@ -95,7 +101,7 @@ int             log_event_handlers=DEFAULT_LOG_EVENT_HANDLERS;
 int             log_initial_states=DEFAULT_LOG_INITIAL_STATES;
 int             log_current_states=DEFAULT_LOG_CURRENT_STATES;
 int             log_external_commands=DEFAULT_LOG_EXTERNAL_COMMANDS;
-int             log_external_commands_user=DEFAULT_LOG_EXTERNAL_COMMANDS_USER;
+extern int             log_external_commands_user;
 int             log_passive_checks=DEFAULT_LOG_PASSIVE_CHECKS;
 int             log_long_plugin_output=DEFAULT_LOG_LONG_PLUGIN_OUTPUT;
 
@@ -111,7 +117,7 @@ int             ocsp_timeout=DEFAULT_OCSP_TIMEOUT;
 int             ochp_timeout=DEFAULT_OCHP_TIMEOUT;
 
 double          sleep_time=DEFAULT_SLEEP_TIME;
-int             interval_length=DEFAULT_INTERVAL_LENGTH;
+
 int             service_inter_check_delay_method=ICD_SMART;
 int             host_inter_check_delay_method=ICD_SMART;
 int             service_interleave_factor_method=ILF_SMART;
@@ -125,7 +131,7 @@ int             service_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVA
 int             host_freshness_check_interval=DEFAULT_FRESHNESS_CHECK_INTERVAL;
 int             auto_rescheduling_interval=DEFAULT_AUTO_RESCHEDULING_INTERVAL;
 
-int             check_external_commands=DEFAULT_CHECK_EXTERNAL_COMMANDS;
+extern int             check_external_commands;
 int             check_orphaned_services=DEFAULT_CHECK_ORPHANED_SERVICES;
 int             check_orphaned_hosts=DEFAULT_CHECK_ORPHANED_HOSTS;
 int             check_service_freshness=DEFAULT_CHECK_SERVICE_FRESHNESS;
@@ -167,7 +173,7 @@ unsigned long   next_event_id=0L;
 unsigned long   next_problem_id=0L;
 unsigned long   next_notification_id=0L;
 
-int             log_rotation_method=LOG_ROTATION_NONE;
+
 
 int             sigshutdown=FALSE;
 int             sigrestart=FALSE;
@@ -236,7 +242,7 @@ int             embedded_perl_initialized=FALSE;
 int             stalking_event_handlers_for_hosts=DEFAULT_STALKING_EVENT_HANDLERS_FOR_HOSTS;
 int             stalking_event_handlers_for_services=DEFAULT_STALKING_EVENT_HANDLERS_FOR_SERVICES;
 
-int             date_format=DATE_FORMAT_US;
+extern int             date_format; // in cgi
 char            *use_timezone=NULL;
 
 int             allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
@@ -246,9 +252,9 @@ FILE            *command_file_fp;
 int             command_file_created=FALSE;
 
 /* make sure gcc3 won't hit here */
-#ifndef GCCTOOOLD
+
 int             event_profiling_enabled=FALSE;
-#endif
+
 
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
