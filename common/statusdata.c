@@ -29,13 +29,14 @@
 #include "../include/objects.h"
 #include "../include/statusdata.h"
 
-#ifdef NSCORE
+//#ifdef NSCORE
 #include "../include/icinga.h"
 #include "../include/broker.h"
-#endif
+//#endif
 //#ifdef NSCGI
 #include "../include/cgiutils.h"
 //#endif
+#include "../include/stdheaders.h"
 
 /**** IMPLEMENTATION SPECIFIC HEADER FILES ****/
 

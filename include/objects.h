@@ -552,6 +552,7 @@ typedef struct service_struct{
     typedef  struct timed_event_struct * timed_event_ptr_t; // pointer to timed event
 
     typedef union event_args_types_union{
+      int integer; 
       void * anything; 
       unsigned long unsigned_long;
       int * int_ptr;

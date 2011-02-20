@@ -25,7 +25,10 @@
 
 #include "../include/config.h"
 #include "../include/common.h"
+#include "../include/icinga.h"
 
+#include "../include/stdheaders.h"
+#include <sys/mman.h>
 extern int date_format;
 
 /* fix the problem with strtok() skipping empty options between tokens */

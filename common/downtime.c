@@ -36,14 +36,14 @@
 #include "../xdata/xdddefault.h"
 #endif
 
-#ifdef NSCORE
+//#ifdef NSCORE
 #include "../include/icinga.h"
 #include "../include/broker.h"
-#endif
+//#endif
 
-#ifdef NSCGI
+//#ifdef NSCGI
 #include "../include/cgiutils.h"
-#endif
+//#endif
 
 
 scheduled_downtime *scheduled_downtime_list=NULL;
