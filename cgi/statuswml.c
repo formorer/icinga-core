@@ -151,7 +151,7 @@ int main(void){
 	if(result==ERROR && daemon_check==TRUE){
 		printf("<P>Error: Could not read host and service status information!</P>\n");
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
                 }
 
@@ -185,7 +185,7 @@ int main(void){
 	document_footer(CGI_ID);
 
 	/* free all allocated memory */
-	free_memory();
+	cgi_free_memory();
 
 	return OK;
         }
@@ -532,11 +532,11 @@ void display_quick_stats(void){
 		if(temp_hoststatus==NULL)
 			continue;
 
-		if(temp_hoststatus->status==HOST_UNREACHABLE)
+		if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE)
 			hosts_unreachable++;
-		else if(temp_hoststatus->status==HOST_DOWN)
+		else if(temp_hoststatus->status==STATUS_HOST_DOWN)
 			hosts_down++;
-		else if(temp_hoststatus->status==HOST_PENDING)
+		else if(temp_hoststatus->status==STATUS_HOST_PENDING)
 			hosts_pending++;
 		else
 			hosts_up++;
@@ -632,13 +632,13 @@ void display_hostgroup_overview(void){
 				continue;
 
 			printf("<tr><td><anchor title='%s'>",temp_host->name);
-			if(temp_hoststatus->status==HOST_UP)
+			if(temp_hoststatus->status==STATUS_HOST_UP)
 				printf("UP");
-			else if(temp_hoststatus->status==HOST_PENDING)
+			else if(temp_hoststatus->status==STATUS_HOST_PENDING)
 				printf("PND");
-			else if(temp_hoststatus->status==HOST_DOWN)
+			else if(temp_hoststatus->status==STATUS_HOST_DOWN)
 				printf("DWN");
-			else if(temp_hoststatus->status==HOST_UNREACHABLE)
+			else if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE)
 				printf("UNR");
 			else
 				printf("???");
@@ -725,11 +725,11 @@ void display_hostgroup_summary(void){
 			if(temp_hoststatus==NULL)
 				continue;
 
-			if(temp_hoststatus->status==HOST_UNREACHABLE)
+			if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE)
 				hosts_unreachable++;
-			else if(temp_hoststatus->status==HOST_DOWN)
+			else if(temp_hoststatus->status==STATUS_HOST_DOWN)
 				hosts_down++;
-			else if(temp_hoststatus->status==HOST_PENDING)
+			else if(temp_hoststatus->status==STATUS_HOST_PENDING)
 				hosts_pending++;
 			else
 				hosts_up++;
@@ -857,13 +857,13 @@ void display_host(void){
 	printf("<table columns='2' align='LL'>\n");
 
 	printf("<tr><td>Status:</td><td>");
-	if(temp_hoststatus->status==HOST_UP)
+	if(temp_hoststatus->status==STATUS_HOST_UP)
 		printf("UP");
-	else if(temp_hoststatus->status==HOST_PENDING)
+	else if(temp_hoststatus->status==STATUS_HOST_PENDING)
 		printf("PENDING");
-	else if(temp_hoststatus->status==HOST_DOWN)
+	else if(temp_hoststatus->status==STATUS_HOST_DOWN)
 		printf("DOWN");
-	else if(temp_hoststatus->status==HOST_UNREACHABLE)
+	else if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE)
 		printf("UNREACHABLE");
 	else
 		printf("?");
@@ -924,7 +924,7 @@ void display_host(void){
 	printf("<b><anchor title='Traceroute'>Traceroute<go href='%s' method='post'><postfield name='traceroute' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address);
 	printf("<b><anchor title='Traceroute6'>Traceroute6<go href='%s' method='post'><postfield name='traceroute6' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address6);
 
-	if(temp_hoststatus->status!=HOST_UP && temp_hoststatus->status!=HOST_PENDING)
+	if(temp_hoststatus->status!=STATUS_HOST_UP && temp_hoststatus->status!=STATUS_HOST_PENDING)
 		printf("<b><anchor title='Acknowledge Problem'>Acknowledge Problem<go href='#card3'/></anchor></b>\n");
 
 	if(temp_hoststatus->checks_enabled==FALSE)
@@ -1397,7 +1397,7 @@ void display_problems(void){
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			continue;
 
-		if(temp_hoststatus->status==HOST_UP || temp_hoststatus->status==HOST_PENDING)
+		if(temp_hoststatus->status==STATUS_HOST_UP || temp_hoststatus->status==STATUS_HOST_PENDING)
 			continue;
 
 		if(display_type==DISPLAY_UNHANDLED_PROBLEMS){
@@ -1412,9 +1412,9 @@ void display_problems(void){
 		total_host_problems++;
 
 		printf("<tr><td><anchor title='%s'>",temp_host->name);
-		if(temp_hoststatus->status==HOST_DOWN)
+		if(temp_hoststatus->status==STATUS_HOST_DOWN)
 			printf("DWN");
-		else if(temp_hoststatus->status==HOST_UNREACHABLE)
+		else if(temp_hoststatus->status==STATUS_HOST_UNREACHABLE)
 			printf("UNR");
 		else
 			printf("???");

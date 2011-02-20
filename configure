@@ -17712,6 +17712,31 @@ done
  # wanted by: base/config.c:1492
 #AC_PROG_RANLIB # wanted by: ltmain.sh:1601
 
+for ac_header in stddef.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "stddef.h" "ac_cv_header_stddef_h" "$ac_includes_default"
+if test "x$ac_cv_header_stddef_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDDEF_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_header in wchar.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "wchar.h" "ac_cv_header_wchar_h" "$ac_includes_default"
+if test "x$ac_cv_header_wchar_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WCHAR_H 1
+_ACEOF
+
+fi
+
+done
+
+
 ac_fn_c_check_header_mongrel "$LINENO" "stdio.h" "ac_cv_header_stdio_h" "$ac_includes_default"
 if test "x$ac_cv_header_stdio_h" = x""yes; then :
   $as_echo "#define HAVE_STDIO_H 1" >>confdefs.h
@@ -19034,6 +19059,10 @@ fi
 
 
 $as_echo "#define HAVE_KRB5_H /**/" >>confdefs.h
+
+
+
+$as_echo "#define HAVE_STDIO_H /**/" >>confdefs.h
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lm" >&5

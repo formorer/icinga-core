@@ -35,6 +35,27 @@
 #include <gdfonts.h>		/* GD library small font definition */
 
 
+#define _GNU_SOURCE
+// aprintf
+
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+
+#include <sys/poll.h>
+#include <sys/stat.h> // S_IWGRP S_IWOTH
+
+#include <grp.h>
+#include <pwd.h>
+#include <dirent.h>
+#include <errno.h>
+#include <ctype.h>
 /*#define DEBUG			1*/
 
 
@@ -303,7 +324,7 @@ int main(int argc, char **argv){
 			print_error(NULL, ERROR_CGI_STATUS_DATA);
 			document_footer(CGI_ID);
 		        }
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
                 }
 
@@ -553,7 +574,7 @@ int main(int argc, char **argv){
 		}
 
 		document_footer(CGI_ID);
-		free_memory();
+		cgi_free_memory();
 		return ERROR;
 	}
 
@@ -987,7 +1008,7 @@ int main(int argc, char **argv){
 	document_footer(CGI_ID);
 
 	/* free all other allocated memory */
-	free_memory();
+	cgi_free_memory();
 
 	return OK;
         }

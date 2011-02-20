@@ -669,7 +669,7 @@ int main(int argc, char **argv){
 	document_footer(CGI_ID);
 
 	/* free all other allocated memory */
-	free_memory();
+	cgi_free_memory();
 	free_event_list();
 	free_producer_list();
 

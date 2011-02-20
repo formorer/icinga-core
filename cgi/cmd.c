@@ -33,6 +33,8 @@
 #include "../include/cgiauth.h"
 #include "../include/getcgi.h"
 
+#include <stdarg.h>
+
 extern const char *extcmd_get_name(int id);
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
@@ -282,7 +284,7 @@ int main(void){
 	document_footer(CGI_ID);
 
 	/* free allocated memory */
-	free_memory();
+	cgi_free_memory();
 	free_object_data();
 
 	return OK;
