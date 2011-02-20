@@ -296,7 +296,8 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -345,7 +346,8 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -396,7 +398,8 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -444,7 +447,8 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -543,7 +547,8 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -591,7 +596,8 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//	gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER
@@ -641,7 +647,8 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get start time */
-	gettimeofday(&start_time,NULL);
+	//	gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 #endif
 
 	/* get the raw command line */
@@ -689,7 +696,8 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 
 #ifdef USE_EVENT_BROKER
 	/* get end time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 #endif
 
 #ifdef USE_EVENT_BROKER

@@ -58,7 +58,7 @@ int assign_mod_initfunc_ptr(nebmodule * pmodule,module_func_ptr_t pfunc)
 {
   if (sizeof (pmodule->init_func) ==sizeof(pfunc))
     {
-      pmodule->init_func = (mod_initfunc_ptr_t)pfunc;
+      pmodule->init_func = (mod_initfunc_ptr_t)pfunc; //IGNORE ! ISO C forbids conversion of object pointer to function pointer type
       return 0;
     }
   else
@@ -72,7 +72,7 @@ int assign_mod_deinitfunc_ptr(nebmodule *pmodule,module_func_ptr_t pfunc)
 {
   if (sizeof (pmodule->init_func) ==sizeof(pfunc))
     {
-        pmodule->deinit_func= (mod_deinitfunc_ptr_t)pfunc;
+      pmodule->deinit_func= (mod_deinitfunc_ptr_t)pfunc; ////IGNORE ! ISO C forbids conversion of object pointer to function pointer type
 	return 0;
     }
   else

@@ -169,7 +169,8 @@ void profiler_update(int event, timeval_t start)
 {
 	static int counter;
 	timeval_t end;
-	gettimeofday(&end,NULL);
+	//gettimeofday(&end,NULL);
+	clock_gettime(CLOCK_REALTIME, &end); // nanoseconds
 
 	//We do this to prevent segfaulting since it could be a we end up with a sparse array
 	//It's ugly but it saves having to try and know everything that may be profiled in advance.

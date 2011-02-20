@@ -35,7 +35,7 @@
 #include "../include/nebmods.h"
 #include "../include/nebmodules.h"
 
-#include <unistd.h>
+/*#include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
 
@@ -45,6 +45,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include <dirent.h>
+*/
+
 
 
 #ifdef EMBEDDEDPERL
@@ -430,7 +432,8 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 	fcntl(fd[1],F_SETFL,O_NONBLOCK);
 
 	/* get the command start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -603,7 +606,8 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		waitpid(pid,&status,0);
 
 		/* get the end time for running the command */
-		gettimeofday(&end_time,NULL);
+		//gettimeofday(&end_time,NULL);
+		clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 		/* return execution time in milliseconds */
 		*exectime=(double)((double)(end_time.tv_sec-start_time.tv_sec)+(double)((end_time.tv_nsec-start_time.tv_nsec)/1000000.0)/1000000.0);
@@ -2233,7 +2237,8 @@ void service_check_sighandler(int sig){
 	timeval_t end_time;
 
 	/* get the current time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	check_result_info.return_code=service_check_timeout_state;
 	check_result_info.finish_time=end_time;
@@ -2273,7 +2278,8 @@ void host_check_sighandler(int sig){
 	timeval_t end_time;
 
 	/* get the current time */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 	check_result_info.return_code=STATE_CRITICAL;
 	check_result_info.finish_time=end_time;

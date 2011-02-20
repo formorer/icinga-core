@@ -628,7 +628,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	}
 
 	/* get the command start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	/* increment number of service checks that are currently running... */
 	currently_running_service_checks++;
@@ -791,7 +792,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			}
 
 			/* get the check finish time */
-			gettimeofday(&end_time,NULL);
+			//gettimeofday(&end_time,NULL);
+			clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 			/* record check result info */
 			check_result_info.exited_ok=FALSE;
@@ -933,7 +935,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 				alarm(0);
 
 				/* get the check finish time */
-				gettimeofday(&end_time,NULL);
+				//gettimeofday(&end_time,NULL);
+				clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 				/* record check result info */
 				check_result_info.return_code=pclose_result;
@@ -975,7 +978,8 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 			alarm(0);
 
 			/* get the check finish time */
-			gettimeofday(&end_time,NULL);
+			//gettimeofday(&end_time,NULL);
+			clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 			/* record check result info */
 			check_result_info.finish_time=end_time;
@@ -2768,7 +2772,8 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 	time(&current_time);
 
 	/* high resolution start time for event broker */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	/* can we use the last cached host state? */
 	if(use_cached_result==TRUE && !(check_options & CHECK_OPTION_FORCE_EXECUTION)){
@@ -2847,7 +2852,8 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 	log_debug_info(DEBUGL_CHECKS,1,"* Sync host check done: new state=%d\n",hst->current_state);
 
 	/* high resolution end time for event broker */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -2911,7 +2917,8 @@ int execute_sync_host_check_3x(host *hst){
 	grab_host_macros_r(&mac, hst);
 
 	/* high resolution start time for event broker */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	/* get the last host check time */
 	time(&hst->last_check);
@@ -3006,7 +3013,8 @@ int execute_sync_host_check_3x(host *hst){
 		return_result=HOST_DOWN;
 
 	/* high resolution end time for event broker */
-	gettimeofday(&end_time,NULL);
+	//gettimeofday(&end_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -3197,7 +3205,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	hst->processed_command=strdup(processed_command);
 
 	/* get the command start time */
-	gettimeofday(&start_time,NULL);
+	//gettimeofday(&start_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &start_time); // nanoseconds
 
 	/* set check time for on-demand checks, so they're not incorrectly detected as being orphaned - Luke Ross 5/16/08 */
 	/* NOTE: 06/23/08 EG not sure if there will be side effects to this or not.... */
@@ -3344,7 +3353,8 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 			alarm(0);
 
 			/* get the check finish time */
-			gettimeofday(&end_time,NULL);
+			//gettimeofday(&end_time,NULL);
+			clock_gettime(CLOCK_REALTIME, &end_time); // nanoseconds
 
 			/* record check result info */
 			check_result_info.finish_time=end_time;
@@ -3639,7 +3649,8 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 	start_time_hires=queued_check_result->start_time;
 
 	/* high resolution end time for event broker */
-	gettimeofday(&end_time_hires,NULL);
+	//gettimeofday(&end_time_hires,NULL);
+	clock_gettime(CLOCK_REALTIME, &end_time_hires); // nanoseconds
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */

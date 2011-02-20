@@ -1261,7 +1261,7 @@ void display_ping(void){
 			fp=popen(buffer,"r");
 			if(fp){
 				while(1){
-				  if (fgets(buffer,sizeof(buffer)-1,fp)<0)
+				  if (fgets(buffer,sizeof(buffer)-1,fp)!=NULL)
 				  {
 				    printf("fgets failed!");
 				    exit(-1);
@@ -1334,7 +1334,7 @@ void display_traceroute(void){
 		fp=popen(buffer,"r");
 		if(fp){
 			while(1){
-			  if (fgets(buffer,sizeof(buffer)-1,fp)<0)
+			  if (fgets(buffer,sizeof(buffer)-1,fp)!=NULL)
 			  {
 			    printf("fgets failed!");
 			    exit(-1);

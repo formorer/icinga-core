@@ -35,30 +35,6 @@
 #include <gdfonts.h>		/* GD library small font definition */
 
 
-#define _GNU_SOURCE
-// aprintf
-
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-
-#include <sys/poll.h>
-#include <sys/stat.h> // S_IWGRP S_IWOTH
-
-#include <grp.h>
-#include <pwd.h>
-#include <dirent.h>
-#include <errno.h>
-#include <ctype.h>
-/*#define DEBUG			1*/
-
-
 #define HISTOGRAM_IMAGE         "histogram.png"
 
 /* archived state types */

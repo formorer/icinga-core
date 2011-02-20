@@ -22,7 +22,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *****************************************************************************/
-
+#include "../include/stdheaders.h"
 #include "../include/config.h"
 #include "../include/common.h"
 
@@ -1006,7 +1006,9 @@ timeval_t get_broker_timestamp(timeval_t *timestamp){
 	timeval_t tv;
 
 	if(timestamp==NULL)
-		gettimeofday(&tv,NULL);
+	  //gettimeofday(&tv,NULL);
+	  clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
+
 	else
 		tv=*timestamp;
 

@@ -2179,7 +2179,8 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 	new_pcr->check_time=check_time;
 
 	/* calculate latency */
-	gettimeofday(&tv,NULL);
+	//gettimeofday(&tv,NULL);
+	  clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
 	
 	// NOW USING NANOSECONDS (1/1000000)
 	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_nsec/1000000.0 )/1000000.0);
@@ -2319,7 +2320,8 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	new_pcr->check_time=check_time;
 
 	/* calculate latency */
-	gettimeofday(&tv,NULL);
+	//gettimeofday(&tv,NULL);
+	  clock_gettime(CLOCK_REALTIME, &tv); // nanoseconds
 	new_pcr->latency=(double)((double)(tv.tv_sec-check_time)+(double)(tv.tv_nsec/1000000.0)/1000000.0);
 	if(new_pcr->latency<0.0)
 		new_pcr->latency=0.0;

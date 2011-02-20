@@ -326,7 +326,11 @@ int xpddefault_initialize_performance_data(char *config_file){
 	  {
 	    service_host_common_t callback;
 	    callback.simple_callback=xpddefault_process_host_perfdata_file;
-	    schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,callback,(event_args_ptr_t)0,0);
+
+	    event_args_ptr_t nullargs;
+	    nullargs.anything=0;
+
+	    schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_host_perfdata_file_processing_interval,TRUE,xpddefault_host_perfdata_file_processing_interval,NULL,TRUE,callback,nullargs,0);
 	  }
 
 	/* periodically process the service perfdata file */
@@ -334,7 +338,10 @@ int xpddefault_initialize_performance_data(char *config_file){
 	  {
 	     service_host_common_t callback;
 	     callback.simple_callback=xpddefault_process_service_perfdata_file;
-	     schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,callback,(event_args_ptr_t)0,0);
+	    event_args_ptr_t nullargs;
+	    nullargs.anything=0;
+
+	     schedule_new_event(EVENT_USER_FUNCTION,TRUE,current_time+xpddefault_service_perfdata_file_processing_interval,TRUE,xpddefault_service_perfdata_file_processing_interval,NULL,TRUE,callback,nullargs,0);
 	  }
 
 	/* save the host perf data file macro */

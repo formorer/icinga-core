@@ -625,7 +625,8 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 		return ERROR;
 
 	/* write the timestamp */
-	gettimeofday(&current_time,NULL);
+	//gettimeofday(&current_time,NULL);
+	clock_gettime(CLOCK_REALTIME, &current_time); // nanoseconds
 	fprintf(debug_file_fp,"[%lu.%06lu] [%03d.%d] [pid=%lu] ",current_time.tv_sec,current_time.tv_nsec,level,verbosity,(unsigned long)getpid());
 
 	/* write the data */

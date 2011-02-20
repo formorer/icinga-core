@@ -265,7 +265,7 @@ int main(int argc, char **argv){
 		c=getopt(argc,argv,"+hVLc:ms:d:D:");
 #endif
 
-		if(c==-1 || c==EOF)
+		if(c==-1 ) // EOF  == -1
 			break;
 
 		switch(c){
