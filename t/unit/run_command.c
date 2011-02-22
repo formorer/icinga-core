@@ -285,6 +285,25 @@ unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
 extern service  *service_list;
 
+///
+
+ char alert_message;
+ char *host_name;
+ char *host_filter;
+ char *hostgroup_name;
+ char *service_desc;
+ char *servicegroup_name;
+ char *service_filter;
+ int host_alert;
+ int show_all_hosts;
+ int show_all_hostgroups;
+ int show_all_servicegroups;
+ int display_type;
+ int overview_columns;
+ int max_grid_width;
+ int group_style_type;
+ int navbar_search;
+
 
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
 int main(int argc, char **argv, char **env){

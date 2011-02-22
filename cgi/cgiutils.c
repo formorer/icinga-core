@@ -30,9 +30,9 @@
 #include "../include/cgiutils.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
-char            log_file[MAX_FILENAME_LENGTH];
-char            log_archive_path[MAX_FILENAME_LENGTH];
-char            command_file[MAX_FILENAME_LENGTH];
+char            log_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
+char            log_archive_path[MAX_FILENAME_LENGTH] __attribute__ ((aligned (8)));
+char            command_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
 
 char            physical_html_path[MAX_FILENAME_LENGTH];
 char            physical_images_path[MAX_FILENAME_LENGTH];
@@ -145,6 +145,20 @@ extern serviceescalation *serviceescalation_list;
 
 //extern hoststatus      *hoststatus_list;
 //extern servicestatus   *servicestatus_list;
+// externs used by cgi
+ time_t   program_start;
+ int      nagios_pid;
+ int      daemon_mode;
+ int      enable_notifications;
+ int      execute_service_checks;
+ int      accept_passive_service_checks;
+ int      enable_event_handlers;
+ int      obsess_over_services;
+ int      enable_failure_prediction;
+ int      process_performance_data;
+ time_t   last_command_check;
+ time_t   last_log_rotation;
+
 
 lifo            *lifo_list=NULL;
 
