@@ -30,9 +30,9 @@
 #include "../include/cgiutils.h"
 
 char            main_config_file[MAX_FILENAME_LENGTH];
-char            log_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
-char            log_archive_path[MAX_FILENAME_LENGTH] __attribute__ ((aligned (8)));
-char            command_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
+char            local_log_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
+char            local_log_archive_path[MAX_FILENAME_LENGTH] __attribute__ ((aligned (8)));
+char            local_command_file[MAX_FILENAME_LENGTH]  __attribute__ ((aligned (8)));
 
 char            physical_html_path[MAX_FILENAME_LENGTH];
 char            physical_images_path[MAX_FILENAME_LENGTH];
@@ -229,11 +229,11 @@ void reset_cgi_vars(void){
 	strcpy(url_media_path,"");
 	strcpy(url_images_path,"");
 
-	strcpy(log_file,"");
-	strcpy(log_archive_path,DEFAULT_LOG_ARCHIVE_PATH);
-	if(log_archive_path[strlen(log_archive_path)-1]!='/' && strlen(log_archive_path)<sizeof(log_archive_path)-2)
-		strcat(log_archive_path,"/");
-	strcpy(command_file,get_cmd_file_location());
+	strcpy(local_log_file,"");
+	strcpy(local_log_archive_path,DEFAULT_LOG_ARCHIVE_PATH);
+	if(local_log_archive_path[strlen(local_log_archive_path)-1]!='/' && strlen(local_log_archive_path)<sizeof(local_log_archive_path)-2)
+		strcat(local_log_archive_path,"/");
+	strcpy(local_command_file,get_cmd_file_location());
 
 	strcpy(nagios_check_command,"");
 	strcpy(nagios_process_info,"");
@@ -601,19 +601,19 @@ int cgi_read_main_config_file(char *filename){
 		else if(strstr(input,"log_file=")==input){
 			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
-			strncpy(log_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(log_file));
-			log_file[sizeof(log_file)-1]='\x0';
-			strip(log_file);
+			strncpy(local_log_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(local_log_file));
+			local_log_file[sizeof(local_log_file)-1]='\x0';
+			strip(local_log_file);
 		        }
 
 		else if(strstr(input,"log_archive_path=")==input){
 			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\n");
-			strncpy(log_archive_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(log_archive_path));
-			log_archive_path[sizeof(log_archive_path)-1]='\x0';
+			strncpy(local_log_archive_path,(temp_buffer==NULL)?"":temp_buffer,sizeof(local_log_archive_path));
+			local_log_archive_path[sizeof(local_log_archive_path)-1]='\x0';
 			strip(physical_html_path);
-			if(log_archive_path[strlen(log_archive_path)-1]!='/' && (strlen(log_archive_path) < sizeof(log_archive_path)-1))
-				strcat(log_archive_path,"/");
+			if(local_log_archive_path[strlen(local_log_archive_path)-1]!='/' && (strlen(local_log_archive_path) < sizeof(local_log_archive_path)-1))
+				strcat(local_log_archive_path,"/");
 		        }
 
 		else if(strstr(input,"log_rotation_method=")==input){
@@ -634,9 +634,9 @@ int cgi_read_main_config_file(char *filename){
 		else if(strstr(input,"command_file=")==input){
 			temp_buffer=strtok(input,"=");
 			temp_buffer=strtok(NULL,"\x0");
-			strncpy(command_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(command_file));
-			command_file[sizeof(command_file)-1]='\x0';
-			strip(command_file);
+			strncpy(local_command_file,(temp_buffer==NULL)?"":temp_buffer,sizeof(local_command_file));
+			local_command_file[sizeof(local_command_file)-1]='\x0';
+			strip(local_command_file);
 		        }
 
 		else if(strstr(input,"check_external_commands=")==input){
@@ -1733,7 +1733,7 @@ void get_log_archive_to_use(int archive,char *buffer,int buffer_length){
 
 	/* if we're not rotating the logs or if we want the current log, use the main one... */
 	if(log_rotation_method==LOG_ROTATION_NONE || archive<=0){
-		strncpy(buffer,log_file,buffer_length);
+		strncpy(buffer,local_log_file,buffer_length);
 		buffer[buffer_length-1]='\x0';
 		return;
 	        }
@@ -1741,12 +1741,12 @@ void get_log_archive_to_use(int archive,char *buffer,int buffer_length){
 	t=localtime(&this_scheduled_log_rotation);
 
 	/* use the time that the log rotation occurred to figure out the name of the log file */
-	snprintf(buffer,buffer_length,"%sicinga-%02d-%02d-%d-%02d.log",log_archive_path, t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
+	snprintf(buffer,buffer_length,"%sicinga-%02d-%02d-%d-%02d.log",local_log_archive_path, t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
 	buffer[buffer_length-1]='\x0';
 
 	/* check if a icinga named archive logfile already exist. Otherwise change back to nagios syntax */
 	if((fd = fopen(buffer, "r")) == NULL){
-		snprintf(buffer,buffer_length,"%snagios-%02d-%02d-%d-%02d.log",log_archive_path,t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour);
+		snprintf(buffer,buffer_length,"%snagios-%02d-%02d-%d-%02d.log",local_log_archive_path,t->tm_mon+1,t->tm_mday,t->tm_year+1900,t->tm_hour);
 		buffer[buffer_length-1]='\x0';
 
 		/* 06-02-2010 Michael Friedrich
@@ -1754,7 +1754,7 @@ void get_log_archive_to_use(int archive,char *buffer,int buffer_length){
 		   leading the user to the assumption that the logfile is not even created - if the logfile
 		   was not rotated by the core after this date */
 		if((fd = fopen(buffer, "r")) == NULL){
-			snprintf(buffer,buffer_length,"%sicinga-%02d-%02d-%d-%02d.log",log_archive_path, t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
+			snprintf(buffer,buffer_length,"%sicinga-%02d-%02d-%d-%02d.log",local_log_archive_path, t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
 			buffer[buffer_length-1]='\x0';
 		}
 		else {
