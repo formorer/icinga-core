@@ -36,7 +36,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = base
-DIST_COMMON = $(libicingacore_a_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(libicingacore_1_0_la_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -72,19 +72,15 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(libicingacore_adir)"
-LIBRARIES = $(lib_LIBRARIES)
-ARFLAGS = cru
-libicingacore_a_AR = $(AR) $(ARFLAGS)
-libicingacore_a_LIBADD =
-am_libicingacore_a_OBJECTS = broker.$(OBJEXT) commands.$(OBJEXT) \
-	events.$(OBJEXT) helpers.$(OBJEXT) nebmods.$(OBJEXT) \
-	notifications.$(OBJEXT) profiler.$(OBJEXT) \
-	sretention.$(OBJEXT) utils.$(OBJEXT) checks.$(OBJEXT) \
-	config.$(OBJEXT) flapping.$(OBJEXT) logging.$(OBJEXT) \
-	netutils.$(OBJEXT) perfdata.$(OBJEXT) sehandlers.$(OBJEXT) \
-	statsprofiler.$(OBJEXT)
-libicingacore_a_OBJECTS = $(am_libicingacore_a_OBJECTS)
+	"$(DESTDIR)$(libicingacore_1_0_ladir)"
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libicingacore_1_0_la_LIBADD =
+am_libicingacore_1_0_la_OBJECTS = broker.lo commands.lo events.lo \
+	helpers.lo nebmods.lo notifications.lo profiler.lo \
+	sretention.lo utils.lo checks.lo config.lo flapping.lo \
+	logging.lo netutils.lo perfdata.lo sehandlers.lo \
+	statsprofiler.lo
+libicingacore_1_0_la_OBJECTS = $(am_libicingacore_1_0_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -98,9 +94,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libicingacore_a_SOURCES)
-DIST_SOURCES = $(libicingacore_a_SOURCES)
-HEADERS = $(libicingacore_a_HEADERS)
+SOURCES = $(libicingacore_1_0_la_SOURCES)
+DIST_SOURCES = $(libicingacore_1_0_la_SOURCES)
+HEADERS = $(libicingacore_1_0_la_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -292,16 +288,16 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 ###############################################################################
 
 # the library names to build (note we are building static libs only)
-lib_LIBRARIES = libicingacore.a 
+lib_LTLIBRARIES = libicingacore-1.0.la 
 
 # where to install the headers on the system
-libicingacore_adir = $(includedir)/icinga
+libicingacore_1_0_ladir = $(includedir)/icinga
 
 # the list of header files that belong to the library (to be installed later)
-libicingacore_a_HEADERS = 
+libicingacore_1_0_la_HEADERS = 
 
 # the sources to add to the library and to add to the source distribution
-libicingacore_a_SOURCES = \
+libicingacore_1_0_la_SOURCES = \
                         broker.c  commands.c  events.c    helpers.c    nebmods.c   notifications.c  profiler.c    sretention.c     utils.c checks.c  config.c    flapping.c     logging.c      netutils.c  perfdata.c       sehandlers.c  statsprofiler.c
 
 all: all-am
@@ -338,42 +334,39 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-libLIBRARIES: $(lib_LIBRARIES)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
 	    list2="$$list2 $$p"; \
 	  else :; fi; \
 	done; \
 	test -z "$$list2" || { \
-	  echo " $(INSTALL_DATA) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(INSTALL_DATA) $$list2 "$(DESTDIR)$(libdir)" || exit $$?; }
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
+	}
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
 	for p in $$list; do \
-	  if test -f $$p; then \
-	    $(am__strip_dir) \
-	    echo " ( cd '$(DESTDIR)$(libdir)' && $(RANLIB) $$f )"; \
-	    ( cd "$(DESTDIR)$(libdir)" && $(RANLIB) $$f ) || exit $$?; \
-	  else :; fi; \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
 	done
 
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libdir)' && rm -f "$$files" )"; \
-	cd "$(DESTDIR)$(libdir)" && rm -f $$files
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libicingacore.a: $(libicingacore_a_OBJECTS) $(libicingacore_a_DEPENDENCIES) 
-	-rm -f libicingacore.a
-	$(libicingacore_a_AR) libicingacore.a $(libicingacore_a_OBJECTS) $(libicingacore_a_LIBADD)
-	$(RANLIB) libicingacore.a
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libicingacore-1.0.la: $(libicingacore_1_0_la_OBJECTS) $(libicingacore_1_0_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libicingacore_1_0_la_OBJECTS) $(libicingacore_1_0_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -381,23 +374,23 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/broker.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/checks.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/commands.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/events.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flapping.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logging.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nebmods.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netutils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/notifications.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/perfdata.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/profiler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sehandlers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sretention.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statsprofiler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/broker.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/checks.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/commands.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/config.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/events.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flapping.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logging.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nebmods.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/netutils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/notifications.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/perfdata.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/profiler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sehandlers.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sretention.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statsprofiler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -425,26 +418,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-libicingacore_aHEADERS: $(libicingacore_a_HEADERS)
+install-libicingacore_1_0_laHEADERS: $(libicingacore_1_0_la_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(libicingacore_adir)" || $(MKDIR_P) "$(DESTDIR)$(libicingacore_adir)"
-	@list='$(libicingacore_a_HEADERS)'; test -n "$(libicingacore_adir)" || list=; \
+	test -z "$(libicingacore_1_0_ladir)" || $(MKDIR_P) "$(DESTDIR)$(libicingacore_1_0_ladir)"
+	@list='$(libicingacore_1_0_la_HEADERS)'; test -n "$(libicingacore_1_0_ladir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libicingacore_adir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libicingacore_adir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libicingacore_1_0_ladir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libicingacore_1_0_ladir)" || exit $$?; \
 	done
 
-uninstall-libicingacore_aHEADERS:
+uninstall-libicingacore_1_0_laHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libicingacore_a_HEADERS)'; test -n "$(libicingacore_adir)" || list=; \
+	@list='$(libicingacore_1_0_la_HEADERS)'; test -n "$(libicingacore_1_0_ladir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libicingacore_adir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(libicingacore_adir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(libicingacore_1_0_ladir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libicingacore_1_0_ladir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -530,9 +523,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libicingacore_adir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libicingacore_1_0_ladir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -562,7 +555,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -583,13 +576,13 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libicingacore_aHEADERS
+install-data-am: install-libicingacore_1_0_laHEADERS
 
 install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-html: install-html-am
 
@@ -629,25 +622,26 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLIBRARIES uninstall-libicingacore_aHEADERS
+uninstall-am: uninstall-libLTLIBRARIES \
+	uninstall-libicingacore_1_0_laHEADERS
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libtool ctags distclean \
+	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
-	install-libLIBRARIES install-libicingacore_aHEADERS \
+	install-libLTLIBRARIES install-libicingacore_1_0_laHEADERS \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-libLIBRARIES \
-	uninstall-libicingacore_aHEADERS
+	uninstall-am uninstall-libLTLIBRARIES \
+	uninstall-libicingacore_1_0_laHEADERS
 
 
 #icingastats.c main routine

@@ -889,6 +889,8 @@ int xcddefault_initialize_comment_data(char *main_config_file);
   //write_to_syslog
   int write_to_syslog(char *buffer, unsigned long data_type);
 
+  void profile_object_update_count(char * name, int val);
+  void profile_object_update_elapsed(char * name, double val);
 #ifdef __cplusplus
 }
 #endif

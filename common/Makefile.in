@@ -36,7 +36,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = common
-DIST_COMMON = $(libicingacommon_a_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(libicingacommon_1_0_la_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -72,15 +72,12 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(libicingacommon_adir)"
-LIBRARIES = $(lib_LIBRARIES)
-ARFLAGS = cru
-libicingacommon_a_AR = $(AR) $(ARFLAGS)
-libicingacommon_a_LIBADD =
-am_libicingacommon_a_OBJECTS = comments.$(OBJEXT) downtime.$(OBJEXT) \
-	macros.$(OBJEXT) objects.$(OBJEXT) shared.$(OBJEXT) \
-	skiplist.$(OBJEXT) snprintf.$(OBJEXT) statusdata.$(OBJEXT)
-libicingacommon_a_OBJECTS = $(am_libicingacommon_a_OBJECTS)
+	"$(DESTDIR)$(libicingacommon_1_0_ladir)"
+LTLIBRARIES = $(lib_LTLIBRARIES)
+libicingacommon_1_0_la_LIBADD =
+am_libicingacommon_1_0_la_OBJECTS = comments.lo downtime.lo macros.lo \
+	objects.lo shared.lo skiplist.lo snprintf.lo statusdata.lo
+libicingacommon_1_0_la_OBJECTS = $(am_libicingacommon_1_0_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -94,9 +91,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(libicingacommon_a_SOURCES)
-DIST_SOURCES = $(libicingacommon_a_SOURCES)
-HEADERS = $(libicingacommon_a_HEADERS)
+SOURCES = $(libicingacommon_1_0_la_SOURCES)
+DIST_SOURCES = $(libicingacommon_1_0_la_SOURCES)
+HEADERS = $(libicingacommon_1_0_la_HEADERS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -288,16 +285,16 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 ###############################################################################
 
 # the library names to build (note we are building static libs only)
-lib_LIBRARIES = libicingacommon.a 
+lib_LTLIBRARIES = libicingacommon-1.0.la 
 
 # where to install the headers on the system
-libicingacommon_adir = $(includedir)/cgi
+libicingacommon_1_0_ladir = $(includedir)/cgi
 
 # the list of header files that belong to the library (to be installed later)
-libicingacommon_a_HEADERS = 
+libicingacommon_1_0_la_HEADERS = 
 
 # the sources to add to the library and to add to the source distribution
-libicingacommon_a_SOURCES = comments.c  downtime.c  macros.c  objects.c  shared.c  skiplist.c  snprintf.c  statusdata.c
+libicingacommon_1_0_la_SOURCES = comments.c  downtime.c  macros.c  objects.c  shared.c  skiplist.c  snprintf.c  statusdata.c
 all: all-am
 
 .SUFFIXES:
@@ -332,42 +329,39 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-libLIBRARIES: $(lib_LIBRARIES)
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
 	    list2="$$list2 $$p"; \
 	  else :; fi; \
 	done; \
 	test -z "$$list2" || { \
-	  echo " $(INSTALL_DATA) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(INSTALL_DATA) $$list2 "$(DESTDIR)$(libdir)" || exit $$?; }
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
+	}
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
 	for p in $$list; do \
-	  if test -f $$p; then \
-	    $(am__strip_dir) \
-	    echo " ( cd '$(DESTDIR)$(libdir)' && $(RANLIB) $$f )"; \
-	    ( cd "$(DESTDIR)$(libdir)" && $(RANLIB) $$f ) || exit $$?; \
-	  else :; fi; \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
 	done
 
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libdir)' && rm -f "$$files" )"; \
-	cd "$(DESTDIR)$(libdir)" && rm -f $$files
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libicingacommon.a: $(libicingacommon_a_OBJECTS) $(libicingacommon_a_DEPENDENCIES) 
-	-rm -f libicingacommon.a
-	$(libicingacommon_a_AR) libicingacommon.a $(libicingacommon_a_OBJECTS) $(libicingacommon_a_LIBADD)
-	$(RANLIB) libicingacommon.a
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libicingacommon-1.0.la: $(libicingacommon_1_0_la_OBJECTS) $(libicingacommon_1_0_la_DEPENDENCIES) 
+	$(LINK) -rpath $(libdir) $(libicingacommon_1_0_la_OBJECTS) $(libicingacommon_1_0_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -375,14 +369,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comments.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/downtime.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macros.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/objects.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shared.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/skiplist.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snprintf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statusdata.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comments.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/downtime.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/macros.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/objects.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shared.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/skiplist.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snprintf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statusdata.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -410,26 +404,26 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-libicingacommon_aHEADERS: $(libicingacommon_a_HEADERS)
+install-libicingacommon_1_0_laHEADERS: $(libicingacommon_1_0_la_HEADERS)
 	@$(NORMAL_INSTALL)
-	test -z "$(libicingacommon_adir)" || $(MKDIR_P) "$(DESTDIR)$(libicingacommon_adir)"
-	@list='$(libicingacommon_a_HEADERS)'; test -n "$(libicingacommon_adir)" || list=; \
+	test -z "$(libicingacommon_1_0_ladir)" || $(MKDIR_P) "$(DESTDIR)$(libicingacommon_1_0_ladir)"
+	@list='$(libicingacommon_1_0_la_HEADERS)'; test -n "$(libicingacommon_1_0_ladir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libicingacommon_adir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libicingacommon_adir)" || exit $$?; \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libicingacommon_1_0_ladir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libicingacommon_1_0_ladir)" || exit $$?; \
 	done
 
-uninstall-libicingacommon_aHEADERS:
+uninstall-libicingacommon_1_0_laHEADERS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libicingacommon_a_HEADERS)'; test -n "$(libicingacommon_adir)" || list=; \
+	@list='$(libicingacommon_1_0_la_HEADERS)'; test -n "$(libicingacommon_1_0_ladir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libicingacommon_adir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(libicingacommon_adir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(libicingacommon_1_0_ladir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libicingacommon_1_0_ladir)" && rm -f $$files
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -515,9 +509,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libicingacommon_adir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libicingacommon_1_0_ladir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -547,7 +541,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libtool \
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -568,13 +562,13 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libicingacommon_aHEADERS
+install-data-am: install-libicingacommon_1_0_laHEADERS
 
 install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-html: install-html-am
 
@@ -614,26 +608,26 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLIBRARIES \
-	uninstall-libicingacommon_aHEADERS
+uninstall-am: uninstall-libLTLIBRARIES \
+	uninstall-libicingacommon_1_0_laHEADERS
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libtool ctags distclean \
+	clean-libLTLIBRARIES clean-libtool ctags distclean \
 	distclean-compile distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
-	install-libLIBRARIES install-libicingacommon_aHEADERS \
+	install-libLTLIBRARIES install-libicingacommon_1_0_laHEADERS \
 	install-man install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-libLIBRARIES \
-	uninstall-libicingacommon_aHEADERS
+	uninstall-am uninstall-libLTLIBRARIES \
+	uninstall-libicingacommon_1_0_laHEADERS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

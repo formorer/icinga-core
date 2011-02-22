@@ -39,6 +39,11 @@
 
 #include "xpddefault.h"
 
+void test2()
+{
+  profile_object_update_count ("TEST",1); // to trick the linker
+  profile_object_update_elapsed("PROFILE_ELAPSED_",1);
+}
 
 int     xpddefault_perfdata_timeout;
 

@@ -102,6 +102,12 @@ profile_object* profile_object_find_by_name(char * name)
 	return p;
 }
 
+void test()
+{
+  profile_object_update_count ("TEST",1); // to trick the linker
+  profile_object_update_elapsed("PROFILE_ELAPSED_",1);
+}
+
 void profile_object_update_count(char * name, int val)
 {
 	profile_object* new_p = profile_object_find_by_name(name);

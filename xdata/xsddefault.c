@@ -1029,12 +1029,12 @@ xdata/xsddefault.c:1031: undefined reference to `profile_object_update_elapsed'
 this is defined, but the linker is not finding it!
 
 */
-/*                                        if(strstr(var,"COUNTER"))
+                                        if(strstr(var,"COUNTER"))
                                                 profile_object_update_count(var+strlen("PROFILE_COUNTER_"),strtod(val,NULL));
 
                                         if(strstr(var,"ELAPSED"))
                                                 profile_object_update_elapsed(var+strlen("PROFILE_ELAPSED_"),atoi(val));
-*/
+
 
                                 }
 

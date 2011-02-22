@@ -7,16 +7,14 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 ###############################################################################
 
 # the library names to build (note we are building static libs only)
-lib_LIBRARIES = libicingacommon.a 
+lib_LTLIBRARIES = libicingacommon-1.0.la 
 
 # where to install the headers on the system
-libicingacommon_adir = $(includedir)/cgi
+libicingacommon_1_0_ladir = $(includedir)/cgi
 
 # the list of header files that belong to the library (to be installed later)
-libicingacommon_a_HEADERS =    
+libicingacommon_1_0_la_HEADERS =    
 
 # the sources to add to the library and to add to the source distribution
-libicingacommon_a_SOURCES =  comments.c  downtime.c  macros.c  objects.c  shared.c  skiplist.c  snprintf.c  statusdata.c
-
- 
+libicingacommon_1_0_la_SOURCES =  comments.c  downtime.c  macros.c  objects.c  shared.c  skiplist.c  snprintf.c  statusdata.c
 

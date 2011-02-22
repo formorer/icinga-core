@@ -6,16 +6,16 @@ AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_
 ###############################################################################
 
 # the library names to build (note we are building static libs only)
-lib_LIBRARIES = libicingaxdata.a 
+lib_LTLIBRARIES = libicingaxdata-1.0.la
 
 # where to install the headers on the system
-libicingaxdata_adir = $(includedir)/cgi
+libicingaxdata_1_0_ladir = $(includedir)/cgi
 
 # the list of header files that belong to the library (to be installed later)
-libicingaxdata_a_HEADERS =    
+libicingaxdata_1_0_la_HEADERS =    
 
 # the sources to add to the library and to add to the source distribution
-libicingaxdata_a_SOURCES =  xcddefault.c  xdddefault.c  xodtemplate.c  xpddefault.c  xrddefault.c  xsddefault.c
+libicingaxdata_1_0_la_SOURCES =  xcddefault.c  xdddefault.c  xodtemplate.c  xpddefault.c  xrddefault.c  xsddefault.c
 
  
 
