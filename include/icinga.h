@@ -850,6 +850,45 @@ int xcddefault_initialize_comment_data(char *main_config_file);
   //xdddefault_delete_service_downtime
   int xdddefault_delete_service_downtime(unsigned long downtime_id);
 
+
+  //TODO:
+  //sehandlers.c: In function ‘handle_host_state’:
+  //sehandlers.c:816: warning: implicit declaration of function ‘log_host_event’
+
+  //write_to_all_logs
+  //close_debug_log
+  int close_debug_log(void);
+  //dirname
+#include <libgen.h>
+  //log_host_event
+  int log_host_event(host *hst);
+  //log_host_states
+  int log_host_states(int type, time_t *timestamp);
+
+  //log_service_event
+  int log_service_event(service *svc);
+
+  //log_service_states
+  int log_service_states(int type, time_t *timestamp);
+
+  //open_debug_log
+  int open_debug_log(void);
+
+  //rotate_log_file
+  int rotate_log_file(time_t rotation_time);
+
+  //write_log_file_info
+  int write_log_file_info(time_t *timestamp);
+
+  //write_to_all_logs
+  int write_to_all_logs(char *buffer, unsigned long data_type);
+  
+  //write_to_log
+  int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp);
+
+  //write_to_syslog
+  int write_to_syslog(char *buffer, unsigned long data_type);
+
 #ifdef __cplusplus
 }
 #endif

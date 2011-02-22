@@ -1022,8 +1022,14 @@ int xsddefault_read_status_data(char *config_file,int options){
 /* make sure gcc3 won't hit here */
 
 /*
-  getting very strange linker errors, this function is not being found!
-                                        if(strstr(var,"COUNTER"))
+  TODO:getting very strange linker errors, this function is not being found!
+xdata/xsddefault.c:1028: undefined reference to `profile_object_update_count'
+xdata/xsddefault.c:1031: undefined reference to `profile_object_update_elapsed'
+
+this is defined, but the linker is not finding it!
+
+*/
+/*                                        if(strstr(var,"COUNTER"))
                                                 profile_object_update_count(var+strlen("PROFILE_COUNTER_"),strtod(val,NULL));
 
                                         if(strstr(var,"ELAPSED"))
