@@ -111,7 +111,7 @@ extern circular_buffer external_command_buffer;
 
 extern host *host_list;
 extern service *service_list;
-extern contact *contact_list;
+extern contact_ptr_t contact_list;
 extern comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
@@ -337,7 +337,7 @@ int xsddefault_save_status_data(void){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	comment *temp_comment=NULL;
 	scheduled_downtime *temp_downtime=NULL;
 	time_t current_time;

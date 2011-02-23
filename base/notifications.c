@@ -33,7 +33,7 @@
 #include "../include/neberrors.h"
 
 extern notification    *notification_list;
-extern contact         *contact_list;
+extern contact_ptr_t contact_list;
 extern serviceescalation *serviceescalation_list;
 extern hostescalation  *hostescalation_list;
 
@@ -70,7 +70,7 @@ int check_escalation_condition(escalation_condition*);
 int service_notification(service *svc, int type, char *not_author, char *not_data, int options){
 	host *temp_host=NULL;
 	notification *temp_notification=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	time_t current_time;
 	timeval_t start_time;
 	timeval_t end_time;
@@ -627,7 +627,7 @@ int check_service_notification_viability(service *svc, int type, int options){
 
 
 /* check viability of sending out a service notification to a specific contact (contact-specific filters) */
-int check_contact_service_notification_viability(contact *cntct, service *svc, int type, int options){
+int check_contact_service_notification_viability(contact_ptr_t cntct, service *svc, int type, int options){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_service_notification_viability()\n");
 
@@ -729,7 +729,7 @@ int check_contact_service_notification_viability(contact *cntct, service *svc, i
 
 
 /* notify a specific contact about a service problem or recovery */
-int notify_contact_of_service(icinga_macros *mac, contact *cntct, service *svc, int type, char *not_author, char *not_data, int options, int escalated){
+int notify_contact_of_service(icinga_macros *mac, contact_ptr_t cntct, service *svc, int type, char *not_author, char *not_data, int options, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -1115,7 +1115,7 @@ int should_service_notification_be_escalated(service *svc){
 int create_notification_list_from_service(icinga_macros *mac, service *svc, int options, int *escalated){
 	serviceescalation *temp_se=NULL;
 	contactsmember *temp_contactsmember=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	int escalate_notification=FALSE;
@@ -1213,7 +1213,7 @@ int create_notification_list_from_service(icinga_macros *mac, service *svc, int 
 /* notify all contacts for a host that the entire host is down or up */
 int host_notification(host *hst, int type, char *not_author, char *not_data, int options){
 	notification *temp_notification=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	time_t current_time;
 	timeval_t start_time;
 	timeval_t end_time;
@@ -1700,7 +1700,7 @@ int check_host_notification_viability(host *hst, int type, int options){
 
 
 /* checks the viability of notifying a specific contact about a host */
-int check_contact_host_notification_viability(contact *cntct, host *hst, int type, int options){
+int check_contact_host_notification_viability(contact_ptr_t cntct, host *hst, int type, int options){
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_contact_host_notification_viability()\n");
 
@@ -1801,7 +1801,7 @@ int check_contact_host_notification_viability(contact *cntct, host *hst, int typ
 
 
 /* notify a specific contact that an entire host is down or up */
-int notify_contact_of_host(icinga_macros *mac, contact *cntct, host *hst, int type, char *not_author, char *not_data, int options, int escalated){
+int notify_contact_of_host(icinga_macros *mac, contact_ptr_t cntct, host *hst, int type, char *not_author, char *not_data, int options, int escalated){
 	commandsmember *temp_commandsmember=NULL;
 	char *command_name=NULL;
 	char *command_name_ptr=NULL;
@@ -2097,7 +2097,7 @@ int should_host_notification_be_escalated(host *hst){
 int create_notification_list_from_host(icinga_macros *mac, host *hst, int options, int *escalated){
 	hostescalation *temp_he=NULL;
 	contactsmember *temp_contactsmember=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	int escalate_notification=FALSE;
@@ -2319,7 +2319,7 @@ time_t get_next_host_notification_time(host *hst, time_t offset){
 
 
 /* given a contact name, find the notification entry for them for the list in memory */
-notification * find_notification(contact *cntct){
+notification * find_notification(contact_ptr_t cntct){
 	notification *temp_notification=NULL;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"find_notification() start\n");
@@ -2339,7 +2339,7 @@ notification * find_notification(contact *cntct){
 
 
 /* add a new notification to the list in memory */
-int add_notification(icinga_macros *mac, contact *cntct){
+int add_notification(icinga_macros *mac, contact_ptr_t cntct){
 	notification *new_notification=NULL;
 	notification *temp_notification=NULL;
 
@@ -2355,7 +2355,8 @@ int add_notification(icinga_macros *mac, contact *cntct){
 		return OK;
 
 	/* allocate memory for a new contact in the notification list */
-	if((new_notification=malloc(sizeof(notification)))==NULL)
+	new_notification=new notification();
+	if(!new_notification)
 		return ERROR;
 
 	/* fill in the contact info */

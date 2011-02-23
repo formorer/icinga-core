@@ -26,9 +26,6 @@
 #ifndef _NEBMODULES_H
 #define _NEBMODULES_H
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
 
 /***** MODULE VERSION INFORMATION *****/
 
@@ -115,9 +112,5 @@ extern      mod_deinitfunc_ptr_t       deinit_func_test;
     
     /***** MODULE FUNCTIONS *****/
     int neb_set_module_info(void *,int,char *);
-
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

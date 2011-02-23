@@ -53,7 +53,7 @@ struct icinga_macros {
 	hostgroup *hostgroup_ptr;
 	service *service_ptr;
 	servicegroup *servicegroup_ptr;
-	contact *contact_ptr;
+	contact_ptr_t contact_ptr;
 	contactgroup *contactgroup_ptr;
 	customvariablesmember *custom_host_vars;
 	customvariablesmember *custom_service_vars;
@@ -71,7 +71,7 @@ struct nagios_macros {
         hostgroup *hostgroup_ptr;
         service *service_ptr;
         servicegroup *servicegroup_ptr;
-        contact *contact_ptr;
+        contact_ptr_t contact_ptr;
         contactgroup *contactgroup_ptr;
         customvariablesmember *custom_host_vars;
         customvariablesmember *custom_service_vars;
@@ -269,7 +269,7 @@ int grab_service_macros(service *);
 int grab_host_macros(host *);
 int grab_servicegroup_macros(servicegroup *);
 int grab_hostgroup_macros(hostgroup *);
-int grab_contact_macros(contact *);
+int grab_contact_macros(contact_ptr_t );
 int grab_contactgroup_macros(contactgroup *);
 
 int grab_macro_value(char *,char **,int *,int *);
@@ -280,8 +280,8 @@ int grab_standard_host_macro(int,host *,char **,int *);
 int grab_standard_hostgroup_macro(int,hostgroup *,char **);
 int grab_standard_service_macro(int,service *,char **,int *);
 int grab_standard_servicegroup_macro(int,servicegroup *,char **);
-int grab_standard_contact_macro(int,contact *,char **);
-int grab_contact_address_macro(int,contact *,char **);
+int grab_standard_contact_macro(int,contact_ptr_t ,char **);
+int grab_contact_address_macro(int,contact_ptr_t ,char **);
 int grab_standard_contactgroup_macro(int,contactgroup *,char **);
 int grab_custom_object_macro(char *,customvariablesmember *,char **);
 
@@ -291,7 +291,7 @@ int grab_service_macros_r(icinga_macros *mac, service *);
 int grab_host_macros_r(icinga_macros *mac, host *);
 int grab_servicegroup_macros_r(icinga_macros *mac, servicegroup *);
 int grab_hostgroup_macros_r(icinga_macros *mac, hostgroup *);
-int grab_contact_macros_r(icinga_macros *mac, contact *);
+int grab_contact_macros_r(icinga_macros *mac, contact_ptr_t );
 int grab_contactgroup_macros_r(icinga_macros *mac, contactgroup *);
 
 int grab_macro_value_r(icinga_macros *mac, char *,char **,int *,int *);
@@ -302,8 +302,8 @@ int grab_standard_host_macro_r(icinga_macros *mac, int,host *,char **,int *);
 int grab_standard_hostgroup_macro_r(icinga_macros *mac, int,hostgroup *,char **);
 int grab_standard_service_macro_r(icinga_macros *mac, int,service *,char **,int *);
 int grab_standard_servicegroup_macro_r(icinga_macros *mac, int,servicegroup *,char **);
-int grab_standard_contact_macro_r(icinga_macros *mac, int,contact *,char **);
-int grab_contact_address_macro_r(icinga_macros *mac, int,contact *,char **);
+int grab_standard_contact_macro_r(icinga_macros *mac, int,contact_ptr_t ,char **);
+int grab_contact_address_macro_r(icinga_macros *mac, int,contact_ptr_t ,char **);
 int grab_standard_contactgroup_macro_r(icinga_macros *mac, int,contactgroup *,char **);
 int grab_custom_object_macro_r(icinga_macros *mac, char *,customvariablesmember *,char **);
 
@@ -346,7 +346,7 @@ int set_argv_macro_environment_vars(int);
 int set_custom_macro_environment_vars(int);
 int set_contact_address_environment_vars(int);
 
-int set_all_macro_environment_vars_r(icinga_macros *mac, int);
+//int set_all_macro_environment_vars_r(icinga_macros *mac, int);
 int set_macrox_environment_vars_r(icinga_macros *mac, int);
 int set_argv_macro_environment_vars_r(icinga_macros *mac, int);
 int set_custom_macro_environment_vars_r(icinga_macros *mac, int);

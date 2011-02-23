@@ -1706,7 +1706,7 @@ void adjust_check_scheduling(void){
 				continue;
 
 			/* does the last check "bump" into this one? */
-			if((unsigned long)(last_check_time+last_check_exec_time)>temp_event->run_time)
+			if((unsigned long)(last_check_time+last_check_exec_time)>(unsigned long)temp_event->run_time)
 				adjust_scheduling=TRUE;
 	
 			last_check_time=temp_event->run_time;
@@ -1727,7 +1727,7 @@ void adjust_check_scheduling(void){
 				continue;
 
 			/* does the last check "bump" into this one? */
-			if((unsigned long)(last_check_time+last_check_exec_time)>temp_event->run_time)
+			if((unsigned long)(last_check_time+last_check_exec_time)>(unsigned long)temp_event->run_time)
 				adjust_scheduling=TRUE;
 	
 			last_check_time=temp_event->run_time;
@@ -1759,7 +1759,7 @@ void adjust_check_scheduling(void){
 		return;
 	        }
 
-	if((unsigned long)total_check_exec_time>auto_rescheduling_window){
+	if((unsigned long)total_check_exec_time>(unsigned long)auto_rescheduling_window){
 		inter_check_delay=0.0;
 		exec_time_factor=(double)((double)auto_rescheduling_window/total_check_exec_time);
 	        }

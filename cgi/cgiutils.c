@@ -140,7 +140,7 @@ extern hostgroup       *hostgroup_list;
 extern contactgroup    *contactgroup_list;
 extern command         *command_list;
 extern timeperiod      *timeperiod_list;
-extern contact         *contact_list;
+extern contact_ptr_t contact_list;
 extern serviceescalation *serviceescalation_list;
 
 //extern hoststatus      *hoststatus_list;
@@ -1309,7 +1309,7 @@ char *cgi_escape_newlines(char *rawbuf) {
 		return NULL;
 
 	/* allocate enough memory to escape all chars if necessary */
-	if((newbuf=malloc((strlen(rawbuf)*2)+1))==NULL)
+	if((newbuf=malloc((strlen(rawbuf)*2)+1))==NULL) //TODO
 		return NULL;
 
 	for(x=0,y=0;rawbuf[x]!=(char)'\x0';x++){

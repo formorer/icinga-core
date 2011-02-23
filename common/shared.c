@@ -32,7 +32,7 @@
 extern int date_format;
 
 /* fix the problem with strtok() skipping empty options between tokens */
-char *my_strtok(char *buffer, char *tokens)
+char *my_strtok(char *buffer, const char *tokens)
 {
 	char *token_position = NULL;
 	char *sequence_head = NULL;

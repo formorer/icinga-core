@@ -32,10 +32,6 @@
 #include "objects.h"
 
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
-
 /**************************** COMMENT SOURCES ******************************/
 
 #define COMMENTSOURCE_INTERNAL  0
@@ -128,9 +124,5 @@ int add_service_comment(int,char *,char *,time_t,char *,char *,unsigned long,int
 int add_comment_to_hashlist(comment *);
 
 void free_comment_data(void);                                             /* frees memory allocated to the comment list */
-
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

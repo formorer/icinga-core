@@ -30,10 +30,6 @@
 #include "objects.h"
 #include "icinga.h"
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
-
 /****** STRUCTURES *************************/
 
     typedef void            * object_ptr_t;
@@ -526,9 +522,5 @@ typedef struct nebstruct_statechange_struct{
 
 	object_ptr_t object_ptr;
         }nebstruct_statechange_data;
-
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

@@ -30,9 +30,6 @@
 #include "objects.h"
 #endif
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
 
     // used by both NSCG and otherwise
 #define READ_PROGRAM_STATUS	1
@@ -199,13 +196,9 @@ int cleanup_status_data(char *,int);                    /* cleans up status data
 int update_program_status(int);                         /* updates program status data */
 int update_host_status(host *,int);                     /* updates host status data */
 int update_service_status(service *,int);               /* updates service status data */
-int update_contact_status(contact *,int);               /* updates contact status data */
+    //int update_contact_status(contact_ptr_t ,int);               /* updates contact status data */
 #endif
 
     int xsddefault_read_status_data(char *config_file,int options);
-
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

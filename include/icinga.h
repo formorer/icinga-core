@@ -45,9 +45,9 @@
 typedef struct timespec timeval_t; // using nanoseconds
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 
 /************* MISC LENGTH/SIZE DEFINITIONS ***********/
@@ -313,7 +313,7 @@ typedef struct timed_event_struct{
 
 /* NOTIFY_LIST structure */
 typedef struct notify_list_struct{
-	contact *contact;
+	contact_ptr_t contact;
 	struct notify_list_struct *next;
         }notification;
 
@@ -580,18 +580,18 @@ int check_service_notification_viability(service *,int,int);			/* checks viabili
 int is_valid_escalation_for_service_notification(service *,serviceescalation *,int);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);			/* checks if a service notification should be escalated */
 int service_notification(service *,int,char *,char *,int);                     	/* notify all contacts about a service (problem or recovery) */
-int check_contact_service_notification_viability(contact *,service *,int,int);	/* checks viability of notifying a contact about a service */
-int notify_contact_of_service(icinga_macros *mac, contact *,service *,int,char *,char *,int,int);  	/* notify a single contact about a service */
+int check_contact_service_notification_viability(contact_ptr_t ,service *,int,int);	/* checks viability of notifying a contact about a service */
+int notify_contact_of_service(icinga_macros *mac, contact_ptr_t ,service *,int,char *,char *,int,int);  	/* notify a single contact about a service */
 int check_host_notification_viability(host *,int,int);				/* checks viability of notifying all contacts about a host */
 int is_valid_escalation_for_host_notification(host *,hostescalation *,int);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);				/* checks if a host notification should be escalated */
 int host_notification(host *,int,char *,char *,int);                           	/* notify all contacts about a host (problem or recovery) */
-int check_contact_host_notification_viability(contact *,host *,int,int);	/* checks viability of notifying a contact about a host */
-int notify_contact_of_host(icinga_macros *mac, contact *,host *,int,char *,char *,int,int);        	/* notify a single contact about a host */
+int check_contact_host_notification_viability(contact_ptr_t ,host *,int,int);	/* checks viability of notifying a contact about a host */
+int notify_contact_of_host(icinga_macros *mac, contact_ptr_t ,host *,int,char *,char *,int,int);        	/* notify a single contact about a host */
 int create_notification_list_from_host(icinga_macros *mac, host *,int,int *);         		/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(icinga_macros *mac, service *,int,int *);    		/* given a service, create list of contacts to be notified (remove duplicates) */
-int add_notification(icinga_macros *mac, contact *);						/* adds a notification instance */
-notification *find_notification(contact *);					/* finds a notification object */
+int add_notification(icinga_macros *mac, contact_ptr_t );						/* adds a notification instance */
+notification *find_notification(contact_ptr_t );					/* finds a notification object */
 time_t get_next_host_notification_time(host *,time_t);				/* calculates nex acceptable re-notification time for a host */
 time_t get_next_service_notification_time(service *,time_t);			/* calculates nex acceptable re-notification time for a service */
 
@@ -739,10 +739,10 @@ void start_obsessing_over_host(host *);			/* start obsessing about specific host
 void stop_obsessing_over_host(host *);			/* stop obsessing about specific host check results */
 void set_host_notification_number(host *,int);		/* sets current notification number for a specific host */
 void set_service_notification_number(service *,int);	/* sets current notification number for a specific service */
-void enable_contact_host_notifications(contact *);      /* enables host notifications for a specific contact */
-void disable_contact_host_notifications(contact *);     /* disables host notifications for a specific contact */
-void enable_contact_service_notifications(contact *);   /* enables service notifications for a specific contact */
-void disable_contact_service_notifications(contact *);  /* disables service notifications for a specific contact */
+void enable_contact_host_notifications(contact_ptr_t );      /* enables host notifications for a specific contact  */
+void disable_contact_host_notifications(contact_ptr_t );     /* disables host notifications for a specific contact */
+void enable_contact_service_notifications(contact_ptr_t );   /* enables service notifications for a specific contact  */
+void disable_contact_service_notifications(contact_ptr_t );  /* disables service notifications for a specific contact */
 void display_schedule(void);				/* display scheduling queue */
 void display_event_data(timed_event* event, int priority);
 
@@ -826,7 +826,7 @@ int xcddefault_initialize_comment_data(char *main_config_file);
 
   int delete_service_acknowledgement_comments(service *svc);
   int delete_host_acknowledgement_comments(host *host);
-  int update_contact_status(contact *cntct,int aggregated_dump);
+  int update_contact_status(contact_ptr_t cntct,int aggregated_dump);
   //delete_all_host_comments
   int delete_all_host_comments(char *host_name);
   //delete_all_service_comments
@@ -891,8 +891,8 @@ int xcddefault_initialize_comment_data(char *main_config_file);
 
   void profile_object_update_count(char * name, int val);
   void profile_object_update_elapsed(char * name, double val);
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
 #endif
 

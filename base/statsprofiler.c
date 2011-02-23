@@ -82,7 +82,7 @@ profile_object* profile_object_create(char * name)
 profile_object* profile_object_find_by_name(char * name)
 {
 	profile_object* p = profiled_data;
-	char * n_name = calloc(strlen(name)+1,sizeof(char));
+	char * n_name = calloc(strlen(name)+1,sizeof(char)); //TODO:
 	strncpy(n_name,name,strlen(name));
 
 	while(p != NULL)

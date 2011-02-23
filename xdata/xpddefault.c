@@ -662,43 +662,43 @@ int xpddefault_close_service_perfdata_file(void){
 
 
 /* processes delimiter characters in templates */
-int xpddefault_preprocess_file_templates(char *template){
+int xpddefault_preprocess_file_templates(char *template_name){
 	char *tempbuf;
 	int x=0;
 	int y=0;
 
-	if(template==NULL)
+	if(template_name==NULL)
 		return OK;
 
 	/* allocate temporary buffer */
-	tempbuf=(char *)malloc(strlen(template)+1);
+	tempbuf=(char *)malloc(strlen(template_name)+1);
 	if(tempbuf==NULL)
 		return ERROR;
 	strcpy(tempbuf,"");
 
-	for(x=0,y=0;x<strlen(template);x++,y++){
-		if(template[x]=='\\'){
-			if(template[x+1]=='t'){
+	for(x=0,y=0;x<strlen(template_name);x++,y++){
+		if(template_name[x]=='\\'){
+			if(template_name[x+1]=='t'){
 				tempbuf[y]='\t';
 				x++;
 			        }
-			else if(template[x+1]=='r'){
+			else if(template_name[x+1]=='r'){
 				tempbuf[y]='\r';
 				x++;
 			        }
-			else if(template[x+1]=='n'){
+			else if(template_name[x+1]=='n'){
 				tempbuf[y]='\n';
 				x++;
 			        }
 			else
-				tempbuf[y]=template[x];
+				tempbuf[y]=template_name[x];
 		        }
 		else
-			tempbuf[y]=template[x];
+			tempbuf[y]=template_name[x];
 	        }
 	tempbuf[y]='\x0';
 
-	strcpy(template,tempbuf);
+	strcpy(template_name,tempbuf);
 	my_free(tempbuf);
 
 	return OK;

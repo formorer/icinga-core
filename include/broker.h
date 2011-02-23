@@ -29,9 +29,6 @@
 #include "config.h"
 #include "icinga.h"
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
 
 /*************** EVENT BROKER OPTIONS *****************/
 
@@ -200,24 +197,19 @@ void broker_flapping_data(int,int,int,int,void *,double,double,double,timeval_t 
 void broker_program_status(int,int,int,timeval_t *);
 void broker_host_status(int,int,int,host *,timeval_t *);
 void broker_service_status(int,int,int,service *,timeval_t *);
-void broker_contact_status(int,int,int,contact *,timeval_t *);
+void broker_contact_status(int,int,int,contact_ptr_t ,timeval_t *);
 int broker_notification_data(int,int,int,int,int,timeval_t,timeval_t,void *,char *,char *,int,int,timeval_t *);
-int broker_contact_notification_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact *,char *,char *,int,timeval_t *);
-int broker_contact_notification_method_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact *,char *,char *,char *,int,timeval_t *);
+int broker_contact_notification_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact_ptr_t ,char *,char *,int,timeval_t *);
+int broker_contact_notification_method_data(int,int,int,int,int,timeval_t,timeval_t,void *,contact_ptr_t ,char *,char *,char *,int,timeval_t *);
 void broker_adaptive_program_data(int,int,int,int,unsigned long,unsigned long,unsigned long,unsigned long,timeval_t *);
 void broker_adaptive_host_data(int,int,int,host *,int,unsigned long,unsigned long,timeval_t *);
 void broker_adaptive_service_data(int,int,int,service *,int,unsigned long,unsigned long,timeval_t *);
-void broker_adaptive_contact_data(int,int,int,contact *,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long, timeval_t *);
+void broker_adaptive_contact_data(int,int,int,contact_ptr_t ,int,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long,unsigned long, timeval_t *);
 void broker_external_command(int,int,int,int,time_t,char *,char *,timeval_t *);
 void broker_aggregated_status_data(int,int,int,timeval_t *);
 void broker_retention_data(int,int,int,timeval_t *);
 void broker_acknowledgement_data(int,int,int,int,void *,char *,char *,int,int,int,timeval_t *);
 void broker_statechange_data(int,int,int,int,void *,int,int,int,int,timeval_t *);
-#endif
-
-
-#ifdef __cplusplus
-  }
 #endif
 
 #endif

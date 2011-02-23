@@ -562,7 +562,7 @@ void broker_service_status(int type, int flags, int attr, service *svc, timeval_
 
 
 /* sends contact status updates to broker */
-void broker_contact_status(int type, int flags, int attr, contact *cntct, timeval_t *timestamp){
+void broker_contact_status(int type, int flags, int attr, contact_ptr_t cntct, timeval_t *timestamp){
 	nebstruct_service_status_data ds;
 
 	if(!(event_broker_options & BROKER_STATUS_DATA))
@@ -633,7 +633,7 @@ int broker_notification_data(int type, int flags, int attr, int notification_typ
 
 
 /* send contact notification data to broker */
-int broker_contact_notification_data(int type, int flags, int attr, int notification_type, int reason_type, timeval_t start_time, timeval_t end_time, void *data, contact *cntct, char *ack_author, char *ack_data, int escalated, timeval_t *timestamp){
+int broker_contact_notification_data(int type, int flags, int attr, int notification_type, int reason_type, timeval_t start_time, timeval_t end_time, void *data, contact_ptr_t cntct, char *ack_author, char *ack_data, int escalated, timeval_t *timestamp){
 	nebstruct_contact_notification_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -681,7 +681,7 @@ int broker_contact_notification_data(int type, int flags, int attr, int notifica
 
 
 /* send contact notification data to broker */
-int broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, timeval_t start_time, timeval_t end_time, void *data, contact *cntct, char *cmd, char *ack_author, char *ack_data, int escalated, timeval_t *timestamp){
+int broker_contact_notification_method_data(int type, int flags, int attr, int notification_type, int reason_type, timeval_t start_time, timeval_t end_time, void *data, contact_ptr_t cntct, char *cmd, char *ack_author, char *ack_data, int escalated, timeval_t *timestamp){
 	nebstruct_contact_notification_method_data ds;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
@@ -820,7 +820,7 @@ void broker_adaptive_service_data(int type, int flags, int attr, service *svc, i
 
 
 /* sends adaptive contact updates to broker */
-void broker_adaptive_contact_data(int type, int flags, int attr, contact *cntct, int command_type, unsigned long modattr, unsigned long modattrs, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, timeval_t *timestamp){
+void broker_adaptive_contact_data(int type, int flags, int attr, contact_ptr_t cntct, int command_type, unsigned long modattr, unsigned long modattrs, unsigned long modhattr, unsigned long modhattrs, unsigned long modsattr, unsigned long modsattrs, timeval_t *timestamp){
 	nebstruct_adaptive_contact_data ds;
 
 	if(!(event_broker_options & BROKER_ADAPTIVE_DATA))

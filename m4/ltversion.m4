@@ -1,1 +1,1 @@
-/usr/share/aclocal/ltversion.m4
+/home/h4ck3rm1k3/install/share/aclocal/ltversion.m4

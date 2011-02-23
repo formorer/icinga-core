@@ -196,7 +196,7 @@ extern int      stalking_event_handlers_for_services;
 extern int      date_format;
 extern char     *use_timezone;
 
-extern contact		*contact_list;
+extern contact_ptr_t contact_list;
 extern contactgroup	*contactgroup_list;
 extern host             *host_list;
 extern hostgroup	*hostgroup_list;
@@ -1845,7 +1845,7 @@ int pre_flight_check(void){
 
 /* do a pre-flight check to make sure object relationships make sense */
 int pre_flight_object_check(int *w, int *e){
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	commandsmember *temp_commandsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	contactsmember *temp_contactsmember=NULL;
@@ -2310,7 +2310,7 @@ int pre_flight_object_check(int *w, int *e){
 	/*****************************************/
 	if(verify_config==TRUE)
 		printf("Checking contacts...\n");
-	if(contact_list==NULL){
+	if(contact_list==NULL){ // TODO :NOT DECLARED IN SCOPE
 		logit(NSLOG_VERIFICATION_ERROR,TRUE,"Error: There are no contacts defined!");
 		errors++;
 	        }

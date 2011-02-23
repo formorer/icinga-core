@@ -80,7 +80,7 @@ extern host         *macro_host_ptr;
 extern hostgroup    *macro_hostgroup_ptr;
 extern service      *macro_service_ptr;
 extern servicegroup *macro_servicegroup_ptr;
-extern contact      *macro_contact_ptr;
+extern contact_ptr_t macro_contact_ptr;
 extern contactgroup *macro_contactgroup_ptr;
 
 extern char     *global_host_event_handler;
@@ -247,7 +247,7 @@ extern int      stalking_event_handlers_for_services;
 
 extern int      date_format;
 
-extern contact		*contact_list;
+extern contact_ptr_t	contact_list;
 extern contactgroup	*contactgroup_list;
 extern host             *host_list;
 extern hostgroup	*hostgroup_list;
@@ -315,7 +315,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 	int status=0;
 	int result=0;
 	char buffer[MAX_INPUT_BUFFER]="";
-	char *temp_buffer=NULL;
+	const char *temp_buffer=NULL;
 	int fd[2];
 	FILE *fp=NULL;
 	int bytes_read=0;
@@ -684,7 +684,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 				}while(1);
 
 			/* cap output length - this isn't necessary, but it keeps runaway plugin output from causing problems */
-			if(max_output_length>0  && output_dbuf.used_size>max_output_length)
+			if(max_output_length>0  && ((unsigned)output_dbuf.used_size)>(unsigned)max_output_length)
 				output_dbuf.buf[max_output_length]='\x0';
 
 			if(output!=NULL && output_dbuf.buf)
@@ -714,7 +714,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
  * signature doesn't include the icinga_macros variable.
  * IDOUtils uses this. Possibly other modules as well.
  */
-int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **output,int max_output_length){
+int my_system(char *cmd,int timeout,int *early_timeout,double *exectime,char **output,size_t max_output_length){
 	return my_system_r(get_global_macros(), cmd, timeout, early_timeout, exectime, output, max_output_length);
 }
 
@@ -724,7 +724,7 @@ int get_raw_command_line_r(icinga_macros *mac, command *cmd_ptr, char *cmd, char
 	char temp_arg[MAX_COMMAND_BUFFER]="";
 	char *arg_buffer=NULL;
 	register int x=0;
-	register int y=0;
+	register size_t y=0;
 	register int arg_index=0;
 	register int escaped=FALSE;
 
@@ -1074,7 +1074,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 #endif
 
 			/* time falls into the range of days */
-			if(midnight>=start_time && midnight<=end_time)
+			if(midnight>=(unsigned long)start_time && midnight<=(unsigned long)end_time)
 				found_match=TRUE;
 
 			/* found a day match, so see if time ranges are good */
@@ -2345,7 +2345,7 @@ int daemon_init(void){
 
 	if(daemon_dumps_core==TRUE && homedir!=NULL)
 	  {
-	    int chdirstat=chdirstat=chdir(homedir);
+	    int chdirstat=chdir(homedir);
 	    if (chdirstat<0)
 	      {
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"could not change directory to %s\n", homedir);
@@ -3326,8 +3326,8 @@ int close_command_file(void){
 
 /* gets the next string from a buffer in memory - strings are terminated by newlines, which are removed */
 char *get_next_string_from_buf(char *buf, int *start_index, int bufsize){
-	char *sptr=NULL;
-	char *nl="\n";
+  char *sptr=NULL;
+	const char *nl="\n";
 	int x;
 
 	if(buf==NULL || start_index==NULL)
@@ -3385,12 +3385,18 @@ char *escape_newlines(char *rawbuf){
 	register int x,y;
 
 	if(rawbuf==NULL)
+	  {
 		return NULL;
+	  }
 
 	/* allocate enough memory to escape all chars if necessary */
-	if((newbuf=malloc((strlen(rawbuf)*2)+1))==NULL)
-		return NULL;
-
+	//	if((newbuf=malloc((strlen(rawbuf)*2)+1))==NULL)// new 
+	size_t buffsize= (strlen(rawbuf)*2)+1;
+newbuf = new char[buffsize];
+if (!newbuf)
+  {
+    return NULL;
+  }
 	for(x=0,y=0;rawbuf[x]!=(char)'\x0';x++){
 
 		/* escape backslashes */
@@ -3504,7 +3510,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd){
 	 * cache, so larger isn't necessarily better.
 	 */
 	buf_size = st.st_size > 128 << 10 ? 128 << 10 : st.st_size;
-	buf = malloc(buf_size);
+	buf = new char [buf_size];//malloc(buf_size);
 	if (!buf) {
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Unable to malloc(%lu) bytes: %s\n", buf_size, strerror(errno));
 		close(source_fd);
@@ -3614,8 +3620,9 @@ int dbuf_free(dbuf *db){
         }
 
 
+int dbuf_strcat(dbuf *db, const char *buf);
 /* dynamically expands a string */
-int dbuf_strcat(dbuf *db, char *buf){
+int dbuf_strcat(dbuf *db, const char *buf){
 	char *newbuf=NULL;
 	unsigned long buflen=0L;
 	unsigned long new_size=0L;

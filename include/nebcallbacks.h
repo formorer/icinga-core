@@ -29,10 +29,6 @@
 #include "config.h"
 #include "nebmodules.h"
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
-
 
 /***** CALLBACK TYPES *****/
 
@@ -80,10 +76,6 @@
 int neb_register_callback(int callback_type, module_handle_t mod_handle, int priority, mod_callback_func_ptr_t callback_func);
 int neb_deregister_callback(int callback_type, mod_callback_func_ptr_t callback_func);
 int neb_deregister_module_callbacks(nebmodule *);
-
-#ifdef __cplusplus
-}
-#endif
 
 
 #endif

@@ -49,9 +49,6 @@
 #include <ctype.h>
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 /**************************** CGI REFRESH RATE ******************************/
@@ -671,9 +668,6 @@ char *MU_iconstr="";
 
 
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

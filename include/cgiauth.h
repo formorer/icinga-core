@@ -29,9 +29,6 @@
 #include "objects.h"
 
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
 
 typedef struct authdata_struct{
 	char *username;
@@ -72,8 +69,5 @@ int is_authorized_for_servicegroup(servicegroup *,authdata *);
 int is_authorized_for_configuration_information(authdata *);
 
 int is_authorized_for_read_only(authdata *);
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

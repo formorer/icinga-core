@@ -177,7 +177,7 @@ unsigned long   next_notification_id=0L;
 
 int             sigshutdown=FALSE;
 int             sigrestart=FALSE;
-char            *sigs[35]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
+const char            *sigs[35]={"EXIT","HUP","INT","QUIT","ILL","TRAP","ABRT","BUS","FPE","KILL","USR1","SEGV","USR2","PIPE","ALRM","TERM","STKFLT","CHLD","CONT","STOP","TSTP","TTIN","TTOU","URG","XCPU","XFSZ","VTALRM","PROF","WINCH","IO","PWR","UNUSED","ZERR","DEBUG",(char *)NULL};
 int             caught_signal=FALSE;
 int             sig_id=0;
 
@@ -256,7 +256,7 @@ int             command_file_created=FALSE;
 int             event_profiling_enabled=FALSE;
 
 
-extern contact	       *contact_list;
+extern contact_ptr_t	contact_list;
 extern contactgroup    *contactgroup_list;
 extern hostgroup       *hostgroup_list;
 extern command         *command_list;

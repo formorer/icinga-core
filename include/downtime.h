@@ -31,9 +31,6 @@
 #include "common.h"
 #include "objects.h"
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
 
 /* SCHEDULED_DOWNTIME_ENTRY structure */
 typedef struct scheduled_downtime_struct{
@@ -103,8 +100,5 @@ scheduled_downtime *find_downtime_by_similar_content(int,char *,char *,char *,ch
 
 void free_downtime_data(void);                                       /* frees memory allocated to scheduled downtime list */
 
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

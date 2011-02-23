@@ -42,7 +42,7 @@ extern int      enable_environment_macros;
 
 extern char     *illegal_output_chars;
 
-extern contact		*contact_list;
+extern contact_ptr_t contact_list;
 extern contactgroup	*contactgroup_list;
 extern host             *host_list;
 extern hostgroup	*hostgroup_list;
@@ -377,7 +377,7 @@ int grab_servicegroup_macros(servicegroup *sg){
 /**
  * grab macros that are specific to a particular contact
  */
-int grab_contact_macros_r(icinga_macros *mac, contact *cntct){
+int grab_contact_macros_r(icinga_macros *mac, contact_ptr_t cntct){
 
 	/* clear contact-related macros */
 	clear_contact_macros_r(mac);
@@ -399,7 +399,7 @@ int grab_contact_macros_r(icinga_macros *mac, contact *cntct){
 	return OK;
 }
 
-int grab_contact_macros(contact *cntct){
+int grab_contact_macros(contact_ptr_t cntct){
         return grab_contact_macros_r(&global_macros, cntct);
 }
 
@@ -439,7 +439,7 @@ int grab_macro_value_r(icinga_macros *mac, char *macro_buffer, char **output, in
 	char *ptr=NULL;
 	char *macro_name=NULL;
 	char *arg[2]={NULL,NULL};
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	char *temp_buffer=NULL;
@@ -672,7 +672,7 @@ int grab_macrox_value_r(icinga_macros *mac, int macro_type, char *arg1, char *ar
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	char *temp_buffer=NULL;
@@ -1312,7 +1312,7 @@ int grab_custom_macro_value_r(icinga_macros *mac, char *macro_name, char *arg1, 
 	service *temp_service=NULL;
 	servicegroup *temp_servicegroup=NULL;
 	servicesmember *temp_servicesmember=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	contactsmember *temp_contactsmember=NULL;
 	int delimiter_len=0;
@@ -2346,7 +2346,7 @@ int grab_standard_servicegroup_macro(int macro_type, servicegroup *temp_serviceg
 /**
  * computes a contact macro
  */
-int grab_standard_contact_macro_r(icinga_macros *mac, int macro_type, contact *temp_contact, char **output){
+int grab_standard_contact_macro_r(icinga_macros *mac, int macro_type, contact_ptr_t temp_contact, char **output){
 #ifdef NSCORE
 	contactgroup *temp_contactgroup=NULL;
 	objectlist *temp_objectlist=NULL;
@@ -2400,7 +2400,7 @@ int grab_standard_contact_macro_r(icinga_macros *mac, int macro_type, contact *t
 	return OK;
 }
 
-int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **output){
+int grab_standard_contact_macro(int macro_type, contact_ptr_t temp_contact, char **output){
 	return grab_standard_contact_macro_r(&global_macros, macro_type, temp_contact, output);
 }
 
@@ -2408,7 +2408,7 @@ int grab_standard_contact_macro(int macro_type, contact *temp_contact, char **ou
 /**
  * computes a contact address macro
  */
-int grab_contact_address_macro_r(icinga_macros *mac, int macro_num, contact *temp_contact, char **output){
+int grab_contact_address_macro_r(icinga_macros *mac, int macro_num, contact_ptr_t temp_contact, char **output){
 
 	if(macro_num<0 || macro_num>=MAX_CONTACT_ADDRESSES)
 		return ERROR;
@@ -2423,7 +2423,7 @@ int grab_contact_address_macro_r(icinga_macros *mac, int macro_num, contact *tem
 	return OK;
 }
 
-int grab_contact_address_macro(int macro_num, contact *temp_contact, char **output){
+int grab_contact_address_macro(int macro_num, contact_ptr_t temp_contact, char **output){
 	return grab_contact_address_macro_r(&global_macros, macro_num, temp_contact, output);
 }
 
@@ -3379,7 +3379,7 @@ int set_custom_macro_environment_vars_r(icinga_macros *mac, int set){
 	customvariablesmember *temp_customvariablesmember=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	char *customvarname=NULL;
 
 	/***** CUSTOM HOST VARIABLES *****/

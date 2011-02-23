@@ -134,12 +134,15 @@ void profiler_free(profiler_item *p[], int count)
 	}
 }
 
- void profiler_add(int event, char *name)
+void profiler_add(int event, const char *name)
 {
 	if(event >= profiler_item_count)
 	{
 		profiler_item_count = event;
-		profiler = realloc(profiler,(sizeof(profiler_item) * (++profiler_item_count)));
+		//		profiler = realloc(profiler,(sizeof(profiler_item) * ()));
+		++profiler_item_count;
+		delete profiler;
+		profiler = new profiler_item[++profiler_item_count];
 		if(profiler == NULL)
 		{
 			printf("Could not allocate sufficient memory, exiting now!\n");

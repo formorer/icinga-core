@@ -300,7 +300,7 @@ int set_authz_permissions(char* permission, authdata* authinfo){
 
 /* check if user is authorized to view information about a particular host */
 int is_authorized_for_host(host *hst, authdata *authinfo){
-	contact *temp_contact;
+	contact_ptr_t temp_contact;
 	char *host_list=NULL;
 	char *host_list2=NULL;
 	char *list_tmp=NULL;
@@ -494,7 +494,7 @@ int is_authorized_for_read_only(authdata *authinfo){
 /* check if user is authorized to view information about a particular service */
 int is_authorized_for_service(service *svc, authdata *authinfo){
 	host *temp_host=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	char *host_list=NULL;
 	char *host_list2=NULL;
 	char *service_list=NULL;
@@ -756,7 +756,7 @@ int is_authorized_for_system_commands(authdata *authinfo){
 /* check is the current user is authorized to issue commands relating to a particular service */
 int is_authorized_for_service_commands(service *svc, authdata *authinfo){
 	host *temp_host;
-	contact *temp_contact;
+	contact_ptr_t temp_contact;
 
 	if(svc==NULL)
 		return FALSE;
@@ -811,7 +811,7 @@ int is_authorized_for_service_commands(service *svc, authdata *authinfo){
 
 /* check is the current user is authorized to issue commands relating to a particular host */
 int is_authorized_for_host_commands(host *hst, authdata *authinfo){
-	contact *temp_contact;
+	contact_ptr_t temp_contact;
 
 	if(hst==NULL)
 		return FALSE;

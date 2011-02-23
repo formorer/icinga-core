@@ -30,10 +30,6 @@
 #include "config.h"
 #include "common.h"
 
-#ifdef __cplusplus
-  extern "C" {
-#endif
-
 
 
 /*************** CURRENT OBJECT REVISION **************/
@@ -82,7 +78,8 @@
 
 typedef struct host_struct host;
 typedef struct service_struct service;
-typedef struct contact_struct contact;
+typedef struct contact_struct contact_t;
+typedef contact_t * contact_ptr_t;
 
 /* OBJECT LIST STRUCTURE */
 typedef struct objectlist_struct{
@@ -142,7 +139,7 @@ typedef struct timeperiod_struct{
 typedef struct contactsmember_struct{
 	char    *contact_name;
   //#ifdef NSCORE
-	contact *contact_ptr;
+	contact_t *contact_ptr;
   //#endif
 	struct  contactsmember_struct *next;
         }contactsmember;
@@ -185,12 +182,13 @@ typedef struct command_struct{
 	struct command_struct *nexthash;
         }command;
 
+    typedef struct command_struct * command_ptr_t;
 
 /* COMMANDSMEMBER structure */
 typedef struct commandsmember_struct{
 	char	*command;
   //#ifdef NSCORE
-	command *command_ptr;
+	command_ptr_t command_ptr;
   //#endif
 	struct	commandsmember_struct *next;
 	}commandsmember;
@@ -760,10 +758,10 @@ int read_object_config_data(char *,int,int,int);        /* reads all external co
 
 
 /**** Object Creation Functions ****/
-contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
-commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
-commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
-customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
+contact_t *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int);	/* adds a contact definition */
+commandsmember *add_service_notification_command_to_contact(contact_ptr_t,char *);				/* adds a service notification command to a contact definition */
+commandsmember *add_host_notification_command_to_contact(contact_ptr_t,char *);				/* adds a host notification command to a contact definition */
+customvariablesmember *add_custom_variable_to_contact(contact_ptr_t,char *,char *);                         /* adds a custom variable to a service definition */
 host *add_host(char *,char *,char *,char *,char *,char *,int,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 hostsmember *add_child_link_to_host(host *,host *);						        /* adds a child host to a host definition */
@@ -839,7 +837,7 @@ timeperiod * find_timeperiod(char *);						                /* finds a timeperiod
 host * find_host(char *);									/* finds a host object */
 hostgroup * find_hostgroup(char *);						                /* finds a hostgroup object */
 servicegroup * find_servicegroup(char *);					                /* finds a servicegroup object */
-contact * find_contact(char *);							                /* finds a contact object */
+contact_ptr_t find_contact(char *);							                /* finds a contact object */
 contactgroup * find_contactgroup(char *);					                /* finds a contactgroup object */
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
@@ -871,13 +869,13 @@ int is_host_immediate_parent_of_host(host *,host *);	                /* checks i
 int is_host_member_of_hostgroup(hostgroup *,host *);		        /* tests whether or not a host is a member of a specific hostgroup */
 int is_host_member_of_servicegroup(servicegroup *,host *);	        /* tests whether or not a service is a member of a specific servicegroup */
 int is_service_member_of_servicegroup(servicegroup *,service *);	/* tests whether or not a service is a member of a specific servicegroup */
-int is_contact_member_of_contactgroup(contactgroup *, contact *);      	/* tests whether or not a contact is a member of a specific contact group */
-int is_contact_for_hostgroup(hostgroup *,contact *);                   	/* tests whether or not a contact is a member of a specific hostgroup */
-int is_contact_for_servicegroup(servicegroup *,contact *);             	/* tests whether or not a contact is a member of a specific servicegroup */
-int is_contact_for_host(host *,contact *);			        /* tests whether or not a contact is a contact member for a specific host */
-int is_escalated_contact_for_host(host *,contact *);                    /* checks whether or not a contact is an escalated contact for a specific host */
-int is_contact_for_service(service *,contact *);		        /* tests whether or not a contact is a contact member for a specific service */
-int is_escalated_contact_for_service(service *,contact *);              /* checks whether or not a contact is an escalated contact for a specific service */
+int is_contact_member_of_contactgroup(contactgroup *, contact_ptr_t);      	/* tests whether or not a contact is a member of a specific contact group */
+int is_contact_for_hostgroup(hostgroup *,contact_ptr_t);                   	/* tests whether or not a contact is a member of a specific hostgroup */
+int is_contact_for_servicegroup(servicegroup *,contact_ptr_t);             	/* tests whether or not a contact is a member of a specific servicegroup */
+int is_contact_for_host(host *,contact_ptr_t);			        /* tests whether or not a contact is a contact member for a specific host */
+int is_escalated_contact_for_host(host *,contact_ptr_t);                    /* checks whether or not a contact is an escalated contact for a specific host */
+int is_contact_for_service(service *,contact_ptr_t);		        /* tests whether or not a contact is a contact member for a specific service */
+int is_escalated_contact_for_service(service *,contact_ptr_t);              /* checks whether or not a contact is an escalated contact for a specific service */
 int is_host_immediate_parent_of_host(host *,host *);		        /* tests whether or not a host is an immediate parent of another host */
 
 int number_of_immediate_child_hosts(host *);		                /* counts the number of immediate child hosts for a particular host */
@@ -893,12 +891,5 @@ int check_for_circular_hostdependency_path(hostdependency *,hostdependency *,int
 
 /**** Object Cleanup Functions ****/
 int free_object_data(void);                             /* frees all allocated memory for the object definitions */
-
-
-
-
-#ifdef __cplusplus
-  }
-#endif
 
 #endif

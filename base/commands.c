@@ -1668,7 +1668,7 @@ int process_servicegroup_command(int cmd, time_t entry_time, char *args){
 /* processes an external contact command */
 int process_contact_command(int cmd, time_t entry_time, char *args){
 	char *contact_name=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 
 	/* get the contact name */
 	if((contact_name=my_strtok(args,";"))==NULL)
@@ -1709,7 +1709,7 @@ int process_contactgroup_command(int cmd, time_t entry_time, char *args){
 	char *contactgroup_name=NULL;
 	contactgroup *temp_contactgroup=NULL;
 	contactsmember *temp_member=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 
 	/* get the contactgroup name */
 	if((contactgroup_name=my_strtok(args,";"))==NULL)
@@ -2680,7 +2680,7 @@ int cmd_delete_downtime(int cmd, char *args){
 int cmd_change_object_int_var(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	char *host_name=NULL;
 	char *svc_description=NULL;
 	char *contact_name=NULL;
@@ -2964,7 +2964,7 @@ int cmd_change_object_int_var(int cmd,char *args){
 int cmd_change_object_char_var(int cmd,char *args){
 	service *temp_service=NULL;
 	host *temp_host=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	timeperiod *temp_timeperiod=NULL;
 	command *temp_command=NULL;
 	char *host_name=NULL;
@@ -3313,7 +3313,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 int cmd_change_object_custom_var(int cmd, char *args){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;
 	char *temp_ptr=NULL;
 	char *name1=NULL;
@@ -3786,8 +3786,8 @@ void disable_and_propagate_notifications(host *hst, int level, int affect_top_ho
 
 
 
-/* enables host notifications for a contact */
-void enable_contact_host_notifications(contact *cntct){
+/* enables host notifications for a contact_ */
+void enable_contact_host_notifications(contact_ptr_t cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3813,8 +3813,8 @@ void enable_contact_host_notifications(contact *cntct){
 
 
 
-/* disables host notifications for a contact */
-void disable_contact_host_notifications(contact *cntct){
+/* disables host notifications for a contact_ */
+void disable_contact_host_notifications(contact_ptr_t cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3840,8 +3840,8 @@ void disable_contact_host_notifications(contact *cntct){
 
 
 
-/* enables service notifications for a contact */
-void enable_contact_service_notifications(contact *cntct){
+/* enables service notifications for a contact_ */
+void enable_contact_service_notifications(contact_ptr_t cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */
@@ -3867,8 +3867,8 @@ void enable_contact_service_notifications(contact *cntct){
 
 
 
-/* disables service notifications for a contact */
-void disable_contact_service_notifications(contact *cntct){
+/* disables service notifications for a contact_ */
+void disable_contact_service_notifications(contact_ptr_t cntct){
 	unsigned long attr=MODATTR_NOTIFICATIONS_ENABLED;
 
 	/* no change */

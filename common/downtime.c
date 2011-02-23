@@ -1005,7 +1005,7 @@ int sort_downtime(void){
 	if(!unsorted_downtimes)
 		return OK;
 
-	if(!(array=malloc(sizeof(*array)*unsorted_downtimes)))
+	if(!(array=malloc(sizeof(*array)*unsorted_downtimes)))//TODO:
 		return ERROR;
 	while(scheduled_downtime_list){
 		array[i++]=scheduled_downtime_list;

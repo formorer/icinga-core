@@ -251,7 +251,7 @@ int xrddefault_save_state_information(void){
 	FILE *fp=NULL;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	comment *temp_comment=NULL;
 	scheduled_downtime *temp_downtime=NULL;
 	int x=0;
@@ -642,7 +642,7 @@ int xrddefault_read_retention_file_information(char *retention_file, int overwri
 	int x=0;
 	host *temp_host=NULL;
 	service *temp_service=NULL;
-	contact *temp_contact=NULL;
+	contact_ptr_t temp_contact=NULL;
 	command *temp_command=NULL;
 	timeperiod *temp_timeperiod=NULL;
 	customvariablesmember *temp_customvariablesmember=NULL;

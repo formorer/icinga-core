@@ -29,9 +29,6 @@
 #include "nebcallbacks.h"
 #include "nebmodules.h"
 
-#ifdef __cplusplus
-extern "C" { 
-#endif
 
 
 /***** MODULE STRUCTURES *****/
@@ -62,9 +59,5 @@ int neb_add_module(char *,char *,int);
 int neb_init_callback_list(void);
 int neb_free_callback_list(void);
 int neb_make_callbacks(int,void *);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
