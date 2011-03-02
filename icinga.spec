@@ -12,12 +12,13 @@
 Summary: Open Source host, service and network monitoring program
 Name: icinga
 Version: 1.3.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv2+
 Group: Applications/System
 URL: http://www.icinga.org/
 
 Source0: http://dl.sf.net/%{name}/%{name}-%{version}.tar.gz
+Source1: ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD-4.0/amd64/All/nagios-imagepak-base-20030219.tgz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires: gcc
@@ -144,6 +145,11 @@ mv %{buildroot}%{_localstatedir}/log/%{name}/rw %{buildroot}%{_localstatedir}/sp
 %{__mkdir} -p %{buildroot}%{logdir}/
 %{__mkdir} -p %{buildroot}%{logdir}/archives/
 
+### Install logos
+tar -xvz -C %{buildroot}%{_prefix} --exclude=+* -f %{SOURCE1}
+mv %{buildroot}%{_datadir}/nagios/images/logos/* %{buildroot}%{_datadir}/%{name}/images/logos
+
+
 ### move idoutils sample configs to final name
 mv %{buildroot}%{_sysconfdir}/%{name}/ido2db.cfg-sample %{buildroot}%{_sysconfdir}/%{name}/ido2db.cfg
 mv %{buildroot}%{_sysconfdir}/%{name}/idomod.cfg-sample %{buildroot}%{_sysconfdir}/%{name}/idomod.cfg
@@ -248,6 +254,9 @@ fi
 
 
 %changelog
+* Wed Mar 02 2011 Christoph Maser <cmaser@gmx.de> - 1.3.0-4
+- add logos to icinga-gui
+
 * Thu Feb 17 2011 Christoph Maser <cmaser@gmx.de> - 1.3.0-3
 - move command file to /var/spool/icinga
 - move checkresults file to /var/spool/icinga
