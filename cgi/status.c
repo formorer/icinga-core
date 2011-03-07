@@ -3,7 +3,7 @@
  * STATUS.C -  Icinga Status CGI
  *
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * Last Modified: 08-08-2010
  *
@@ -223,7 +223,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -232,7 +232,7 @@ int main(void){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -241,7 +241,7 @@ int main(void){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -250,7 +250,7 @@ int main(void){
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
-		status_data_error();
+		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
@@ -288,6 +288,11 @@ int main(void){
 					if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 						continue;
 					if(!strcmp(host_name,temp_host->address)){
+						free(host_name);
+						host_name=strdup(temp_host->name);
+						break;
+						}
+					if(!strcmp(host_name,temp_host->address6)){
 						free(host_name);
 						host_name=strdup(temp_host->name);
 						break;
@@ -1456,8 +1461,10 @@ void show_service_detail(void){
 
 		printf("<TH CLASS='status'>Status Information</TH>\n");
 
-		/* Add checkbox so every service can be checked */
-		printf("<TH CLASS='status' width='16'><input type='checkbox' value=all onclick=\"checkAll('tableform');isValidForSubmit('tableform');\"></TH>\n");
+		if (is_authorized_for_read_only(&current_authdata)==FALSE){
+			/* Add checkbox so every service can be checked */
+			printf("<TH CLASS='status' width='16'><input type='checkbox' value=all onclick=\"checkAll('tableform');isValidForSubmit('tableform');\"></TH>\n");
+		}
 
 		printf("</TR>\n");
 	}
@@ -1638,7 +1645,7 @@ void show_service_detail(void){
 				if(new_host==TRUE){
 
 					/* grab macros */
-					grab_host_macros(mac, temp_host);
+					grab_host_macros_r(mac, temp_host);
 
 					if(temp_hoststatus->status==HOST_DOWN){
 						if(temp_hoststatus->problem_has_been_acknowledged==TRUE)
@@ -1666,7 +1673,11 @@ void show_service_detail(void){
 					printf("<TD ALIGN=LEFT>\n");
 					printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 					printf("<TR>\n");
-					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					if(!strcmp(temp_host->address6,temp_host->name)){
+						printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					} else {
+						printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s,%s'>%s</A></TD>\n",host_status_bg_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+					}
 					printf("</TR>\n");
 					printf("</TABLE>\n");
 					printf("</TD>\n");
@@ -1742,7 +1753,7 @@ void show_service_detail(void){
 				printf("</TD>\n");
 
 				/* grab macros */
-				grab_service_macros(mac, temp_service);
+				grab_service_macros_r(mac, temp_service);
 
 				/* service name column */
 				printf("<TD CLASS='status%s'>",status_bg_class);
@@ -1882,9 +1893,11 @@ void show_service_detail(void){
 
 				printf("</TD>\n");
 
-				/* Checkbox for service(s) */
-				printf("<TD CLASS='status%s' nowrap align='center'><input onclick=\"isValidForSubmit('tableform');\" type='checkbox' name='checkbox' value='&host=%s",status_bg_class,url_encode(temp_status->host_name));
-				printf("&service=%s'></TD>\n",url_encode(temp_status->description));
+				if (is_authorized_for_read_only(&current_authdata)==FALSE){
+					/* Checkbox for service(s) */
+					printf("<TD CLASS='status%s' nowrap align='center'><input onclick=\"isValidForSubmit('tableform');\" type='checkbox' name='checkbox' value='&host=%s",status_bg_class,url_encode(temp_status->host_name));
+					printf("&service=%s'></TD>\n",url_encode(temp_status->description));
+				}
 
 				/*
 				if(enable_splunk_integration==TRUE)
@@ -1928,17 +1941,12 @@ void show_service_detail(void){
 		if(user_has_seen_something==FALSE){
 
 			if(servicestatus_list!=NULL){
-				printf("<P><DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the services you requested...</DIV></P>\n");
-				printf("<P><DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-				printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
-				}
-			else{
+				print_generic_error_message("It appears as though you do not have permission to view information for any of the services you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
+			}else{
 				printf("<P><DIV CLASS='infoMessage'>There doesn't appear to be any service status information in the status log...<br><br>\n");
 				printf("Make sure that %s is running and that you have specified the location of you status log correctly in the configuration files.</DIV></P>\n", PROGRAM_NAME);
-				}
 			}
-
-		else
+		}else
 			printf("<BR><DIV CLASS='itemTotalsTitle'>%d Matching Service Entries Displayed</DIV>\n",total_entries);
 	}
 
@@ -2104,8 +2112,10 @@ void show_host_detail(void){
 		
 		printf("<TH CLASS='status'>Status Information</TH>\n");
 
-		/* Add a checkbox so every host can be checked */
-		printf("<TH CLASS='status' width='16'><input type='checkbox' value=all onclick=\"checkAll('tableform');isValidForSubmit('tableform');\"></TH>\n");
+		if (is_authorized_for_read_only(&current_authdata)==FALSE){
+			/* Add a checkbox so every host can be checked */
+			printf("<TH CLASS='status' width='16'><input type='checkbox' value=all onclick=\"checkAll('tableform');isValidForSubmit('tableform');\"></TH>\n");
+		}
 
 		printf("</TR>\n");
 	}
@@ -2173,7 +2183,7 @@ void show_host_detail(void){
 		total_entries++;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		if(display_type==DISPLAY_HOSTGROUPS||display_type==DISPLAY_HOSTS){
 
@@ -2236,7 +2246,11 @@ void show_host_detail(void){
 				printf("<TD ALIGN=LEFT>\n");
 				printf("<TABLE BORDER=0 cellpadding=0 cellspacing=0>\n");
 				printf("<TR>\n");
-				printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				if(!strcmp(temp_host->address6,temp_host->name)){
+					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				} else {
+					printf("<TD align=left valign=center CLASS='status%s'><A HREF='%s?type=%d&host=%s' title='%s,%s'>%s</A>&nbsp;</TD>\n",status_class,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_status->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+				}
 				printf("</TR>\n");
 				printf("</TABLE>\n");
 				printf("</TD>\n");
@@ -2354,8 +2368,10 @@ void show_host_detail(void){
 
 				printf("</TD>\n");
 
-				/* Checkbox for host(s) */
-				printf("<TD CLASS='status%s' valign='center' align='center'><input onClick=\"isValidForSubmit('tableform');\" type='checkbox' name='checkbox' value='&host=%s'></TD>\n",status_bg_class,url_encode(temp_status->host_name));
+				if (is_authorized_for_read_only(&current_authdata)==FALSE){
+					/* Checkbox for host(s) */
+					printf("<TD CLASS='status%s' valign='center' align='center'><input onClick=\"isValidForSubmit('tableform');\" type='checkbox' name='checkbox' value='&host=%s'></TD>\n",status_bg_class,url_encode(temp_status->host_name));
+				}
 
 				/*
 				if(enable_splunk_integration==TRUE)
@@ -2396,17 +2412,12 @@ void show_host_detail(void){
 		if(user_has_seen_something==FALSE){
 
 			if(hoststatus_list!=NULL){
-				printf("<P><DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV></P>\n");
-				printf("<P><DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-				printf("and check the authorization options in your CGI configuration file.</DIV></P>\n");
-				}
-			else{
+				print_generic_error_message("It appears as though you do not have permission to view information for any of the hosts you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
+			}else{
 				printf("<P><DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 				printf("Make sure that %s is running and that you have specified the location of you status log correctly in the configuration files.</DIV></P>\n", PROGRAM_NAME);
-				}
 			}
-
-		else
+		}else
 			printf("<BR><DIV CLASS='itemTotalsTitle'>%d Matching Host Entries Displayed</DIV>\n",total_entries);
 	}
 	return;
@@ -2421,6 +2432,7 @@ void show_servicegroup_overviews(void){
 	int current_column;
 	int user_has_seen_something=FALSE;
 	int servicegroup_error=FALSE;
+	char error_text[MAX_INPUT_BUFFER]="";
 
 
 	printf("<P>\n");
@@ -2522,7 +2534,9 @@ void show_servicegroup_overviews(void){
 			printf("</P>\n");
 		        }
 		else{
-			printf("<DIV CLASS='errorMessage'>Sorry, but service group '%s' doesn't seem to exist...</DIV>",servicegroup_name);
+			snprintf(error_text,sizeof(error_text),"Sorry, but service group '%s' doesn't seem to exist...",servicegroup_name);
+			error_text[sizeof(error_text)-1]='\x0';
+			print_generic_error_message(error_text,NULL,0);
 			servicegroup_error=TRUE;
 		        }
 	        }
@@ -2530,24 +2544,15 @@ void show_servicegroup_overviews(void){
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
 
-		printf("<p>\n");
-		printf("<div align='center'>\n");
+		if(servicegroup_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the service group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
+		else
+			print_generic_error_message("There are no service groups defined.",NULL,0);
 
-		if(servicegroup_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
-		else{
-			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
-			}
-
-		printf("</div>\n");
-		printf("</p>\n");
-	        }
+	}
 
 	return;
-        }
+}
 
 
 
@@ -2622,6 +2627,7 @@ void show_servicegroup_summaries(void){
 	int user_has_seen_something=FALSE;
 	int servicegroup_error=FALSE;
 	int odd=0;
+	char error_text[MAX_INPUT_BUFFER]="";
 
 
 	printf("<P>\n");
@@ -2703,29 +2709,22 @@ void show_servicegroup_summaries(void){
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
 
-		printf("<P><DIV ALIGN=CENTER>\n");
+		if(servicegroup_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the service group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
+		else
+			print_generic_error_message("There are no service groups defined.",NULL,0);
 
-		if(servicegroup_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
-		else{
-			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
-			}
-
-		printf("</DIV></P>\n");
-	        }
+	}
 
 	/* we couldn't find the servicegroup */
 	else if(servicegroup_error==TRUE){
-		printf("<P><DIV ALIGN=CENTER>\n");
-		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
-		printf("</DIV></P>\n");
-	        }
+		snprintf(error_text,sizeof(error_text),"Sorry, but servicegroup '%s' doesn't seem to exist...",servicegroup_name);
+		error_text[sizeof(error_text)-1]='\x0';
+		print_generic_error_message(error_text,NULL,0);
+	}
 
 	return;
-        }
+}
 
 
 
@@ -3187,6 +3186,7 @@ void show_servicegroup_grids(void){
 	int user_has_seen_something=FALSE;
 	int servicegroup_error=FALSE;
 	int odd=0;
+	char error_text[MAX_INPUT_BUFFER]="";
 
 
 	printf("<P>\n");
@@ -3258,29 +3258,21 @@ void show_servicegroup_grids(void){
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something==FALSE && servicegroup_error==FALSE){
 
-		printf("<P><DIV ALIGN=CENTER>\n");
-
-		if(servicegroup_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
-		else{
-			printf("<DIV CLASS='errorMessage'>There are no service groups defined.</DIV>\n");
-			}
-
-		printf("</DIV></P>\n");
-	        }
+		if(servicegroup_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the service group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
+		else
+			print_generic_error_message("There are no service groups defined.",NULL,0);
+	}
 
 	/* we couldn't find the servicegroup */
 	else if(servicegroup_error==TRUE){
-		printf("<P><DIV ALIGN=CENTER>\n");
-		printf("<DIV CLASS='errorMessage'>Sorry, but servicegroup '%s' doesn't seem to exist...</DIV>\n",servicegroup_name);
-		printf("</DIV></P>\n");
-	        }
+		snprintf(error_text,sizeof(error_text),"Sorry, but servicegroup '%s' doesn't seem to exist...",servicegroup_name);
+		error_text[sizeof(error_text)-1]='\x0';
+		print_generic_error_message(error_text,NULL,0);
+	}
 
 	return;
-        }
+}
 
 
 /* displays status grid for a specific servicegroup */
@@ -3421,7 +3413,7 @@ void show_servicegroup_grid(servicegroup *temp_servicegroup){
 		printf("<TD CLASS='status%s'>",host_status_class);
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		printf("<A HREF='%s?type=%d&host=%s'>\n",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_host->name));
 		printf("<IMG SRC='%s%s' BORDER=0 WIDTH=%d HEIGHT=%d ALT='%s' TITLE='%s'>",url_images_path,DETAIL_ICON,STATUS_ICON_WIDTH,STATUS_ICON_HEIGHT,"View Extended Information For This Host","View Extended Information For This Host");
@@ -3476,6 +3468,7 @@ void show_hostgroup_overviews(void){
 	int current_column;
 	int user_has_seen_something=FALSE;
 	int hostgroup_error=FALSE;
+	char error_text[MAX_INPUT_BUFFER]="";
 
 
 	printf("<P>\n");
@@ -3575,35 +3568,32 @@ void show_hostgroup_overviews(void){
 			printf("</TD></TR></TABLE>\n");
 			printf("</DIV>\n");
 			printf("</P>\n");
-		        }
-		else{
-			printf("<DIV CLASS='errorMessage'>Sorry, but host group '%s' doesn't seem to exist...</DIV>",hostgroup_name);
+		}else{
+			snprintf(error_text,sizeof(error_text),"Sorry, but host group '%s' doesn't seem to exist...",hostgroup_name);
+			error_text[sizeof(error_text)-1]='\x0';
+			print_generic_error_message(error_text,NULL,0);
 			hostgroup_error=TRUE;
-		        }
-	        }
+		}
+	}
 
 	/* if user couldn't see anything, print out some helpful info... */
 	if(user_has_seen_something==FALSE && hostgroup_error==FALSE){
 
-		printf("<p>\n");
-		printf("<div align='center'>\n");
+		printf("<p>\n<div align='center'>\n");
 
-		if(hoststatus_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
+		if(hoststatus_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the host group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
 		else{
 			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that %s is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n", PROGRAM_NAME);
-		        }
+		}
 
-		printf("</div>\n");
-		printf("</p>\n");
-	        }
+		printf("</div>\n</p>\n");
+
+	}
 
 	return;
-        }
+}
 
 
 
@@ -3678,7 +3668,7 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 	temp_host=find_host(hststatus->host_name);
 
 	/* grab macros */
-	grab_host_macros(mac, temp_host);
+	grab_host_macros_r(mac, temp_host);
 
 	if(hststatus->status==HOST_PENDING){
 		strncpy(status,"PENDING",sizeof(status));
@@ -3709,7 +3699,11 @@ void show_servicegroup_hostgroup_member_overview(hoststatus *hststatus,int odd,v
 
 	printf("<TABLE BORDER=0 WIDTH=100%% cellpadding=0 cellspacing=0>\n");
 	printf("<TR CLASS='status%s'>\n",status_bg_class);
-	printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	if(!strcmp(temp_host->address6,temp_host->name)){
+		printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	} else {
+		printf("<TD CLASS='status%s'><A HREF='%s?host=%s&style=detail' title='%s,%s'>%s</A></TD>\n",status_bg_class,STATUS_CGI,url_encode(hststatus->host_name),temp_host->address,temp_host->address6,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+	}
 
 	if(temp_host->icon_image!=NULL){
 		printf("<TD CLASS='status%s' WIDTH=5></TD>\n",status_bg_class);
@@ -3862,7 +3856,7 @@ void show_hostgroup_summaries(void){
 	int user_has_seen_something=FALSE;
 	int hostgroup_error=FALSE;
 	int odd=0;
-
+	char error_text[MAX_INPUT_BUFFER]="";
 
 	printf("<P>\n");
 
@@ -3945,28 +3939,25 @@ void show_hostgroup_summaries(void){
 
 		printf("<P><DIV ALIGN=CENTER>\n");
 
-		if(hoststatus_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
+		if(hoststatus_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the host group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
 		else{
 			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that %s is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n", PROGRAM_NAME);
-		        }
+		}
 
 		printf("</DIV></P>\n");
-	        }
+	}
 
 	/* we couldn't find the hostgroup */
 	else if(hostgroup_error==TRUE){
-		printf("<P><DIV ALIGN=CENTER>\n");
-		printf("<DIV CLASS='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</DIV>\n",hostgroup_name);
-		printf("</DIV></P>\n");
-	        }
+		snprintf(error_text,sizeof(error_text),"Sorry, but host group '%s' doesn't seem to exist...",hostgroup_name);
+		error_text[sizeof(error_text)-1]='\x0';
+		print_generic_error_message(error_text,NULL,0);
+	}
 
 	return;
-        }
+}
 
 
 
@@ -4423,6 +4414,7 @@ void show_hostgroup_grids(void){
 	int user_has_seen_something=FALSE;
 	int hostgroup_error=FALSE;
 	int odd=0;
+	char error_text[MAX_INPUT_BUFFER]="";
 
 
 	printf("<P>\n");
@@ -4496,11 +4488,8 @@ void show_hostgroup_grids(void){
 
 		printf("<P><DIV ALIGN=CENTER>\n");
 
-		if(hoststatus_list!=NULL){
-			printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view information for any of the hosts you requested...</DIV>\n");
-			printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>");
-			printf("and check the authorization options in your CGI configuration file.</DIV>\n");
-		        }
+		if(hoststatus_list!=NULL)
+			print_generic_error_message("It appears as though you do not have permission to view information for the host group you requested...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
 		else{
 			printf("<DIV CLASS='infoMessage'>There doesn't appear to be any host status information in the status log...<br><br>\n");
 			printf("Make sure that %s is running and that you have specified the location of you status log correctly in the configuration files.</DIV>\n", PROGRAM_NAME);
@@ -4511,13 +4500,13 @@ void show_hostgroup_grids(void){
 
 	/* we couldn't find the hostgroup */
 	else if(hostgroup_error==TRUE){
-		printf("<P><DIV ALIGN=CENTER>\n");
-		printf("<DIV CLASS='errorMessage'>Sorry, but hostgroup '%s' doesn't seem to exist...</DIV>\n",hostgroup_name);
-		printf("</DIV></P>\n");
-	        }
+		snprintf(error_text,sizeof(error_text),"Sorry, but host group '%s' doesn't seem to exist...",hostgroup_name);
+		error_text[sizeof(error_text)-1]='\x0';
+		print_generic_error_message(error_text,NULL,0);
+	}
 
 	return;
-        }
+}
 
 
 /* displays status grid for a specific hostgroup */
@@ -4553,7 +4542,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			continue;
 
 		/* grab macros */
-		grab_host_macros(mac, temp_host);
+		grab_host_macros_r(mac, temp_host);
 
 		/* find the host status */
 		temp_hoststatus=find_hoststatus(temp_host->name);
@@ -4633,7 +4622,7 @@ void show_hostgroup_grid(hostgroup *temp_hostgroup){
 			        }
 
 			/* grab macros */
-			grab_service_macros(mac, temp_service);
+			grab_service_macros_r(mac, temp_service);
 
 			/* get the status of the service */
 			temp_servicestatus=find_servicestatus(temp_service->host_name,temp_service->description);
@@ -5435,70 +5424,74 @@ void show_filters(void){
 
 /* Display a table with the commands for checked checkboxes, for services */
 void show_servicecommand_table(void){
-	/* A new div for the command table */
-	printf("<DIV CLASS='serviceTotalsCommands'>Commands for checked services</DIV>\n");
-	/* DropDown menu */
-	printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
-		printf("<option value='nothing'>Select command</option>");
-		printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_ADD_SVC_COMMENT,url_images_path,COMMENT_ICON);
-		printf("<option value='%d' title='%s%s'>Disable Active Checks Of Checked Service(s)</option>",CMD_DISABLE_SVC_CHECK,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Enable Active Checks Of Checked Service(s)</option>",CMD_ENABLE_SVC_CHECK,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Re-schedule Next Service Check</option>",CMD_SCHEDULE_SVC_CHECK,url_images_path,DELAY_ICON);
-		printf("<option value='%d' title='%s%s'>Submit Passive Check Result For Checked Service(s)</option>",CMD_PROCESS_SERVICE_CHECK_RESULT,url_images_path,PASSIVE_ICON);
-		printf("<option value='%d' title='%s%s'>Stop Accepting Passive Checks For Checked Service(s)</option>",CMD_DISABLE_PASSIVE_SVC_CHECKS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Start Accepting Passive Checks For Checked Service(s)</option>",CMD_ENABLE_PASSIVE_SVC_CHECKS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Stop Obsessing Over Checked Service(s)</option>",CMD_STOP_OBSESSING_OVER_SVC,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Start Obsessing Over Checked Service(s)</option>",CMD_START_OBSESSING_OVER_SVC,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Acknowledge Checked Service(s) Problem</option>",CMD_ACKNOWLEDGE_SVC_PROBLEM,url_images_path,ACKNOWLEDGEMENT_ICON);
-		printf("<option value='%d' title='%s%s'>Remove Problem Acknowledgement for Checked Service(s)</option>",CMD_REMOVE_SVC_ACKNOWLEDGEMENT,url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON);
-		printf("<option value='%d' title='%s%s'>Disable Notifications For Checked Service(s)</option>",CMD_DISABLE_SVC_NOTIFICATIONS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Enable Notifications For Checked Service(s)</option>",CMD_ENABLE_SVC_NOTIFICATIONS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Send Custom Notification For Checked Service(s)</option>",CMD_SEND_CUSTOM_SVC_NOTIFICATION,url_images_path,NOTIFICATION_ICON);
-		printf("<option value='%d' title='%s%s'>Delay Next Notification For Checked Service(s)</option>",CMD_DELAY_SVC_NOTIFICATION,url_images_path,DELAY_ICON);
-		printf("<option value='%d' title='%s%s'>Schedule Downtime For Checked Service(s)</option>",CMD_SCHEDULE_SVC_DOWNTIME,url_images_path,DOWNTIME_ICON);
-		printf("<option value='%d' title='%s%s'>Disable Event Handler For Checked Service(s)</option>",CMD_DISABLE_SVC_EVENT_HANDLER,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Enable Event Handler For Checked Service(s)</option>",CMD_ENABLE_SVC_EVENT_HANDLER,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Disable Flap Detection For Checked Service(s)</option>",CMD_DISABLE_SVC_FLAP_DETECTION,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s'>Enable Flap Detection For Checked Service(s)</option>",CMD_ENABLE_SVC_FLAP_DETECTION,url_images_path,ENABLED_ICON);
-	printf("</select>");
-	printf("<br><br><b><input type='button' name='CommandButton' value='Submit' class='serviceTotalsCommands' onClick=\"cmd_submit('tableform')\" disabled='disabled'></b>\n");
+	if (is_authorized_for_read_only(&current_authdata)==FALSE){
+		/* A new div for the command table */
+		printf("<DIV CLASS='serviceTotalsCommands'>Commands for checked services</DIV>\n");
+		/* DropDown menu */
+		printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)'CLASS='serviceTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
+			printf("<option value='nothing'>Select command</option>");
+			printf("<option value='%d' title='%s%s' >Add a Comment to Checked Service(s)</option>",CMD_ADD_SVC_COMMENT,url_images_path,COMMENT_ICON);
+			printf("<option value='%d' title='%s%s'>Disable Active Checks Of Checked Service(s)</option>",CMD_DISABLE_SVC_CHECK,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Enable Active Checks Of Checked Service(s)</option>",CMD_ENABLE_SVC_CHECK,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Re-schedule Next Service Check</option>",CMD_SCHEDULE_SVC_CHECK,url_images_path,DELAY_ICON);
+			printf("<option value='%d' title='%s%s'>Submit Passive Check Result For Checked Service(s)</option>",CMD_PROCESS_SERVICE_CHECK_RESULT,url_images_path,PASSIVE_ICON);
+			printf("<option value='%d' title='%s%s'>Stop Accepting Passive Checks For Checked Service(s)</option>",CMD_DISABLE_PASSIVE_SVC_CHECKS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Start Accepting Passive Checks For Checked Service(s)</option>",CMD_ENABLE_PASSIVE_SVC_CHECKS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Stop Obsessing Over Checked Service(s)</option>",CMD_STOP_OBSESSING_OVER_SVC,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Start Obsessing Over Checked Service(s)</option>",CMD_START_OBSESSING_OVER_SVC,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Acknowledge Checked Service(s) Problem</option>",CMD_ACKNOWLEDGE_SVC_PROBLEM,url_images_path,ACKNOWLEDGEMENT_ICON);
+			printf("<option value='%d' title='%s%s'>Remove Problem Acknowledgement for Checked Service(s)</option>",CMD_REMOVE_SVC_ACKNOWLEDGEMENT,url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON);
+			printf("<option value='%d' title='%s%s'>Disable Notifications For Checked Service(s)</option>",CMD_DISABLE_SVC_NOTIFICATIONS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Enable Notifications For Checked Service(s)</option>",CMD_ENABLE_SVC_NOTIFICATIONS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Send Custom Notification For Checked Service(s)</option>",CMD_SEND_CUSTOM_SVC_NOTIFICATION,url_images_path,NOTIFICATION_ICON);
+			printf("<option value='%d' title='%s%s'>Delay Next Notification For Checked Service(s)</option>",CMD_DELAY_SVC_NOTIFICATION,url_images_path,DELAY_ICON);
+			printf("<option value='%d' title='%s%s'>Schedule Downtime For Checked Service(s)</option>",CMD_SCHEDULE_SVC_DOWNTIME,url_images_path,DOWNTIME_ICON);
+			printf("<option value='%d' title='%s%s'>Disable Event Handler For Checked Service(s)</option>",CMD_DISABLE_SVC_EVENT_HANDLER,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Enable Event Handler For Checked Service(s)</option>",CMD_ENABLE_SVC_EVENT_HANDLER,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Disable Flap Detection For Checked Service(s)</option>",CMD_DISABLE_SVC_FLAP_DETECTION,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s'>Enable Flap Detection For Checked Service(s)</option>",CMD_ENABLE_SVC_FLAP_DETECTION,url_images_path,ENABLED_ICON);
+		printf("</select>");
+		printf("<br><br><b><input type='button' name='CommandButton' value='Submit' class='serviceTotalsCommands' onClick=\"cmd_submit('tableform')\" disabled='disabled'></b>\n");
+	}
 }
 
 /* Display a table with the commands for checked checkboxes, for hosts */
 void show_hostcommand_table(void){
-	/* A new div for the command table */
-	printf("<DIV CLASS='hostTotalsCommands'>Commands for checked host(s)</DIV>\n");
-	/* DropDown menu */
-	printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)' CLASS='hostTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
-		printf("<option value='nothing'>Select command</option>");
-		printf("<option value='%d' title='%s%s' >Add a Comment to Checked Host(s)</option>",CMD_ADD_HOST_COMMENT,url_images_path,COMMENT_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Active Checks Of Checked Host(s)</option>",CMD_DISABLE_HOST_CHECK,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Active Checks Of Checked Host(s)'</option>",CMD_ENABLE_HOST_CHECK,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Re-schedule Next Host Check</option>",CMD_SCHEDULE_HOST_CHECK,url_images_path,DELAY_ICON);
-		printf("<option value='%d' title='%s%s' >Submit Passive Check Result For Checked Host(s)</option>",CMD_PROCESS_HOST_CHECK_RESULT,url_images_path,PASSIVE_ICON);
-		printf("<option value='%d' title='%s%s' >Stop Accepting Passive Checks For Checked Host(s)</option>",CMD_DISABLE_PASSIVE_HOST_CHECKS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Start Accepting Passive Checks For Checked Host(s)</option>",CMD_ENABLE_PASSIVE_HOST_CHECKS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Stop Obsessing Over Checked Host(s)</option>",CMD_STOP_OBSESSING_OVER_HOST,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Start Obsessing Over Checked Host(s)</option>",CMD_START_OBSESSING_OVER_HOST,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Acknowledge Checked Host(s) Problem</option>",CMD_ACKNOWLEDGE_HOST_PROBLEM,url_images_path,ACKNOWLEDGEMENT_ICON);
-		printf("<option value='%d' title='%s%s' >Remove Problem Acknowledgement</option>",CMD_REMOVE_HOST_ACKNOWLEDGEMENT,url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Notifications For Checked Host(s)</option>",CMD_DISABLE_HOST_NOTIFICATIONS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Notifications For Checked Host(s)</option>",CMD_ENABLE_HOST_NOTIFICATIONS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Send Custom Notification</option>",CMD_SEND_CUSTOM_HOST_NOTIFICATION,url_images_path,NOTIFICATION_ICON);
-		printf("<option value='%d' title='%s%s' >Delay Next Host Notification</option>",CMD_DELAY_HOST_NOTIFICATION,url_images_path,DELAY_ICON);
-		printf("<option value='%d' title='%s%s' >Schedule Downtime For Checked Host(s)</option>",CMD_SCHEDULE_HOST_DOWNTIME,url_images_path,DOWNTIME_ICON);
-		printf("<option value='%d' title='%s%s' >Schedule Downtime For Checked Host(s) and All Services</option>",CMD_SCHEDULE_HOST_SVC_DOWNTIME,url_images_path,DOWNTIME_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Notifications For All Services On Checked Host(s)</option>",CMD_DISABLE_HOST_SVC_NOTIFICATIONS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Notifications For All Services On Checked Host(s)</option>",CMD_ENABLE_HOST_SVC_NOTIFICATIONS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Schedule A Check Of All Services On Checked Host(s)</option>",CMD_SCHEDULE_HOST_SVC_CHECKS,url_images_path,DELAY_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Checks Of All Services On Checked Host(s)</option>",CMD_DISABLE_HOST_SVC_CHECKS,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Checks Of All Services On Checked Host(s)</option>",CMD_ENABLE_HOST_SVC_CHECKS,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Event Handler For Checked Host(s)</option>",CMD_DISABLE_HOST_EVENT_HANDLER,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Event Handler For Checked Host(s)</option>",CMD_ENABLE_HOST_EVENT_HANDLER,url_images_path,ENABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Disable Flap Detection For Checked Host(s)</option>",CMD_DISABLE_HOST_FLAP_DETECTION,url_images_path,DISABLED_ICON);
-		printf("<option value='%d' title='%s%s' >Enable Flap Detection For Checked Host(s)</option>",CMD_ENABLE_HOST_FLAP_DETECTION,url_images_path,ENABLED_ICON);
-	printf("</select>");
-	printf("<br><br><b><input type='button' name='CommandButton' value='Submit' class='hostsTotalsCommands' onClick=\"cmd_submit('tableform')\" disabled='disabled'></b>\n");
+	if (is_authorized_for_read_only(&current_authdata)==FALSE){
+		/* A new div for the command table */
+		printf("<DIV CLASS='hostTotalsCommands'>Commands for checked host(s)</DIV>\n");
+		/* DropDown menu */
+		printf("<select name='webmenu' id='webmenu' onchange='showValue(this.value,%d,%d)' CLASS='hostTotalsCommands'>",CMD_SCHEDULE_HOST_CHECK,CMD_SCHEDULE_SVC_CHECK);
+			printf("<option value='nothing'>Select command</option>");
+			printf("<option value='%d' title='%s%s' >Add a Comment to Checked Host(s)</option>",CMD_ADD_HOST_COMMENT,url_images_path,COMMENT_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Active Checks Of Checked Host(s)</option>",CMD_DISABLE_HOST_CHECK,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Active Checks Of Checked Host(s)'</option>",CMD_ENABLE_HOST_CHECK,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Re-schedule Next Host Check</option>",CMD_SCHEDULE_HOST_CHECK,url_images_path,DELAY_ICON);
+			printf("<option value='%d' title='%s%s' >Submit Passive Check Result For Checked Host(s)</option>",CMD_PROCESS_HOST_CHECK_RESULT,url_images_path,PASSIVE_ICON);
+			printf("<option value='%d' title='%s%s' >Stop Accepting Passive Checks For Checked Host(s)</option>",CMD_DISABLE_PASSIVE_HOST_CHECKS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Start Accepting Passive Checks For Checked Host(s)</option>",CMD_ENABLE_PASSIVE_HOST_CHECKS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Stop Obsessing Over Checked Host(s)</option>",CMD_STOP_OBSESSING_OVER_HOST,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Start Obsessing Over Checked Host(s)</option>",CMD_START_OBSESSING_OVER_HOST,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Acknowledge Checked Host(s) Problem</option>",CMD_ACKNOWLEDGE_HOST_PROBLEM,url_images_path,ACKNOWLEDGEMENT_ICON);
+			printf("<option value='%d' title='%s%s' >Remove Problem Acknowledgement</option>",CMD_REMOVE_HOST_ACKNOWLEDGEMENT,url_images_path,REMOVE_ACKNOWLEDGEMENT_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Notifications For Checked Host(s)</option>",CMD_DISABLE_HOST_NOTIFICATIONS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Notifications For Checked Host(s)</option>",CMD_ENABLE_HOST_NOTIFICATIONS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Send Custom Notification</option>",CMD_SEND_CUSTOM_HOST_NOTIFICATION,url_images_path,NOTIFICATION_ICON);
+			printf("<option value='%d' title='%s%s' >Delay Next Host Notification</option>",CMD_DELAY_HOST_NOTIFICATION,url_images_path,DELAY_ICON);
+			printf("<option value='%d' title='%s%s' >Schedule Downtime For Checked Host(s)</option>",CMD_SCHEDULE_HOST_DOWNTIME,url_images_path,DOWNTIME_ICON);
+			printf("<option value='%d' title='%s%s' >Schedule Downtime For Checked Host(s) and All Services</option>",CMD_SCHEDULE_HOST_SVC_DOWNTIME,url_images_path,DOWNTIME_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Notifications For All Services On Checked Host(s)</option>",CMD_DISABLE_HOST_SVC_NOTIFICATIONS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Notifications For All Services On Checked Host(s)</option>",CMD_ENABLE_HOST_SVC_NOTIFICATIONS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Schedule A Check Of All Services On Checked Host(s)</option>",CMD_SCHEDULE_HOST_SVC_CHECKS,url_images_path,DELAY_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Checks Of All Services On Checked Host(s)</option>",CMD_DISABLE_HOST_SVC_CHECKS,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Checks Of All Services On Checked Host(s)</option>",CMD_ENABLE_HOST_SVC_CHECKS,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Event Handler For Checked Host(s)</option>",CMD_DISABLE_HOST_EVENT_HANDLER,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Event Handler For Checked Host(s)</option>",CMD_ENABLE_HOST_EVENT_HANDLER,url_images_path,ENABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Disable Flap Detection For Checked Host(s)</option>",CMD_DISABLE_HOST_FLAP_DETECTION,url_images_path,DISABLED_ICON);
+			printf("<option value='%d' title='%s%s' >Enable Flap Detection For Checked Host(s)</option>",CMD_ENABLE_HOST_FLAP_DETECTION,url_images_path,ENABLED_ICON);
+		printf("</select>");
+		printf("<br><br><b><input type='button' name='CommandButton' value='Submit' class='hostsTotalsCommands' onClick=\"cmd_submit('tableform')\" disabled='disabled'></b>\n");
+	}
 }
 /* The cake is a lie! */
 

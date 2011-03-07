@@ -3,7 +3,8 @@
  * CHECKS.C - Service and host check functions for Icinga
  *
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -570,13 +571,13 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* grab the host and service macro variables */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, svc->check_command_ptr,svc->service_check_command,&raw_command,0);
 	if(raw_command==NULL){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
@@ -587,7 +588,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command,&processed_command,0);
 	if(processed_command==NULL){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for service '%s' on host '%s' was NULL - aborting.\n",svc->description,svc->host_name);
 		if(preferred_time)
 			*preferred_time+=(svc->check_interval*interval_length);
@@ -622,9 +623,12 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	/* send data to event broker */
 	neb_result=broker_service_check(NEBTYPE_SERVICECHECK_INITIATE,NEBFLAG_NONE,NEBATTR_NONE,svc,SERVICE_CHECK_ACTIVE,start_time,end_time,svc->service_check_command,svc->latency,0.0,service_check_timeout,FALSE,0,processed_command,NULL);
 
+	my_free(svc->processed_command);
+	svc->processed_command=strdup(processed_command);
+
 	/* neb module wants to override the service check - perhaps it will check the service itself */
 	if(neb_result==NEBERROR_CALLBACKOVERRIDE){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		svc->latency=old_latency;
 		my_free(processed_command);
 		my_free(raw_command);
@@ -816,7 +820,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 	else if(pid==0){
 
 		/* set environment variables */
-		set_all_macro_environment_vars(&mac, TRUE);
+		set_all_macro_environment_vars_r(&mac, TRUE);
 
 		/* ADDED 11/12/07 EG */
 		/* close external command file and shut down worker thread */
@@ -987,7 +991,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 		/* NOTE: this code is never reached if large install tweaks are enabled... */
 
 		/* unset environment variables */
-		set_all_macro_environment_vars(&mac, FALSE);
+		set_all_macro_environment_vars_r(&mac, FALSE);
 
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
@@ -1000,7 +1004,7 @@ int run_async_service_check(service *svc, int check_options, double latency, int
 
 	/* else the parent should wait for the first child to return... */
 	else if(pid>0){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 
 		log_debug_info(DEBUGL_CHECKS,2,"Service check is executing in child process (pid=%lu)\n",(unsigned long)pid);
 
@@ -1547,6 +1551,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 		/* 05/29/2007 NOTE: The host might be in a SOFT problem state due to host check retries/caching.  Not sure if we should take that into account and do something different or not... */
 		if(route_result!=HOST_UP){
 
+			log_debug_info(DEBUGL_CHECKS,2,"Host is not UP, so we mark state changes if appropriate\n");
+
 			/* "fake" a hard state change for the service - well, its not really fake, but it didn't get caught earlier... */
 			if(temp_service->last_hard_state!=temp_service->current_state)
 				hard_state_change=TRUE;
@@ -1554,8 +1560,11 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			/* update last state change times */
 			if(state_change==TRUE || hard_state_change==TRUE)
 				temp_service->last_state_change=temp_service->last_check;
-			if(hard_state_change==TRUE)
+			if(hard_state_change==TRUE) {
 				temp_service->last_hard_state_change=temp_service->last_check;
+				temp_service->state_type=HARD_STATE;
+				temp_service->last_hard_state=temp_service->current_state;
+			}
 
 			/* put service into a hard state without attempting check retries and don't send out notifications about it */
 			temp_service->host_problem_at_last_check=TRUE;
@@ -1666,7 +1675,8 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 			}
 
 			/* check for start of flexible (non-fixed) scheduled downtime if we just had a hard/soft error */
-			if(state_change==TRUE && temp_service->pending_flex_downtime>0)
+			/* 2011-02-21 MF: we need to check for both, state_change (SOFT) and hard_state_change (HARD) values */
+			if((hard_state_change==TRUE || state_change==TRUE) && temp_service->pending_flex_downtime>0)
 				check_pending_flex_service_downtime(temp_service);
 
 			/* 10/04/07 check to see if the service and/or associate host is flapping */
@@ -1776,7 +1786,7 @@ int handle_async_service_check_result(service *temp_service, check_result *queue
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,queued_check_result->start_time,queued_check_result->finish_time,NULL,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,NULL,NULL);
+	broker_service_check(NEBTYPE_SERVICECHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_service,temp_service->check_type,queued_check_result->start_time,queued_check_result->finish_time,temp_service->service_check_command,temp_service->latency,temp_service->execution_time,service_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,temp_service->processed_command,NULL);
 #endif
 
 	/* set the checked flag */
@@ -2786,7 +2796,7 @@ int run_sync_host_check_3x(host *hst, int *check_result_code, int check_options,
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,hst->execution_time,host_check_timeout,FALSE,hst->current_state,NULL,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,hst,HOST_CHECK_ACTIVE,hst->current_state,hst->state_type,start_time,end_time,hst->host_check_command,hst->latency,hst->execution_time,host_check_timeout,FALSE,hst->current_state,hst->processed_command,hst->plugin_output,hst->long_plugin_output,hst->perf_data,NULL);
 #endif
 
 	return result;
@@ -2842,7 +2852,7 @@ int execute_sync_host_check_3x(host *hst){
 
 	/* grab the host macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* high resolution start time for event broker */
 	gettimeofday(&start_time,NULL);
@@ -2853,16 +2863,19 @@ int execute_sync_host_check_3x(host *hst){
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, hst->check_command_ptr,hst->host_check_command,&raw_command,0);
 	if(raw_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command,&processed_command,0);
 	if(processed_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
+
+	my_free(hst->processed_command);
+	hst->processed_command=strdup(processed_command);
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
@@ -2881,7 +2894,7 @@ int execute_sync_host_check_3x(host *hst){
 
 	/* run the host check command */
 	result=my_system_r(&mac, processed_command,host_check_timeout,&early_timeout,&exectime,&temp_plugin_output,MAX_PLUGIN_OUTPUT_LENGTH);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* if the check timed out, report an error */
 	if(early_timeout==TRUE){
@@ -3106,12 +3119,12 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* grab the host macro variables */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, hst->check_command_ptr,hst->host_check_command,&raw_command,0);
 	if(raw_command==NULL){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS,0,"Raw check command for host '%s' was NULL - aborting.\n",hst->name);
 		return ERROR;
 	}
@@ -3119,10 +3132,13 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	/* process any macros contained in the argument */
 	process_macros_r(&mac, raw_command,&processed_command,0);
 	if(processed_command==NULL){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		log_debug_info(DEBUGL_CHECKS,0,"Processed check command for host '%s' was NULL - aborting.\n",hst->name);
 		return ERROR;
 	}
+
+	my_free(hst->processed_command);
+	hst->processed_command=strdup(processed_command);
 
 	/* get the command start time */
 	gettimeofday(&start_time,NULL);
@@ -3227,7 +3243,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 	else if(pid==0){
 
 		/* set environment variables */
-		set_all_macro_environment_vars(&mac, TRUE);
+		set_all_macro_environment_vars_r(&mac, TRUE);
 
 		/* ADDED 11/12/07 EG */
 		/* close external command file and shut down worker thread */
@@ -3320,7 +3336,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 		/* NOTE: this code is never reached if large install tweaks are enabled... */
 
 		/* unset environment variables */
-		set_all_macro_environment_vars(&mac, FALSE);
+		set_all_macro_environment_vars_r(&mac, FALSE);
 
 		/* free allocated memory */
 		/* this needs to be done last, so we don't free memory for variables before they're used above */
@@ -3333,7 +3349,7 @@ int run_async_host_check_3x(host *hst, int check_options, double latency, int sc
 
 	/* else the parent should wait for the first child to return... */
 	else if(pid>0){
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 
 		log_debug_info(DEBUGL_CHECKS,2,"Host check is executing in child process (pid=%lu)\n",(unsigned long)pid);
 
@@ -3567,7 +3583,7 @@ int handle_async_host_check_result_3x(host *temp_host, check_result *queued_chec
 
 #ifdef USE_EVENT_BROKER
 	/* send data to event broker */
-	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,HOST_CHECK_ACTIVE,temp_host->current_state,temp_host->state_type,start_time_hires,end_time_hires,temp_host->host_check_command,temp_host->latency,temp_host->execution_time,host_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,NULL,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
+	broker_host_check(NEBTYPE_HOSTCHECK_PROCESSED,NEBFLAG_NONE,NEBATTR_NONE,temp_host,temp_host->check_type,temp_host->current_state,temp_host->state_type,start_time_hires,end_time_hires,temp_host->host_check_command,temp_host->latency,temp_host->execution_time,host_check_timeout,queued_check_result->early_timeout,queued_check_result->return_code,temp_host->processed_command,temp_host->plugin_output,temp_host->long_plugin_output,temp_host->perf_data,NULL);
 #endif
 
 	return OK;
@@ -3990,9 +4006,10 @@ int process_host_check_result_3x(host *hst, int new_state, char *old_plugin_outp
 			schedule_host_check(hst,hst->next_check,CHECK_OPTION_NONE);
 		}
 
-		/* update host status */
-		update_host_status(hst,FALSE);
 	}
+
+	/* update host status - for both active (scheduled) and passive (non-scheduled) hosts */
+	update_host_status(hst,FALSE);
 
 	/* run async checks of all hosts we added above */
 	/* don't run a check if one is already executing or we can get by with a cached state */

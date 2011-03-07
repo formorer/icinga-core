@@ -3,7 +3,8 @@
  * UTILS.C - Miscellaneous utility functions for Icinga
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -432,7 +433,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		setpgid(0,0);
 
 		/* set environment variables */
-		set_all_macro_environment_vars(mac, TRUE);
+		set_all_macro_environment_vars_r(mac, TRUE);
 
 		/* ADDED 11/12/07 EG */
 		/* close external command file and shut down worker thread */
@@ -543,7 +544,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		alarm(0);
 
 		/* clear environment variables */
-		set_all_macro_environment_vars(mac, FALSE);
+		set_all_macro_environment_vars_r(mac, FALSE);
 
 #ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
@@ -689,7 +690,7 @@ int get_raw_command_line_r(icinga_macros *mac, command *cmd_ptr, char *cmd, char
 	log_debug_info(DEBUGL_FUNCTIONS,0,"get_raw_command_line_r()\n");
 
 	/* clear the argv macros */
-	clear_argv_macros(mac);
+	clear_argv_macros_r(mac);
 
 	/* make sure we've got all the requirements */
 	if(cmd_ptr==NULL || full_command==NULL)
@@ -3776,24 +3777,32 @@ int init_command_file_worker_thread(void){
 int shutdown_command_file_worker_thread(void){
 	int result=0;
 
-	/* CHANGED 11/12/07 EG */
-	/* cancel/join worker thread only if we're the main (parent) process */
+	/* 2010-01-04 AE:
+	 * calling pthread_cancel(0) will cause segfaults with some
+	 * thread libraries. It's possible that will happen if the
+	 * user has a number of config files larger than the max
+	 * open file descriptor limit (ulimit -n) and some retarded
+	 * eventbroker module leaks filedescriptors, since we'll then
+	 * enter the cleanup() routine from main() before we've
+	 * spawned any threads.
+	 */
+	if (worker_threads[COMMAND_WORKER_THREAD]) {
+		/* tell the worker thread to exit */
+		result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
 
-	/* tell the worker thread to exit */
-	result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	if(result==0){
-		result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+		/* wait for the worker thread to exit */
+		if(result==0){
+			result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
 		}
 
-	/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
-	else{
-		cleanup_command_file_worker_thread(NULL);
-		}
+		/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
+		else {
+			cleanup_command_file_worker_thread(NULL);
+ 		}
+	}
 
 	return OK;
-        }
+}
 
 
 /* clean up resources used by command file worker thread */
@@ -4374,7 +4383,7 @@ void free_memory(icinga_macros *mac){
 	 * macros when we get a reload or restart request through the
 	 * command pipe, or when we receive a SIGHUP.
 	 */
-	clear_volatile_macros(mac);
+	clear_volatile_macros_r(mac);
 
 	free_macrox_names();
 

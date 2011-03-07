@@ -1,7 +1,7 @@
 /***************************************************************
  * DBQUERIES.C - Data Query handler routines for IDO2DB daemon
  *
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  **************************************************************/
 
@@ -1228,11 +1228,11 @@ int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
                                         *(unsigned long *) data[6],     
-                                        (data[7]==NULL)?"":*(char **) data[7],     	/* insert end */
+                                        (*(char **) data[7]==NULL)?"":*(char **) data[7],     	/* insert end */
                                         *(char **) data[4],     	/* update start */
                                         *(unsigned long *) data[5],
                                         *(unsigned long *) data[6],
-                                        (data[7]==NULL)?"":*(char **) data[7]      	/* update end */
+                                        (*(char **) data[7]==NULL)?"":*(char **) data[7]      	/* update end */
                         );
                         /* send query to db */
                         result = ido2db_db_query(idi, query1);
@@ -1244,7 +1244,7 @@ int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *
                                         *(char **) data[4],             /* update start */
                                         *(unsigned long *) data[5],
                                         *(unsigned long *) data[6],
-                                        (data[7]==NULL)?"":*(char **) data[7],             /* update end */
+                                        (*(char **) data[7]==NULL)?"":*(char **) data[7],             /* update end */
                                         *(unsigned long *) data[0],     /* unique constraint start */
                                         *(unsigned long *) data[1],
                                         *(char **) data[2],
@@ -1266,7 +1266,7 @@ int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
                                         *(unsigned long *) data[6],     
-                                        (data[7]==NULL)?"":*(char **) data[7]             /* insert end */
+                                        (*(char **) data[7]==NULL)?"":*(char **) data[7]             /* insert end */
                                 );
                                 /* send query to db */
                                 result = ido2db_db_query(idi, query2);
@@ -1352,13 +1352,12 @@ int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *
 /* SERVICECHECKS                    */
 /************************************/
 
-int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **data) {
+int ido2db_query_insert_servicecheckdata_add(ido2db_idi *idi, void **data) {
         int result = IDO_OK;
 #ifdef USE_LIBDBI
         char * query1 = NULL;
-        char * query2 = NULL;
 #endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicecheckdata_add() start\n");
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_servicecheckdata_add() start\n");
 
         if (idi == NULL)
                 return IDO_ERROR;
@@ -1369,85 +1368,9 @@ int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **d
 #ifdef USE_LIBDBI /* everything else will be libdbi */
         switch (idi->dbinfo.server_type) {
                 case IDO2DB_DBSERVER_MYSQL:
-                        asprintf(&query1, "INSERT INTO %s (instance_id, service_object_id, check_type, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata, command_object_id, command_args, command_line) VALUES (%lu, %lu, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s', %lu, '%s', '%s') ON DUPLICATE KEY UPDATE check_type='%d', current_check_attempt='%d', max_check_attempts='%d', state='%d', state_type='%d', start_time=%s, start_time_usec='%lu', end_time=%s, end_time_usec='%lu', timeout='%d', early_timeout='%d', execution_time='%lf', latency='%lf', return_code='%d', output='%s', long_output='%s', perfdata='%s'",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECHECKS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(unsigned long *) data[1],
-                                        *(int *) data[2],
-                                        *(int *) data[3],
-                                        *(int *) data[4],
-                                        *(int *) data[5],
-                                        *(int *) data[6],
-                                        *(char **) data[7],
-                                        *(unsigned long *) data[8],
-                                        *(char **) data[9],
-                                        *(unsigned long *) data[10],
-                                        *(int *) data[11],
-                                        *(int *) data[12],
-                                        *(double *) data[13],
-                                        *(double *) data[14],
-                                        *(int *) data[15],
-                                        *(char **) data[16],
-                                        *(char **) data[17],
-                                        *(char **) data[18],     	
-                                        *(unsigned long *) data[19],     	
-                                        *(char **) data[20],     	
-                                        *(char **) data[21],     	/* insert end */
-                                        *(int *) data[2],               /* update start */
-                                        *(int *) data[3],
-                                        *(int *) data[4],
-                                        *(int *) data[5],
-                                        *(int *) data[6],
-                                        *(char **) data[7],
-                                        *(unsigned long *) data[8],
-                                        *(char **) data[9],
-                                        *(unsigned long *) data[10],
-                                        *(int *) data[11],
-                                        *(int *) data[12],
-                                        *(double *) data[13],
-                                        *(double *) data[14],
-                                        *(int *) data[15],
-                                        *(char **) data[16],
-                                        *(char **) data[17],
-                                        *(char **) data[18]            /* updapte end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-                        break;
                 case IDO2DB_DBSERVER_PGSQL:
-                        asprintf(&query1, "UPDATE %s SET check_type='%d', current_check_attempt='%d', max_check_attempts='%d', state='%d', state_type='%d', start_time=%s, start_time_usec='%lu', end_time=%s, end_time_usec='%lu', timeout='%d', early_timeout='%d', execution_time='%lf', latency='%lf', return_code='%d', output='%s', long_output='%s', perfdata='%s' WHERE instance_id=%lu AND service_object_id=%lu AND start_time=%s AND start_time_usec=%lu",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECHECKS],
-                                        *(int *) data[2],               /* update start */
-                                        *(int *) data[3],
-                                        *(int *) data[4],
-                                        *(int *) data[5],
-                                        *(int *) data[6],
-                                        *(char **) data[7],
-                                        *(unsigned long *) data[8],
-                                        *(char **) data[9],
-                                        *(unsigned long *) data[10],
-                                        *(int *) data[11],
-                                        *(int *) data[12],
-                                        *(double *) data[13],
-                                        *(double *) data[14],
-                                        *(int *) data[15],
-                                        *(char **) data[16],
-                                        *(char **) data[17],
-                                        *(char **) data[18],            /* updapte end */
-                                        *(unsigned long *) data[0],     /* unique constraint start */
-                                        *(unsigned long *) data[1],
-                                        *(char **) data[7],
-                                        *(unsigned long *) data[8]      /* unique constraint end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-
-                        /* check result if update was ok */
-                        if(dbi_result_get_numrows_affected(idi->dbinfo.dbi_result) == 0) {
-                                /* try insert instead */
-                                asprintf(&query2, "INSERT INTO %s (instance_id, service_object_id, check_type, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata, command_object_id, command_args, command_line) VALUES (%lu, %lu, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s', %lu, '%s', '%s')",
+			/* insert statement is the same for mysql and postgresql */
+			asprintf(&query1, "INSERT INTO %s (instance_id, service_object_id, check_type, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata, command_object_id, command_args, command_line) VALUES (%lu, %lu, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s', %lu, '%s', '%s')",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECHECKS],
                                         *(unsigned long *) data[0],     /* insert start */
                                         *(unsigned long *) data[1],
@@ -1467,15 +1390,14 @@ int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **d
                                         *(int *) data[15],
                                         *(char **) data[16],
                                         *(char **) data[17],
-                                        *(char **) data[18],     	
-                                        *(unsigned long *) data[19],     	
-                                        *(char **) data[20],     	
+                                        *(char **) data[18],
+                                        *(unsigned long *) data[19],
+                                        *(char **) data[20],
                                         *(char **) data[21]     	/* insert end */
                                 );
-                                /* send query to db */
-                                result = ido2db_db_query(idi, query2);
-				free(query2);
-                        }
+                        /* send query to db */
+                        result = ido2db_db_query(idi, query1);
+			free(query1);
                         break;
                 case IDO2DB_DBSERVER_DB2:
                         break;
@@ -1552,57 +1474,64 @@ int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **d
                         if(!OCI_BindInt(idi->dbinfo.oci_statement_servicechecks, MT(":X16"), (int *) data[15])) {
                                 return IDO_ERROR;
                         }
-        if(*(char **) data[16]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X17")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X17"), *(char **) data[16], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[17]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X18")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X18"), *(char **) data[17], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[18]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X19")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X19"), *(char **) data[18], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
+
+		        if(*(char **) data[16]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X17")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X17"), *(char **) data[16], 0)) {
+        	                        return IDO_ERROR;
+	                        }
+			}
+
+		        if(*(char **) data[17]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X18")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X18"), *(char **) data[17], 0)) {
+        	                        return IDO_ERROR;
+                	        }
+			}
+
+		        if(*(char **) data[18]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X19")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X19"), *(char **) data[18], 0)) {
+        	                        return IDO_ERROR;
+                	        }
+			}
+
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicechecks, MT(":X20"), (big_uint *) data[19])) {
                                 return IDO_ERROR;
                         }
-        if(*(char **) data[20]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X21")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X21"), *(char **) data[20], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[21]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X22")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X22"), *(char **) data[21], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
+
+		        if(*(char **) data[20]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X21")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X21"), *(char **) data[20], 0)) {
+	                                return IDO_ERROR;
+        	                }
+			}
+
+		        if(*(char **) data[21]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_servicechecks, ":X22")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_servicechecks, MT(":X22"), *(char **) data[21], 0)) {
+	                                return IDO_ERROR;
+	                        }
+			}
+
                         /* execute statement */
                         if(!OCI_Execute(idi->dbinfo.oci_statement_servicechecks)) {
-                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicechecks() execute error\n");
+                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_servicechecks() execute error\n");
                                 return IDO_ERROR;
                         }
 
@@ -1611,7 +1540,7 @@ int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **d
 
                         /* do not free statement yet! */
 #endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicecheckdata_add() end\n");
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_servicecheckdata_add() end\n");
 
         return result;
 }
@@ -1621,13 +1550,12 @@ int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **d
 /* HOSTCHECKS                       */
 /************************************/
 
-int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data) {
+int ido2db_query_insert_hostcheckdata_add(ido2db_idi *idi, void **data) {
         int result = IDO_OK;
 #ifdef USE_LIBDBI
         char * query1 = NULL;
-        char * query2 = NULL;
 #endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostcheckdata_add() start\n");
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_hostcheckdata_add() start\n");
 
         if (idi == NULL)
                 return IDO_ERROR;
@@ -1638,84 +1566,9 @@ int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data
 #ifdef USE_LIBDBI /* everything else will be libdbi */
         switch (idi->dbinfo.server_type) {
                 case IDO2DB_DBSERVER_MYSQL:
-                        asprintf(&query1, "INSERT INTO %s (command_object_id, command_args, command_line, instance_id, host_object_id, check_type, is_raw_check, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata) VALUES (%lu, '%s', '%s', %lu, %lu, %d, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s') ON DUPLICATE KEY UPDATE check_type='%d', is_raw_check='%d', current_check_attempt='%d', max_check_attempts='%d', state='%d', state_type='%d', end_time=%s, end_time_usec='%lu', timeout='%d', early_timeout='%d', execution_time='%lf', latency='%lf', return_code='%d', output='%s', long_output='%s', perfdata='%s'",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCHECKS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(char **) data[1],
-                                        *(char **) data[2],
-                                        *(unsigned long *) data[3],
-                                        *(unsigned long *) data[4],
-                                        *(int *) data[5],
-                                        *(int *) data[6],
-                                        *(int *) data[7],
-                                        *(int *) data[8],
-                                        *(int *) data[9],
-                                        *(int *) data[10],
-                                        *(char **) data[11],
-                                        *(unsigned long *) data[12],
-                                        *(char **) data[13],
-                                        *(unsigned long *) data[14],
-                                        *(int *) data[15],
-                                        *(int *) data[16],
-                                        *(double *) data[17],
-                                        *(double *) data[18],
-                                        *(int *) data[19],
-                                        *(char **) data[20],
-                                        *(char **) data[21],
-                                        *(char **) data[22],		/* insert end */
-                                        *(int *) data[5],		/* update start */
-                                        *(int *) data[6],
-                                        *(int *) data[7],
-                                        *(int *) data[8],
-                                        *(int *) data[9],
-                                        *(int *) data[10],
-                                        *(char **) data[13],
-                                        *(unsigned long *) data[14],
-                                        *(int *) data[15],
-                                        *(int *) data[16],
-                                        *(double *) data[17],
-                                        *(double *) data[18],
-                                        *(int *) data[19],
-                                        *(char **) data[20],
-                                        *(char **) data[21],
-                                        *(char **) data[22]            /* update end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-                        break;
                 case IDO2DB_DBSERVER_PGSQL:
-                        asprintf(&query1, "UPDATE %s SET check_type='%d', is_raw_check='%d', current_check_attempt='%d', max_check_attempts='%d', state='%d', state_type='%d', end_time=%s, end_time_usec='%lu', timeout='%d', early_timeout='%d', execution_time='%lf', latency='%lf', return_code='%d', output='%s', long_output='%s', perfdata='%s' WHERE instance_id=%lu AND host_object_id=%lu AND start_time=%s AND start_time_usec=%lu",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCHECKS],
-                                        *(int *) data[5],               /* update start */
-                                        *(int *) data[6],
-                                        *(int *) data[7],
-                                        *(int *) data[8],
-                                        *(int *) data[9],
-                                        *(int *) data[10],
-                                        *(char **) data[13],
-                                        *(unsigned long *) data[14],
-                                        *(int *) data[15],
-                                        *(int *) data[16], 
-                                        *(double *) data[17],
-                                        *(double *) data[18],
-                                        *(int *) data[19],
-                                        *(char **) data[20],
-                                        *(char **) data[21],
-                                        *(char **) data[22],            /* update end */
-                                        *(unsigned long *) data[3],     /* unique constraint start */
-                                        *(unsigned long *) data[4],
-                                        *(char **) data[11],
-                                        *(unsigned long *) data[12]      /* unique constraint end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-
-                        /* check result if update was ok */
-                        if(dbi_result_get_numrows_affected(idi->dbinfo.dbi_result) == 0) {
-                                /* try insert instead */
-                                asprintf(&query2, "INSERT INTO %s (command_object_id, command_args, command_line, instance_id, host_object_id, check_type, is_raw_check, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata) VALUES (%lu, '%s', '%s', %lu, %lu, %d, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s')",
+                        /* the insert queries are the same for mysql and postgresql :) */
+			asprintf(&query1, "INSERT INTO %s (command_object_id, command_args, command_line, instance_id, host_object_id, check_type, is_raw_check, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata) VALUES (%lu, '%s', '%s', %lu, %lu, %d, %d, %d, %d, %d, %d, %s, %lu, %s, %lu, %d, %d, %lf, %lf, %d, '%s', '%s', '%s')",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCHECKS],
                                         *(unsigned long *) data[0],     /* insert start */
                                         *(char **) data[1],
@@ -1741,10 +1594,9 @@ int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data
                                         *(char **) data[21],
                                         *(char **) data[22]            /* insert end */
                                 );
-                                /* send query to db */
-                                result = ido2db_db_query(idi, query2);
-				free(query2);
-                        }
+                        /* send query to db */
+                        result = ido2db_db_query(idi, query1);
+			free(query1);
                         break;
                 case IDO2DB_DBSERVER_DB2:
                         break;
@@ -1776,24 +1628,24 @@ int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostchecks, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
                         }
-        if(*(char **) data[1]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X2")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X2"), *(char **) data[1], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[2]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X3")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X3"), *(char **) data[2], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
+		        if(*(char **) data[1]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X2")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X2"), *(char **) data[1], 0)) {
+	                                return IDO_ERROR;
+	                        }
+			}
+		        if(*(char **) data[2]==NULL) {
+                		if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X3")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X3"), *(char **) data[2], 0)) {
+        	                        return IDO_ERROR;
+	                        }
+			}
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostchecks, MT(":X4"), (big_uint *) data[3])) {
                                 return IDO_ERROR;
                         }
@@ -1845,37 +1697,37 @@ int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data
                         if(!OCI_BindInt(idi->dbinfo.oci_statement_hostchecks, MT(":X20"), (int *) data[19])) {
                                 return IDO_ERROR;
                         }
-        if(*(char **) data[20]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X21")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X21"), *(char **) data[20], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[21]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X22")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X22"), *(char **) data[21], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
-        if(*(char **) data[22]==NULL) {
-                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X23")==IDO_ERROR) {
-                        return IDO_ERROR;
-                }
-        } else {
-                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X23"), *(char **) data[22], 0)) {
-                                return IDO_ERROR;
-                        }
-	}
+		        if(*(char **) data[20]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X21")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X21"), *(char **) data[20], 0)) {
+	                                return IDO_ERROR;
+	                        }
+			}
+		        if(*(char **) data[21]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X22")==IDO_ERROR) {
+                		        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X22"), *(char **) data[21], 0)) {
+	                                return IDO_ERROR;
+        	                }
+			}
+		        if(*(char **) data[22]==NULL) {
+		                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostchecks, ":X23")==IDO_ERROR) {
+		                        return IDO_ERROR;
+		                }
+		        } else {
+	                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostchecks, MT(":X23"), *(char **) data[22], 0)) {
+	                                return IDO_ERROR;
+        	                }
+			}
 
                         /* execute statement */
                         if(!OCI_Execute(idi->dbinfo.oci_statement_hostchecks)) {
-                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostchecks() execute error\n");
+                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_hostchecks() execute error\n");
                                 return IDO_ERROR;
                         }
 
@@ -1884,7 +1736,7 @@ int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data
 
                         /* do not free statement yet! */
 #endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostcheckdata_add() end\n");
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_hostcheckdata_add() end\n");
 
         return result;
 }
@@ -4224,7 +4076,7 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
 #ifdef USE_LIBDBI /* everything else will be libdbi */
         switch (idi->dbinfo.server_type) {
                 case IDO2DB_DBSERVER_MYSQL:
-                        asprintf(&query1, "INSERT INTO %s (instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notification_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d) VALUES (%lu, %d, %lu, '%s', '%s', '%s', %lu, '%s', %lu, '%s', %lu, %lu, '%s', %lf, %lf, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %lf, %lf, %lf) ON DUPLICATE KEY UPDATE alias='%s', display_name='%s', address='%s', check_command_object_id=%lu, check_command_args='%s', eventhandler_command_object_id=%lu, eventhandler_command_args='%s', check_timeperiod_object_id=%lu, notification_timeperiod_object_id=%lu, failure_prediction_options='%s', check_interval=%lf, retry_interval=%lf, max_check_attempts=%d, first_notification_delay=%lf, notification_interval=%lf, notify_on_down=%d, notify_on_unreachable=%d, notify_on_recovery=%d, notify_on_flapping=%d, notify_on_downtime=%d, stalk_on_up=%d, stalk_on_down=%d, stalk_on_unreachable=%d, flap_detection_enabled=%d, flap_detection_on_up=%d, flap_detection_on_down=%d, flap_detection_on_unreachable=%d, low_flap_threshold=%lf, high_flap_threshold=%lf, process_performance_data=%d, freshness_checks_enabled=%d, freshness_threshold=%d, passive_checks_enabled=%d, event_handler_enabled=%d, active_checks_enabled=%d, retain_status_information=%d, retain_nonstatus_information=%d, notifications_enabled=%d, obsess_over_host=%d, failure_prediction_enabled=%d, notes='%s', notes_url='%s', action_url='%s', icon_image='%s', icon_image_alt='%s', vrml_image='%s', statusmap_image='%s', have_2d_coords=%d, x_2d=%d, y_2d=%d, have_3d_coords=%d, x_3d=%lf, y_3d=%lf, z_3d=%lf",
+                        asprintf(&query1, "INSERT INTO %s (instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notification_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d, address6) VALUES (%lu, %d, %lu, '%s', '%s', '%s', %lu, '%s', %lu, '%s', %lu, %lu, '%s', %lf, %lf, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %lf, %lf, %lf, '%s') ON DUPLICATE KEY UPDATE alias='%s', display_name='%s', address='%s', check_command_object_id=%lu, check_command_args='%s', eventhandler_command_object_id=%lu, eventhandler_command_args='%s', check_timeperiod_object_id=%lu, notification_timeperiod_object_id=%lu, failure_prediction_options='%s', check_interval=%lf, retry_interval=%lf, max_check_attempts=%d, first_notification_delay=%lf, notification_interval=%lf, notify_on_down=%d, notify_on_unreachable=%d, notify_on_recovery=%d, notify_on_flapping=%d, notify_on_downtime=%d, stalk_on_up=%d, stalk_on_down=%d, stalk_on_unreachable=%d, flap_detection_enabled=%d, flap_detection_on_up=%d, flap_detection_on_down=%d, flap_detection_on_unreachable=%d, low_flap_threshold=%lf, high_flap_threshold=%lf, process_performance_data=%d, freshness_checks_enabled=%d, freshness_threshold=%d, passive_checks_enabled=%d, event_handler_enabled=%d, active_checks_enabled=%d, retain_status_information=%d, retain_nonstatus_information=%d, notifications_enabled=%d, obsess_over_host=%d, failure_prediction_enabled=%d, notes='%s', notes_url='%s', action_url='%s', icon_image='%s', icon_image_alt='%s', vrml_image='%s', statusmap_image='%s', have_2d_coords=%d, x_2d=%d, y_2d=%d, have_3d_coords=%d, x_3d=%lf, y_3d=%lf, z_3d=%lf, address6='%s'",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTS],
                                         *(unsigned long *) data[0],     /* insert start */
                                         *(int *) data[1],
@@ -4233,9 +4085,9 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(char **) data[4],
                                         *(char **) data[5],
                                         *(unsigned long *) data[6],
-                                        *(char **) data[7],
+					(*(char **) data[7]==NULL)?"":*(char **) data[7],
                                         *(unsigned long *) data[8],
-                                        *(char **) data[9],
+					(*(char **) data[9]==NULL)?"":*(char **) data[9],
                                         *(unsigned long *) data[10],
                                         *(unsigned long *) data[11],
                                         *(char **) data[12],
@@ -4282,14 +4134,15 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(int *) data[53],
                                         *(double *) data[54],
                                         *(double *) data[55],
-                                        *(double *) data[56],		/* insert end */
+                                        *(double *) data[56],
+                                        *(char **) data[57],		/* insert end */
                                         *(char **) data[3],		/* update start */
                                         *(char **) data[4],
                                         *(char **) data[5],
                                         *(unsigned long *) data[6],
-                                        *(char **) data[7],
+					(*(char **) data[7]==NULL)?"":*(char **) data[7],
                                         *(unsigned long *) data[8],
-                                        *(char **) data[9],
+					(*(char **) data[9]==NULL)?"":*(char **) data[9],
                                         *(unsigned long *) data[10],
                                         *(unsigned long *) data[11],
                                         *(char **) data[12],
@@ -4336,22 +4189,23 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(int *) data[53],
                                         *(double *) data[54],
                                         *(double *) data[55],
-                                        *(double *) data[56]           /* update end */
+                                        *(double *) data[56],
+                                        *(char **) data[57]           /* update end */
                         );
                         /* send query to db */
                         result = ido2db_db_query(idi, query1);
 			free(query1);
                         break;
                 case IDO2DB_DBSERVER_PGSQL:
-                        asprintf(&query1, "UPDATE %s SET alias='%s', display_name='%s', address='%s', check_command_object_id=%lu, check_command_args='%s', eventhandler_command_object_id=%lu, eventhandler_command_args='%s', check_timeperiod_object_id=%lu, notification_timeperiod_object_id=%lu, failure_prediction_options='%s', check_interval=%lf, retry_interval=%lf, max_check_attempts=%d, first_notification_delay=%lf, notification_interval=%lf, notify_on_down=%d, notify_on_unreachable=%d, notify_on_recovery=%d, notify_on_flapping=%d, notify_on_downtime=%d, stalk_on_up=%d, stalk_on_down=%d, stalk_on_unreachable=%d, flap_detection_enabled=%d, flap_detection_on_up=%d, flap_detection_on_down=%d, flap_detection_on_unreachable=%d, low_flap_threshold=%lf, high_flap_threshold=%lf, process_performance_data=%d, freshness_checks_enabled=%d, freshness_threshold=%d, passive_checks_enabled=%d, event_handler_enabled=%d, active_checks_enabled=%d, retain_status_information=%d, retain_nonstatus_information=%d, notifications_enabled=%d, obsess_over_host=%d, failure_prediction_enabled=%d, notes='%s', notes_url='%s', action_url='%s', icon_image='%s', icon_image_alt='%s', vrml_image='%s', statusmap_image='%s', have_2d_coords=%d, x_2d=%d, y_2d=%d, have_3d_coords=%d, x_3d=%lf, y_3d=%lf, z_3d=%lf WHERE instance_id=%lu AND config_type=%d AND host_object_id=%lu",
+                        asprintf(&query1, "UPDATE %s SET alias='%s', display_name='%s', address='%s', check_command_object_id=%lu, check_command_args='%s', eventhandler_command_object_id=%lu, eventhandler_command_args='%s', check_timeperiod_object_id=%lu, notification_timeperiod_object_id=%lu, failure_prediction_options='%s', check_interval=%lf, retry_interval=%lf, max_check_attempts=%d, first_notification_delay=%lf, notification_interval=%lf, notify_on_down=%d, notify_on_unreachable=%d, notify_on_recovery=%d, notify_on_flapping=%d, notify_on_downtime=%d, stalk_on_up=%d, stalk_on_down=%d, stalk_on_unreachable=%d, flap_detection_enabled=%d, flap_detection_on_up=%d, flap_detection_on_down=%d, flap_detection_on_unreachable=%d, low_flap_threshold=%lf, high_flap_threshold=%lf, process_performance_data=%d, freshness_checks_enabled=%d, freshness_threshold=%d, passive_checks_enabled=%d, event_handler_enabled=%d, active_checks_enabled=%d, retain_status_information=%d, retain_nonstatus_information=%d, notifications_enabled=%d, obsess_over_host=%d, failure_prediction_enabled=%d, notes='%s', notes_url='%s', action_url='%s', icon_image='%s', icon_image_alt='%s', vrml_image='%s', statusmap_image='%s', have_2d_coords=%d, x_2d=%d, y_2d=%d, have_3d_coords=%d, x_3d=%lf, y_3d=%lf, z_3d=%lf, address6='%s' WHERE instance_id=%lu AND config_type=%d AND host_object_id=%lu",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTS],
                                         *(char **) data[3],             /* update start */
                                         *(char **) data[4],
                                         *(char **) data[5],
                                         *(unsigned long *) data[6],
-                                        *(char **) data[7],
+					(*(char **) data[7]==NULL)?"":*(char **) data[7],
                                         *(unsigned long *) data[8],
-                                        *(char **) data[9],
+					(*(char **) data[9]==NULL)?"":*(char **) data[9],
                                         *(unsigned long *) data[10],
                                         *(unsigned long *) data[11],
                                         *(char **) data[12],
@@ -4398,7 +4252,8 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(int *) data[53],
                                         *(double *) data[54],
                                         *(double *) data[55],
-                                        *(double *) data[56],           /* update end */
+                                        *(double *) data[56],
+                                        *(char **) data[57],           /* update end */
                                         *(unsigned long *) data[0],     /* unique constraint start */
                                         *(int *) data[1],
                                         *(unsigned long *) data[2]      /* unique constraint end */
@@ -4410,7 +4265,7 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                         /* check result if update was ok */
 			if(dbi_result_get_numrows_affected(idi->dbinfo.dbi_result) == 0) {
                                 /* try insert instead */
-                                asprintf(&query2, "INSERT INTO %s (instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notification_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d) VALUES (%lu, %d, %lu, '%s', '%s', '%s', %lu, '%s', %lu, '%s', %lu, %lu, '%s', %lf, %lf, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %lf, %lf, %lf)",
+                                asprintf(&query2, "INSERT INTO %s (instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notification_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d, address6) VALUES (%lu, %d, %lu, '%s', '%s', '%s', %lu, '%s', %lu, '%s', %lu, %lu, '%s', %lf, %lf, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %lf, %lf, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %lf, %lf, %lf, '%s')",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTS],
                                         *(unsigned long *) data[0],     /* insert start */
                                         *(int *) data[1],
@@ -4419,9 +4274,9 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(char **) data[4],
                                         *(char **) data[5],
                                         *(unsigned long *) data[6],
-                                        *(char **) data[7],
+					(*(char **) data[7]==NULL)?"":*(char **) data[7],
                                         *(unsigned long *) data[8],
-                                        *(char **) data[9],
+					(*(char **) data[9]==NULL)?"":*(char **) data[9],
                                         *(unsigned long *) data[10],
                                         *(unsigned long *) data[11],
                                         *(char **) data[12],
@@ -4468,7 +4323,8 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                                         *(int *) data[53],
                                         *(double *) data[54],
                                         *(double *) data[55],
-                                        *(double *) data[56]           /* insert end */
+                                        *(double *) data[56],
+                                        *(char **) data[57]           /* insert end */
                                 );
                                 /* send query to db */
                                 result = ido2db_db_query(idi, query2);
@@ -4751,6 +4607,15 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
                         if(!OCI_BindDouble(idi->dbinfo.oci_statement_hostdefinition_definition, MT(":X57"), (double *) data[56])) {
                                 return IDO_ERROR;
                         }
+        if(*(char **) data[57]==NULL) {
+                if(ido2db_oci_prepared_statement_bind_null_param(idi->dbinfo.oci_statement_hostdefinition_definition, ":X58")==IDO_ERROR) {
+                        return IDO_ERROR;
+                }
+        } else {
+                        if(!OCI_BindString(idi->dbinfo.oci_statement_hostdefinition_definition, MT(":X58"), *(char **) data[57], 0)) {
+                                return IDO_ERROR;
+                        }
+        }
 
                         /* execute statement */
                         if(!OCI_Execute(idi->dbinfo.oci_statement_hostdefinition_definition)) {
@@ -4978,118 +4843,6 @@ int ido2db_query_insert_or_update_hostdefinition_contactgroups_add(ido2db_idi *i
                         /* do not free statement yet! */
 #endif
         ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostdefinition_contactgroups_add() end\n");
-
-        return result;
-}
-
-
-int ido2db_query_insert_or_update_hostdefinition_contacts_add(ido2db_idi *idi, void **data) {
-        int result = IDO_OK;
-#ifdef USE_LIBDBI
-        char * query1 = NULL;
-        char * query2 = NULL;
-#endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostdefinition_contacts_add() start\n");
-
-        if (idi == NULL)
-                return IDO_ERROR;
-
-        if (idi->dbinfo.connected == IDO_FALSE)
-                return IDO_ERROR;
-
-#ifdef USE_LIBDBI /* everything else will be libdbi */
-        switch (idi->dbinfo.server_type) {
-                case IDO2DB_DBSERVER_MYSQL:
-                        asprintf(&query1, "INSERT INTO %s (instance_id, host_id, contact_object_id) VALUES (%lu, %lu, %lu) ON DUPLICATE KEY UPDATE instance_id=%lu, host_id=%lu, contact_object_id=%lu",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(unsigned long *) data[1],
-                                        *(unsigned long *) data[2],     /* insert end */
-                                        *(unsigned long *) data[0],     /* update start */
-                                        *(unsigned long *) data[1],
-                                        *(unsigned long *) data[2]      /* update end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-                        break;
-                case IDO2DB_DBSERVER_PGSQL:
-                        asprintf(&query1, "UPDATE %s SET instance_id=%lu, host_id=%lu, contact_object_id=%lu WHERE instance_id=%lu AND host_id=%lu AND contact_object_id=%lu",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS],
-                                        *(unsigned long *) data[0],     /* update start */
-                                        *(unsigned long *) data[1],
-                                        *(unsigned long *) data[2],     /* update end */
-                                        *(unsigned long *) data[0],     /* unique constraint start */
-                                        *(unsigned long *) data[1],
-                                        *(unsigned long *) data[2]      /* unique constraint end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-
-                        /* check result if update was ok */
-			if(dbi_result_get_numrows_affected(idi->dbinfo.dbi_result) == 0) {
-                                /* try insert instead */
-                                asprintf(&query2, "INSERT INTO %s (instance_id, host_id, contact_object_id) VALUES (%lu, %lu, %lu)",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(unsigned long *) data[1],
-                                        *(unsigned long *) data[2]     /* insert end */
-                                );
-                                /* send query to db */
-                                result = ido2db_db_query(idi, query2);
-				free(query2);
-                        }
-                        break;
-                case IDO2DB_DBSERVER_DB2:
-                        break;
-                case IDO2DB_DBSERVER_FIREBIRD:
-                        break;
-                case IDO2DB_DBSERVER_FREETDS:
-                        break;
-                case IDO2DB_DBSERVER_INGRES:
-                        break;
-                case IDO2DB_DBSERVER_MSQL:
-                        break;
-                case IDO2DB_DBSERVER_ORACLE:
-                        break;
-                case IDO2DB_DBSERVER_SQLITE:
-                        break;
-                case IDO2DB_DBSERVER_SQLITE3:
-                        break;
-                default:
-                        break;
-        }
-#endif
-
-#ifdef USE_PGSQL /* pgsql */
-
-#endif
-
-#ifdef USE_ORACLE /* Oracle ocilib specific */
-                        /* use prepared statements and ocilib */
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_contacts, MT(":X1"), (big_uint *) data[0])) {
-                                return IDO_ERROR;
-                        }
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_contacts, MT(":X2"), (big_uint *) data[1])) {
-                                return IDO_ERROR;
-                        }
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_contacts, MT(":X3"), (big_uint *) data[2])) {
-                                return IDO_ERROR;
-                        }
-
-                        /* execute statement */
-                        if(!OCI_Execute(idi->dbinfo.oci_statement_hostdefinition_contacts)) {
-                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_hostdefinition_contacts() execute error\n");
-                                return IDO_ERROR;
-                        }
-
-                        /* commit statement */
-                        OCI_Commit(idi->dbinfo.oci_connection);
-
-                        /* do not free statement yet! */
-#endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_hostdefinition_contacts_add() end\n");
 
         return result;
 }
@@ -5355,9 +5108,9 @@ int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *i
                                         *(unsigned long *) data[3],
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
-                                        *(char **) data[6],
+					(*(char **) data[6]==NULL)?"":*(char **) data[6],
                                         *(unsigned long *) data[7],
-                                        *(char **) data[8],
+					(*(char **) data[8]==NULL)?"":*(char **) data[8],
                                         *(unsigned long *) data[9],
                                         *(unsigned long *) data[10],
                                         *(char **) data[11],
@@ -5403,9 +5156,9 @@ int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *i
                                         *(unsigned long *) data[2],	/* update start */
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
-                                        *(char **) data[6],
+					(*(char **) data[6]==NULL)?"":*(char **) data[6],
                                         *(unsigned long *) data[7],
-                                        *(char **) data[8],
+					(*(char **) data[8]==NULL)?"":*(char **) data[8],
                                         *(unsigned long *) data[9],
                                         *(unsigned long *) data[10],
                                         *(char **) data[11],
@@ -5460,9 +5213,9 @@ int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *i
                                         *(unsigned long *) data[2], 	/* update start */
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
-                                        *(char **) data[6],
+					(*(char **) data[6]==NULL)?"":*(char **) data[6],
                                         *(unsigned long *) data[7],
-                                        *(char **) data[8],
+					(*(char **) data[8]==NULL)?"":*(char **) data[8],
                                         *(unsigned long *) data[9],
                                         *(unsigned long *) data[10],
                                         *(char **) data[11],
@@ -5524,9 +5277,9 @@ int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *i
                                         *(unsigned long *) data[3],
                                         *(char **) data[4],
                                         *(unsigned long *) data[5],
-                                        *(char **) data[6],
+					(*(char **) data[6]==NULL)?"":*(char **) data[6],
                                         *(unsigned long *) data[7],
-                                        *(char **) data[8],
+					(*(char **) data[8]==NULL)?"":*(char **) data[8],
                                         *(unsigned long *) data[9],
                                         *(unsigned long *) data[10],
                                         *(char **) data[11],
@@ -5935,118 +5688,6 @@ int ido2db_query_insert_or_update_servicedefinition_contactgroups_add(ido2db_idi
                         /* do not free statement yet! */
 #endif
         ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicedefinition_contactgroups_add() end\n");
-
-        return result;
-}
-
-
-int ido2db_query_insert_or_update_servicedefinition_contacts_add(ido2db_idi *idi, void **data) {
-        int result = IDO_OK;
-#ifdef USE_LIBDBI
-        char * query1 = NULL;
-        char * query2 = NULL;
-#endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicedefinition_contacts_add() start\n");
-
-        if (idi == NULL)
-                return IDO_ERROR;
-
-        if (idi->dbinfo.connected == IDO_FALSE)
-                return IDO_ERROR;
-
-#ifdef USE_LIBDBI /* everything else will be libdbi */
-        switch (idi->dbinfo.server_type) {
-                case IDO2DB_DBSERVER_MYSQL:
-                        asprintf(&query1, "INSERT INTO %s (instance_id, service_id, contact_object_id) VALUES (%lu, %lu, %lu) ON DUPLICATE KEY UPDATE instance_id='%lu', service_id='%lu', contact_object_id='%lu'",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(unsigned long *) data[1],     
-                                        *(unsigned long *) data[2],     /* insert end */
-                                        *(unsigned long *) data[0],     /* update start */
-                                        *(unsigned long *) data[1],     
-                                        *(unsigned long *) data[2]     /* update end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-                        break;
-                case IDO2DB_DBSERVER_PGSQL:
-                        asprintf(&query1, "UPDATE %s SET instance_id='%lu', service_id='%lu', contact_object_id='%lu' WHERE instance_id=%lu AND service_id=%lu AND contact_object_id=%lu",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS],
-                                        *(unsigned long *) data[0],     /* update start */
-                                        *(unsigned long *) data[1],     
-                                        *(unsigned long *) data[2],     /* update end */
-                                        *(unsigned long *) data[0],     /* unique constraint start */
-                                        *(unsigned long *) data[1],     
-                                        *(unsigned long *) data[2]     /* unique constraint end */
-                        );
-                        /* send query to db */
-                        result = ido2db_db_query(idi, query1);
-			free(query1);
-
-                        /* check result if update was ok */
-			if(dbi_result_get_numrows_affected(idi->dbinfo.dbi_result) == 0) {
-                                /* try insert instead */
-                                asprintf(&query2, "INSERT INTO %s (instance_id, service_id, contact_object_id) VALUES (%lu, %lu, %lu)",
-                                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS],
-                                        *(unsigned long *) data[0],     /* insert start */
-                                        *(unsigned long *) data[1],     
-                                        *(unsigned long *) data[2]     /* insert end */
-                                );
-                                /* send query to db */
-                                result = ido2db_db_query(idi, query2);
-				free(query2);
-                        }
-                        break;
-                case IDO2DB_DBSERVER_DB2:
-                        break;
-                case IDO2DB_DBSERVER_FIREBIRD:
-                        break;
-                case IDO2DB_DBSERVER_FREETDS:
-                        break;
-                case IDO2DB_DBSERVER_INGRES:
-                        break;
-                case IDO2DB_DBSERVER_MSQL:
-                        break;
-                case IDO2DB_DBSERVER_ORACLE:
-                        break;
-                case IDO2DB_DBSERVER_SQLITE:
-                        break;
-                case IDO2DB_DBSERVER_SQLITE3:
-                        break;
-                default:
-                        break;
-        }
-#endif
-
-#ifdef USE_PGSQL /* pgsql */
-
-#endif
-
-#ifdef USE_ORACLE /* Oracle ocilib specific */
-                        /* use prepared statements and ocilib */
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedefinition_contacts, MT(":X1"), (big_uint *) data[0])) {
-                                return IDO_ERROR;
-                        }
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedefinition_contacts, MT(":X2"), (big_uint *) data[1])) {
-                                return IDO_ERROR;
-                        }
-                        if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedefinition_contacts, MT(":X3"), (big_uint *) data[2])) {
-                                return IDO_ERROR;
-                        }
-
-                        /* execute statement */
-                        if(!OCI_Execute(idi->dbinfo.oci_statement_servicedefinition_contacts)) {
-                                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_servicedefinition_contacts() execute error\n");
-                                return IDO_ERROR;
-                        }
-
-                        /* commit statement */
-                        OCI_Commit(idi->dbinfo.oci_connection);
-
-                        /* do not free statement yet! */
-#endif
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_query_insert_or_update_servicedefinition_contacts_add() end\n");
 
         return result;
 }
@@ -8119,8 +7760,8 @@ int ido2db_query_insert_or_update_contactdefinition_notificationcommands_add(ido
                                         *(unsigned long *) data[1],
                                         *(int *) data[2],
                                         *(unsigned long *) data[3],
-                                        *(char **) data[4],		/* insert end */
-                                        *(char **) data[4]		/* update start/end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],		/* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4]		/* update start/end */
                         );
                         /* send query to db */
                         result = ido2db_db_query(idi, query1);
@@ -8129,7 +7770,7 @@ int ido2db_query_insert_or_update_contactdefinition_notificationcommands_add(ido
                 case IDO2DB_DBSERVER_PGSQL:
                         asprintf(&query1, "UPDATE %s SET command_args='%s' WHERE instance_id=%lu AND contact_id=%lu AND notification_type=%d AND command_object_id=%lu",
                                         ido2db_db_tablenames[IDO2DB_DBTABLE_CONTACTNOTIFICATIONCOMMANDS],
-                                        *(char **) data[4],		/* update start/end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],		/* update start/end */
                                         *(unsigned long *) data[0],     /* unique constraint start */
                                         *(unsigned long *) data[1],
                                         *(int *) data[2],
@@ -8148,7 +7789,7 @@ int ido2db_query_insert_or_update_contactdefinition_notificationcommands_add(ido
                                         *(unsigned long *) data[1],     
                                         *(int *) data[2],
                                         *(unsigned long *) data[3],
-                                        *(char **) data[4]		/* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4]		/* insert end */
                                 );
                                 /* send query to db */
                                 result = ido2db_db_query(idi, query2);
@@ -8367,8 +8008,8 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariables_add(ido2
                                         *(unsigned long *) data[1],
                                         *(int *) data[2],
                                         *(int *) data[3],
-                                        (data[4]==NULL)?"":*(char **) data[4],
-                                        (data[5]==NULL)?"":*(char **) data[5],		/* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5],		/* insert end */
                                         *(unsigned long *) data[0],     /* update start */
                                         *(int *) data[2],
                                         *(int *) data[3],
@@ -8385,9 +8026,9 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariables_add(ido2
                                         *(unsigned long *) data[0],     /* update start */
                                         *(int *) data[2],
                                         *(int *) data[3],
-                                        (data[5]==NULL)?"":*(char **) data[5],		/* update end */
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5],		/* update end */
                                         *(unsigned long *) data[1],	/* unique constraint start */
-                                        (data[4]==NULL)?"":*(char **) data[4]		/* unique constraint end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4]		/* unique constraint end */
                         );
                         /* send query to db */
                         result = ido2db_db_query(idi, query1);
@@ -8402,8 +8043,8 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariables_add(ido2
                                         *(unsigned long *) data[1],
                                         *(int *) data[2],
                                         *(int *) data[3],
-                                        (data[4]==NULL)?"":*(char **) data[4],
-                                        (data[5]==NULL)?"":*(char **) data[5]		/* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5]		/* insert end */
                                 );
                                 /* send query to db */
                                 result = ido2db_db_query(idi, query2);
@@ -8510,8 +8151,8 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariablestatus_add
                                         *(unsigned long *) data[1],
                                         *(char **) data[2],
                                         *(int *) data[3],
-                                        (data[4]==NULL)?"":*(char **) data[4],
-                                        (data[5]==NULL)?"":*(char **) data[5],             /* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5],             /* insert end */
                                         *(unsigned long *) data[0],     /* update start */
                                         *(char **) data[2],
                                         *(int *) data[3],
@@ -8527,9 +8168,9 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariablestatus_add
                                         *(unsigned long *) data[0],     /* update start */
                                         *(char **) data[2],
                                         *(int *) data[3],
-                                        (data[5]==NULL)?"":*(char **) data[5],             /* update end */
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5],             /* update end */
                                         *(unsigned long *) data[1],     /* unique constraint start */
-                                        (data[4]==NULL)?"":*(char **) data[4]      /* unique constraint end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4]      /* unique constraint end */
                         );
                         /* send query to db */
                         result = ido2db_db_query(idi, query1);
@@ -8544,8 +8185,8 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariablestatus_add
                                         *(unsigned long *) data[1],
                                         *(char **) data[2],
                                         *(int *) data[3],
-                                        (data[4]==NULL)?"":*(char **) data[4],
-                                        (data[5]==NULL)?"":*(char **) data[5]             /* insert end */
+                                        (*(char **) data[4]==NULL)?"":*(char **) data[4],
+                                        (*(char **) data[5]==NULL)?"":*(char **) data[5]             /* insert end */
                                 );
                                 /* send query to db */
                                 result = ido2db_db_query(idi, query2);

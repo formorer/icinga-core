@@ -2,7 +2,7 @@
  * SOCKDEBUG.C - Socket Debugging Utility
  *
  * Copyright (c) 2005-2007 Ethan Galstad 
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  **************************************************************/
 
@@ -11,7 +11,7 @@
 
 #define SOCKDEBUG_VERSION "1.3.0"
 #define SOCKDEBUG_NAME "SOCKDEBUG"
-#define SOCKDEBUG_DATE "10-25-2010"
+#define SOCKDEBUG_DATE "02-16-2011"
 
 
 int cleanup_socket(int,char *);
@@ -33,7 +33,7 @@ int main(int argc, char **argv){
 
 	if(argc<2){
 		printf("%s %s\n",SOCKDEBUG_NAME,SOCKDEBUG_VERSION);
-		printf("Copyright(c) 2009-2010 Icinga Development Team (http://www.icinga.org)\n");
+		printf("Copyright(c) 2009-2011 Icinga Development Team (http://www.icinga.org)\n");
 		printf("Copyright(c) 2005-2007 Ethan Galstad\n");
 		printf("Last Modified: %s\n",SOCKDEBUG_DATE);
 		printf("License: GPL v2\n");

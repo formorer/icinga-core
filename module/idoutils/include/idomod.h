@@ -2,12 +2,16 @@
  *
  * IDOMOD.H - IDO NEB Module Include File
  * Copyright (c) 2005-2006 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  ************************************************************************/
 
 #ifndef _NDBXT_IDOMOD_H
 #define _NDBXT_IDOMOD_H
+
+#define IDOMOD_VERSION "1.3.0"
+#define IDOMOD_NAME "IDOMOD"
+#define IDOMOD_DATE "02-16-2011"
 
 /************** misc definitions *************/
 

@@ -2,7 +2,7 @@
 -- oracle.sql
 -- DB definition for Oracle
 --
--- Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+-- Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
 --
 -- requires ocilib, oracle (instantclient) libs+sdk to work
 -- specify oracle (instantclient) libs+sdk in ocilib configure
@@ -28,7 +28,7 @@
 --
 --
 -- initial version: 2008-02-20 David Schmidt
--- current version: 2010-07-26 Michael Friedrich <michael.friedrich(at)univie.ac.at>
+-- current version: 2011-01-17 Michael Friedrich <michael.friedrich(at)univie.ac.at>
 --
 -- -- --------------------------------------------------------
 
@@ -57,6 +57,8 @@ BEGIN
         END IF;
 
 EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+                RETURN TO_DATE('1970-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS');
         WHEN OTHERS THEN
                 RAISE;
 END;
@@ -105,7 +107,6 @@ END;
 -- --------------------------------------------------------
 -- database table creation: icinga
 -- --------------------------------------------------------
-
 
 --
 -- Table structure for table acknowledgements
@@ -456,8 +457,11 @@ CREATE INDEX customvariablestatus_i ON customvariablestatus(varname);
 -- 
 
 CREATE TABLE dbversion (
+  id number(11) NOT NULL,
   name varchar2(10),
-  version varchar2(10)
+  version varchar2(10),
+  PRIMARY KEY (id),
+  CONSTRAINT dbversion UNIQUE (name)
 );
 
 -- --------------------------------------------------------
@@ -584,8 +588,7 @@ CREATE TABLE host_contacts (
   instance_id number(11) default 0 NOT NULL,
   host_id number(11) default 0 NOT NULL,
   contact_object_id number(11) default 0 NOT NULL,
-  PRIMARY KEY  (id),
-  CONSTRAINT host_contacts UNIQUE (instance_id,host_id,contact_object_id)
+  PRIMARY KEY  (id)
 );
 
 -- --------------------------------------------------------
@@ -634,8 +637,7 @@ CREATE TABLE hostchecks (
   output varchar2(1024),
   long_output clob,
   perfdata varchar2(1024),
-  PRIMARY KEY  (id),
-  CONSTRAINT hostchecks UNIQUE (instance_id,host_object_id,start_time,start_time_usec)
+  PRIMARY KEY  (id)
 );
 
 -- --------------------------------------------------------
@@ -757,6 +759,7 @@ CREATE TABLE hosts (
   alias varchar2(255),
   display_name varchar2(255),
   address varchar2(128),
+  address6 varchar2(128),
   check_command_object_id number(11) default 0 NOT NULL,
   check_command_args varchar2(255),
   eventhandler_command_object_id number(11) default 0 NOT NULL,
@@ -1067,8 +1070,7 @@ CREATE TABLE service_contacts (
   instance_id number(11) default 0 NOT NULL,
   service_id number(11) default 0 NOT NULL,
   contact_object_id number(11) default 0 NOT NULL,
-  PRIMARY KEY  (id),
-  CONSTRAINT service_contacts UNIQUE (instance_id,service_id,contact_object_id)
+  PRIMARY KEY  (id)
 );
 
 -- --------------------------------------------------------
@@ -1101,8 +1103,7 @@ CREATE TABLE servicechecks (
   output varchar2(1024),
   long_output clob,
   perfdata varchar2(1024),
-  PRIMARY KEY  (id),
-  CONSTRAINT servicechecks UNIQUE (instance_id,service_object_id,start_time,start_time_usec)
+  PRIMARY KEY  (id)
 );
 
 -- --------------------------------------------------------
@@ -1456,6 +1457,11 @@ CREATE TABLE timeperiods (
   CONSTRAINT timeperiods UNIQUE (instance_id,config_type,timeperiod_object_id)
 );
 
+-- -----------------------------------------
+-- set dbversion
+-- -----------------------------------------
+INSERT INTO dbversion (id, name, version) VALUES ('1', 'idoutils', '1.3.0');
+
 
 -- -----------------------------------------
 -- add index (delete)
@@ -1602,14 +1608,6 @@ CREATE INDEX objects_name1_idx ON objects(name1);
 CREATE INDEX objects_name2_idx ON objects(name2);
 CREATE INDEX objects_inst_id_idx ON objects(instance_id);
 
-
--- hostchecks
--- CREATE INDEX hostchks_h_obj_id_idx on hostchecks(host_object_id);
-
--- servicechecks
--- CREATE INDEX servicechks_s_obj_id_idx on servicechecks(service_object_id);
-
-
 -- instances
 -- CREATE INDEX instances_name_idx on instances(instance_name);
 
@@ -1618,6 +1616,7 @@ CREATE INDEX objects_inst_id_idx ON objects(instance_id);
 -- #236
 CREATE INDEX loge_time_idx on logentries(logentry_time);
 -- CREATE INDEX loge_data_idx on logentries(logentry_data);
+CREATE INDEX loge_inst_id_time_idx on logentries (instance_id ASC, logentry_time DESC);
 
 -- commenthistory
 -- CREATE INDEX c_hist_instance_id_idx on logentries(instance_id);
@@ -1935,5 +1934,4 @@ CREATE SEQUENCE seq_timeperiods
    start with 1
    increment by 1
    nomaxvalue;
-
 

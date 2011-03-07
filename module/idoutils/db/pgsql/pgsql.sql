@@ -2,12 +2,14 @@
 -- pgsql.sql
 -- DB definition for Postgresql
 --
--- Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+-- Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
 --
 -- initial version: 2009-05-13 Markus Manzke
 -- current version: 2010-07-20 Michael Friedrich <michael.friedrich@univie.ac.at>
 --
 -- --------------------------------------------------------
+
+CREATE LANGUAGE plpgsql;
 
 --
 -- Functions
@@ -21,6 +23,27 @@ CREATE OR REPLACE FUNCTION from_unixtime(integer) RETURNS timestamp AS '
 CREATE OR REPLACE FUNCTION unix_timestamp(timestamp) RETURNS bigint AS '
 	SELECT EXTRACT(EPOCH FROM $1)::bigint AS result;
 ' LANGUAGE 'SQL';
+
+
+-- -----------------------------------------
+-- set dbversion
+-- -----------------------------------------
+
+CREATE OR REPLACE FUNCTION updatedbversion(version_i TEXT) RETURNS void AS $$
+BEGIN
+        IF EXISTS( SELECT * FROM icinga_dbversion WHERE name='idoutils')
+        THEN
+                UPDATE icinga_dbversion
+                SET version=version_i WHERE name='idoutils';
+        ELSE
+                INSERT INTO icinga_dbversion (dbversion_id, name, version) VALUES ('1', 'idoutils', version_i);
+        END IF;
+
+        RETURN;
+END;
+$$ LANGUAGE plpgsql;
+-- HINT: su - postgres; createlang plpgsql icinga;
+
 
 
 --
@@ -381,8 +404,11 @@ CREATE INDEX icinga_customvariablestatus_i ON icinga_customvariablestatus(varnam
 --
 
 CREATE TABLE  icinga_dbversion (
+  dbversion_id SERIAL,
   name TEXT NOT NULL default '',
-  version TEXT NOT NULL default ''
+  version TEXT NOT NULL default '',
+  PRIMARY KEY (dbversion_id),
+  UNIQUE (name)
 ) ;
 
 -- --------------------------------------------------------
@@ -515,8 +541,7 @@ CREATE TABLE  icinga_hostchecks (
   output TEXT NOT NULL default '',
   long_output TEXT NOT NULL default '',
   perfdata TEXT NOT NULL default '',
-  PRIMARY KEY  (hostcheck_id),
-  UNIQUE (instance_id,host_object_id,start_time,start_time_usec)
+  PRIMARY KEY  (hostcheck_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -638,6 +663,7 @@ CREATE TABLE  icinga_hosts (
   alias TEXT NOT NULL default '',
   display_name TEXT NOT NULL default '',
   address TEXT NOT NULL default '',
+  address6 TEXT NOT NULL default '',
   check_command_object_id INTEGER NOT NULL default 0,
   check_command_args TEXT NOT NULL default '',
   eventhandler_command_object_id INTEGER NOT NULL default 0,
@@ -777,8 +803,7 @@ CREATE TABLE  icinga_host_contacts (
   instance_id INTEGER NOT NULL default 0,
   host_id INTEGER NOT NULL default 0,
   contact_object_id INTEGER NOT NULL default 0,
-  PRIMARY KEY  (host_contact_id),
-  UNIQUE (instance_id,host_id,contact_object_id)
+  PRIMARY KEY  (host_contact_id)
 )  ;
 
 -- --------------------------------------------------------
@@ -998,8 +1023,7 @@ CREATE TABLE  icinga_servicechecks (
   output TEXT NOT NULL default '',
   long_output TEXT NOT NULL default '',
   perfdata TEXT NOT NULL default '',
-  PRIMARY KEY  (servicecheck_id),
-  UNIQUE (instance_id,service_object_id,start_time,start_time_usec)
+  PRIMARY KEY  (servicecheck_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1257,8 +1281,7 @@ CREATE TABLE  icinga_service_contacts (
   instance_id INTEGER NOT NULL default 0,
   service_id INTEGER NOT NULL default 0,
   contact_object_id INTEGER NOT NULL default 0,
-  PRIMARY KEY  (service_contact_id),
-  UNIQUE (instance_id,service_id,contact_object_id)
+  PRIMARY KEY  (service_contact_id)
 ) ;
 
 -- --------------------------------------------------------
@@ -1382,6 +1405,13 @@ CREATE TABLE  icinga_timeperiod_timeranges (
   PRIMARY KEY  (timeperiod_timerange_id),
   UNIQUE (timeperiod_id,day,start_sec,end_sec)
 ) ;
+
+
+-- -----------------------------------------
+-- set dbversion
+-- -----------------------------------------
+
+SELECT updatedbversion('1.3.0');
 
 -- -----------------------------------------
 -- add index (delete)
@@ -1527,14 +1557,6 @@ CREATE INDEX objects_name1_idx ON icinga_objects(name1);
 CREATE INDEX objects_name2_idx ON icinga_objects(name2);
 CREATE INDEX objects_inst_id_idx ON icinga_objects(instance_id);
 
-
--- hostchecks
--- CREATE INDEX hostchks_h_obj_id_idx on icinga_hostchecks(host_object_id);
-
--- servicechecks
--- CREATE INDEX servicechks_s_obj_id_idx on icinga_servicechecks(service_object_id);
-
-
 -- instances
 -- CREATE INDEX instances_name_idx on icinga_instances(instance_name);
 
@@ -1543,6 +1565,8 @@ CREATE INDEX objects_inst_id_idx ON icinga_objects(instance_id);
 -- #236
 CREATE INDEX loge_time_idx on icinga_logentries(logentry_time);
 -- CREATE INDEX loge_data_idx on icinga_logentries(logentry_data);
+CREATE INDEX loge_inst_id_time_idx on icinga_logentries (instance_id ASC, logentry_time DESC);
+
 
 -- commenthistory
 -- CREATE INDEX c_hist_instance_id_idx on icinga_logentries(instance_id);
@@ -1566,5 +1590,4 @@ CREATE INDEX loge_time_idx on icinga_logentries(logentry_time);
 
 -- statehistory
 CREATE INDEX statehist_i_id_o_id_s_ty_s_ti on icinga_statehistory(instance_id, object_id, state_type, state_time);
-
 

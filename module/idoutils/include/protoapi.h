@@ -2,7 +2,7 @@
  *
  * PROTOAPI.H - IDO Protocol Definition
  * Copyright (c) 2005-2006 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  ************************************************************************/
 
@@ -107,7 +107,7 @@
 
 /************** COMMON DATA ATTRIBUTES **************/
 
-#define IDO_MAX_DATA_TYPES                           266
+#define IDO_MAX_DATA_TYPES                           267
 
 #define IDO_DATA_NONE                                0
 
@@ -386,4 +386,5 @@
 #define IDO_DATA_CONTACT                             264
 #define IDO_DATA_LASTSTATE                           265
 
+#define IDO_DATA_HOSTADDRESS6			     266
 #endif

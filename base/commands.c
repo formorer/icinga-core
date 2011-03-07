@@ -3,7 +3,8 @@
  * COMMANDS.C - External command functions for Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -2100,6 +2101,10 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 				real_host_name=temp_host->name;
 				break;
 			        }
+		        else if(!strcmp(host_name,temp_host->address6)){
+				real_host_name=temp_host->name;
+				break;
+			        }
 		        }
 	        }
 
@@ -2238,6 +2243,10 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	else{
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(!strcmp(host_name,temp_host->address)){
+				real_host_name=temp_host->name;
+				break;
+			        }
+		        else if(!strcmp(host_name,temp_host->address6)){
 				real_host_name=temp_host->name;
 				break;
 			        }
@@ -2525,6 +2534,16 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 
 	/* get the comment */
 	if((comment_data=my_strtok(NULL,";"))==NULL)
+		return ERROR;
+
+	/* MF 26-01-2011: check if flexible downtime demanded
+	   and duration set to non-zero.
+	   according to the documentation, a flexible downtime is
+	   started between start and end time and will last for
+	   "duration" seconds. strtoul converts a NULL value to 0
+	   so if set to 0, bail out as a duration>0 is needed. 	   */
+
+	if(fixed==0 && duration==0)
 		return ERROR;
 
 	/* duration should be auto-calculated, not user-specified */

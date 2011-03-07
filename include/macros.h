@@ -3,7 +3,8 @@
  * MACROS.H - Common macro functions
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -41,7 +42,7 @@
 
 #define MAX_USER_MACROS				256	/* maximum number of $USERx$ macros */
 
-#define MACRO_X_COUNT				153	/* size of macro_x[] array */
+#define MACRO_X_COUNT				154	/* size of macro_x[] array */
 
 struct icinga_macros {
 	char *x[MACRO_X_COUNT];
@@ -60,6 +61,23 @@ struct icinga_macros {
 };
 typedef struct icinga_macros icinga_macros;
 
+/* stay compatible */
+struct nagios_macros {
+        char *x[MACRO_X_COUNT];
+        char *argv[MAX_COMMAND_ARGUMENTS];
+        char *contactaddress[MAX_CONTACT_ADDRESSES];
+        char *ondemand;
+        host *host_ptr;
+        hostgroup *hostgroup_ptr;
+        service *service_ptr;
+        servicegroup *servicegroup_ptr;
+        contact *contact_ptr;
+        contactgroup *contactgroup_ptr;
+        customvariablesmember *custom_host_vars;
+        customvariablesmember *custom_service_vars;
+        customvariablesmember *custom_contact_vars;
+};
+typedef struct nagios_macros nagios_macros;
 
 #define MACRO_HOSTNAME				0
 #define MACRO_HOSTALIAS				1
@@ -214,7 +232,7 @@ typedef struct icinga_macros icinga_macros;
 #define MACRO_LASTHOSTSTATEID                   150
 #define MACRO_LASTSERVICESTATE                  151
 #define MACRO_LASTSERVICESTATEID                152
-
+#define MACRO_HOSTADDRESS6			153
 
 
 /************* MACRO CLEANING OPTIONS *****************/
@@ -246,12 +264,49 @@ char *clean_macro_chars(char *,int);
  * These functions updates **macros with the values from
  * their respective object type.
  */
-int grab_service_macros(icinga_macros *mac, service *);
-int grab_host_macros(icinga_macros *mac, host *);
-int grab_servicegroup_macros(icinga_macros *mac, servicegroup *);
-int grab_hostgroup_macros(icinga_macros *mac, hostgroup *);
-int grab_contact_macros(icinga_macros *mac, contact *);
-int grab_contactgroup_macros(icinga_macros *mac, contactgroup *);
+
+int grab_service_macros(service *);
+int grab_host_macros(host *);
+int grab_servicegroup_macros(servicegroup *);
+int grab_hostgroup_macros(hostgroup *);
+int grab_contact_macros(contact *);
+int grab_contactgroup_macros(contactgroup *);
+
+int grab_macro_value(char *,char **,int *,int *);
+int grab_macrox_value(int,char *,char *,char **,int *);
+int grab_custom_macro_value(char *,char *,char *,char **);
+int grab_datetime_macro(int,char *,char *,char **);
+int grab_standard_host_macro(int,host *,char **,int *);
+int grab_standard_hostgroup_macro(int,hostgroup *,char **);
+int grab_standard_service_macro(int,service *,char **,int *);
+int grab_standard_servicegroup_macro(int,servicegroup *,char **);
+int grab_standard_contact_macro(int,contact *,char **);
+int grab_contact_address_macro(int,contact *,char **);
+int grab_standard_contactgroup_macro(int,contactgroup *,char **);
+int grab_custom_object_macro(char *,customvariablesmember *,char **);
+
+
+/* thread-safe version of the above */
+int grab_service_macros_r(icinga_macros *mac, service *);
+int grab_host_macros_r(icinga_macros *mac, host *);
+int grab_servicegroup_macros_r(icinga_macros *mac, servicegroup *);
+int grab_hostgroup_macros_r(icinga_macros *mac, hostgroup *);
+int grab_contact_macros_r(icinga_macros *mac, contact *);
+int grab_contactgroup_macros_r(icinga_macros *mac, contactgroup *);
+
+int grab_macro_value_r(icinga_macros *mac, char *,char **,int *,int *);
+int grab_macrox_value_r(icinga_macros *mac, int,char *,char *,char **,int *);
+int grab_custom_macro_value_r(icinga_macros *mac, char *,char *,char *,char **);
+int grab_datetime_macro_r(icinga_macros *mac, int,char *,char *,char **);
+int grab_standard_host_macro_r(icinga_macros *mac, int,host *,char **,int *);
+int grab_standard_hostgroup_macro_r(icinga_macros *mac, int,hostgroup *,char **);
+int grab_standard_service_macro_r(icinga_macros *mac, int,service *,char **,int *);
+int grab_standard_servicegroup_macro_r(icinga_macros *mac, int,servicegroup *,char **);
+int grab_standard_contact_macro_r(icinga_macros *mac, int,contact *,char **);
+int grab_contact_address_macro_r(icinga_macros *mac, int,contact *,char **);
+int grab_standard_contactgroup_macro_r(icinga_macros *mac, int,contactgroup *,char **);
+int grab_custom_object_macro_r(icinga_macros *mac, char *,customvariablesmember *,char **);
+
 
 char *get_url_encoded_string(char *);			/* URL encode a string */
 
@@ -262,35 +317,41 @@ int free_macrox_names(void);
 
 extern void copy_constant_macros(char **dest);
 
-int clear_argv_macros(icinga_macros *mac);
-int clear_volatile_macros(icinga_macros *mac);
-int clear_host_macros(icinga_macros *mac);
-int clear_service_macros(icinga_macros *mac);
-int clear_hostgroup_macros(icinga_macros *mac);
-int clear_servicegroup_macros(icinga_macros *mac);
-int clear_contact_macros(icinga_macros *mac);
-int clear_contactgroup_macros(icinga_macros *mac);
-int clear_summary_macros(icinga_macros *mac);
+/* clear macros */
+int clear_argv_macros(void);
+int clear_volatile_macros(void);
+int clear_host_macros(void);
+int clear_service_macros(void);
+int clear_hostgroup_macros(void);
+int clear_servicegroup_macros(void);
+int clear_contact_macros(void);
+int clear_contactgroup_macros(void);
+int clear_summary_macros(void);
 
-int grab_macro_value(icinga_macros *mac, char *,char **,int *,int *);
-int grab_macrox_value(icinga_macros *mac, int,char *,char *,char **,int *);
-int grab_custom_macro_value(icinga_macros *mac, char *,char *,char *,char **);
-int grab_datetime_macro(icinga_macros *mac, int,char *,char *,char **);
-int grab_standard_host_macro(icinga_macros *mac, int,host *,char **,int *);
-int grab_standard_hostgroup_macro(icinga_macros *mac, int,hostgroup *,char **);
-int grab_standard_service_macro(icinga_macros *mac, int,service *,char **,int *);
-int grab_standard_servicegroup_macro(icinga_macros *mac, int,servicegroup *,char **);
-int grab_standard_contact_macro(icinga_macros *mac, int,contact *,char **);
-int grab_contact_address_macro(icinga_macros *mac, int,contact *,char **);
-int grab_standard_contactgroup_macro(icinga_macros *mac, int,contactgroup *,char **);
-int grab_custom_object_macro(icinga_macros *mac, char *,customvariablesmember *,char **);
+/* thread-safe version of the above */
+int clear_argv_macros_r(icinga_macros *mac);
+int clear_volatile_macros_r(icinga_macros *mac);
+int clear_host_macros_r(icinga_macros *mac);
+int clear_service_macros_r(icinga_macros *mac);
+int clear_hostgroup_macros_r(icinga_macros *mac);
+int clear_servicegroup_macros_r(icinga_macros *mac);
+int clear_contact_macros_r(icinga_macros *mac);
+int clear_contactgroup_macros_r(icinga_macros *mac);
+int clear_summary_macros_r(icinga_macros *mac);
 
 #ifdef NSCORE
-int set_all_macro_environment_vars(icinga_macros *mac, int);
-int set_macrox_environment_vars(icinga_macros *mac, int);
-int set_argv_macro_environment_vars(icinga_macros *mac, int);
-int set_custom_macro_environment_vars(icinga_macros *mac, int);
-int set_contact_address_environment_vars(icinga_macros *mac, int);
+int set_all_macro_environment_vars(int);
+int set_macrox_environment_vars(int);
+int set_argv_macro_environment_vars(int);
+int set_custom_macro_environment_vars(int);
+int set_contact_address_environment_vars(int);
+
+int set_all_macro_environment_vars_r(icinga_macros *mac, int);
+int set_macrox_environment_vars_r(icinga_macros *mac, int);
+int set_argv_macro_environment_vars_r(icinga_macros *mac, int);
+int set_custom_macro_environment_vars_r(icinga_macros *mac, int);
+int set_contact_address_environment_vars_r(icinga_macros *mac, int);
+
 int set_macro_environment_var(char *,char *,int);
 #endif
 

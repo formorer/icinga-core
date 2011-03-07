@@ -3,7 +3,7 @@
  * SHOWLOG.C - Icinga Log File CGI
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -87,7 +87,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -96,7 +96,7 @@ int main(void){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -105,7 +105,7 @@ int main(void){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -259,17 +259,15 @@ int display_log(void){
 	mmapfile *thefile=NULL;
 	char last_message_date[MAX_INPUT_BUFFER]="";
 	char current_message_date[MAX_INPUT_BUFFER]="";
+	char error_text[MAX_INPUT_BUFFER]="";
 	struct tm *time_ptr=NULL;
 
 
 	/* check to see if the user is authorized to view the log file */
 	if(is_authorized_for_system_information(&current_authdata)==FALSE){
-		printf("<HR>\n");
-		printf("<DIV CLASS='errorMessage'>It appears as though you do not have permission to view the log file...</DIV><br><br>\n");
-		printf("<DIV CLASS='errorDescription'>If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI<br>and check the authorization options in your CGI configuration file.</DIV>\n");
-		printf("<HR>\n");
+		print_generic_error_message("It appears as though you do not have permission to view the log file...","If you believe this is an error, check the HTTP server authentication requirements for accessing this CGI and check the authorization options in your CGI configuration file.",0);
 		return ERROR;
-	        }
+	}
 
 	error=FALSE;
 
@@ -291,12 +289,12 @@ int display_log(void){
 	if(use_lifo==FALSE){
 
 		if((thefile=mmap_fopen(log_file_to_use))==NULL){
-			printf("<HR>\n");
-			printf("<P><DIV CLASS='errorMessage'>Error: Could not open log file '%s' for reading!</DIV></P>",log_file_to_use);
-			printf("<HR>\n");
+			snprintf(error_text,sizeof(error_text),"Error: Could not open log file '%s' for reading!",log_file_to_use);
+			error_text[sizeof(error_text)-1]='\x0';
+			print_generic_error_message(error_text,NULL,0);
 			error=TRUE;
-	                }
-	        }
+		}
+	}
 
 	if(error==FALSE){
 

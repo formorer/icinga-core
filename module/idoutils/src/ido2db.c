@@ -2,7 +2,7 @@
  * IDO2DB.C - IDO To Database Daemon
  *
  * Copyright (c) 2005-2008 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  **************************************************************/
 
@@ -26,10 +26,6 @@
 #ifdef HAVE_SSL
 #include "../../../include/dh.h"
 #endif
-
-#define IDO2DB_NAME "IDO2DB"
-#define IDO2DB_DATE "10-25-2010"
-#define IDO2DB_VERSION "1.3.0"
 
 extern int use_ssl;
 
@@ -116,7 +112,7 @@ int main(int argc, char **argv){
 		printf("\n");
 		printf("%s %s\n",IDO2DB_NAME,IDO2DB_VERSION);
 		printf("Copyright(c) 2005-2008 Ethan Galstad (nagios@nagios.org)\n");
-		printf("Copyright(c) 2009-2010 Icinga Development Team (http://www.icinga.org)\n");
+		printf("Copyright(c) 2009-2011 Icinga Development Team (http://www.icinga.org)\n");
 		printf("Last Modified: %s\n",IDO2DB_DATE);
 		printf("License: GPL v2\n");
 #ifdef HAVE_SSL
@@ -145,7 +141,7 @@ int main(int argc, char **argv){
         }
 
 	/* print starting info to syslog */
-	syslog(LOG_USER | LOG_INFO, "%s %s (%s) Copyright (c) 2005-2008 Ethan Galstad (nagios@nagios.org), Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org))", IDO2DB_NAME, IDO2DB_VERSION, IDO2DB_DATE);
+	syslog(LOG_USER | LOG_INFO, "%s %s (%s) Copyright (c) 2005-2008 Ethan Galstad (nagios@nagios.org), Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org))", IDO2DB_NAME, IDO2DB_VERSION, IDO2DB_DATE);
 	syslog(LOG_USER | LOG_INFO, "%s %s starting... (PID=%d)\n", IDO2DB_NAME, IDO2DB_VERSION, (int)getpid() );
 
 	if (ido2db_socket_type==IDO_SINK_UNIXSOCKET && use_ssl == IDO_TRUE){
@@ -396,8 +392,10 @@ int ido2db_process_config_file(char *filename){
 	int result=IDO_OK;
 
 	/* open the file */
-	if((thefile=ido_mmap_fopen(filename))==NULL)
+	if((thefile=ido_mmap_fopen(filename))==NULL){
+		syslog(LOG_ERR, "Error: Unable to open configuration file %s: %s\n", filename, strerror(errno));
 		return IDO_ERROR;
+	}
 
 	/* process each line of the file */
 	while((buf=ido_mmap_fgets(thefile))){
@@ -581,6 +579,10 @@ int ido2db_process_config_var(char *arg){
 		ido2db_db_settings.clean_config_tables_on_core_startup=(atoi(val)>0)?IDO_TRUE:IDO_FALSE;
 	}
 
+        else if(!strcmp(var,"oci_errors_to_syslog")){
+                ido2db_db_settings.oci_errors_to_syslog=(atoi(val)>0)?IDO_TRUE:IDO_FALSE;
+	}
+
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_process_config_var() end\n");
 
 	return IDO_OK;
@@ -611,6 +613,7 @@ int ido2db_initialize_variables(void){
 	ido2db_db_settings.housekeeping_thread_startup_delay=(unsigned long)DEFAULT_HOUSEKEEPING_THREAD_STARTUP_DELAY; /* set the default if missing in ido2db.cfg */
 	ido2db_db_settings.clean_realtime_tables_on_core_startup=IDO_TRUE; /* default is cleaning on startup */
 	ido2db_db_settings.clean_config_tables_on_core_startup=IDO_TRUE;
+	ido2db_db_settings.oci_errors_to_syslog=DEFAULT_OCI_ERRORS_TO_SYSLOG;
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_initialize_variables() end\n");
 	return IDO_OK;
@@ -1746,12 +1749,14 @@ int ido2db_handle_client_input(ido2db_idi *idi, char *buf, pthread_t *thread_poo
 
 				/* the data type is out of range - throw it out */
 				if(data_type>IDO_MAX_DATA_TYPES){
+					ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_input() line: %lu, type: %d, VAL: %s\n",idi->lines_processed,data_type,val);
 #ifdef DEBUG_IDO2DB2
 					printf("## DISCARD! LINE: %lu, TYPE: %d, VAL: %s\n",idi->lines_processed,data_type,val);
 #endif
 					break;
 			                }
 
+				ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_input() line: %lu, type: %d, VAL: %s\n",idi->lines_processed,data_type,val);
 #ifdef DEBUG_IDO2DB2
 				printf("LINE: %lu, TYPE: %d, VAL:%s\n",idi->lines_processed,data_type,val);
 #endif
@@ -1841,6 +1846,7 @@ int ido2db_add_input_data_item(ido2db_idi *idi, int type, char *buf){
 	case IDO_DATA_DISPLAYNAME:
 	case IDO_DATA_EMAILADDRESS:
 	case IDO_DATA_HOSTADDRESS:
+	case IDO_DATA_HOSTADDRESS6:
 	case IDO_DATA_HOSTALIAS:
 	case IDO_DATA_HOSTCHECKCOMMAND:
 	case IDO_DATA_HOSTCHECKPERIOD:
@@ -1894,8 +1900,11 @@ int ido2db_add_input_data_item(ido2db_idi *idi, int type, char *buf){
 		break;
 	        }
 
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_add_input_data_item(%s)\n", newbuf);
+
 	/* check for errors */
 	if(newbuf==NULL){
+		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_add_input_data_item() allocation error\n");
 #ifdef DEBUG_IDO2DB
 		printf("ALLOCATION ERROR\n");
 #endif
@@ -2315,14 +2324,14 @@ int ido2db_convert_standard_data_elements(ido2db_idi *idi, int *type, int *flags
 
 int ido2db_convert_string_to_int(char *buf, int *i){
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_int() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_int(%s) start\n", buf);
 
 	if(buf==NULL)
 		return IDO_ERROR;
 
 	*i=atoi(buf);
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_int() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_int(%d) end\n", i);
 	return IDO_OK;
         }
 
@@ -2330,7 +2339,7 @@ int ido2db_convert_string_to_int(char *buf, int *i){
 int ido2db_convert_string_to_float(char *buf, float *f){
 	char *endptr=NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_float() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_float(%s) start\n", buf);
 
 	if(buf==NULL)
 		return IDO_ERROR;
@@ -2347,7 +2356,7 @@ int ido2db_convert_string_to_float(char *buf, float *f){
 	if(errno==ERANGE)
 		return IDO_ERROR;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_float() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_float(%f) end\n", f);
 	return IDO_OK;
         }
 
@@ -2355,7 +2364,7 @@ int ido2db_convert_string_to_float(char *buf, float *f){
 int ido2db_convert_string_to_double(char *buf, double *d){
 	char *endptr=NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_double() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_double(%s) start\n", buf);
 	if(buf==NULL)
 		return IDO_ERROR;
 
@@ -2366,7 +2375,7 @@ int ido2db_convert_string_to_double(char *buf, double *d){
 	if(errno==ERANGE)
 		return IDO_ERROR;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_double() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_double(%lf) end\n", d);
 	return IDO_OK;
         }
 
@@ -2374,7 +2383,7 @@ int ido2db_convert_string_to_double(char *buf, double *d){
 int ido2db_convert_string_to_long(char *buf, long *l){
 	char *endptr=NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_long() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_long(%s) start\n", buf);
 
 	if(buf==NULL)
 		return IDO_ERROR;
@@ -2386,7 +2395,7 @@ int ido2db_convert_string_to_long(char *buf, long *l){
 	if(*l==0L && endptr==buf)
 		return IDO_ERROR;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_long() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_long(%l) end\n", l);
 	return IDO_OK;
         }
 
@@ -2394,7 +2403,7 @@ int ido2db_convert_string_to_long(char *buf, long *l){
 int ido2db_convert_string_to_unsignedlong(char *buf, unsigned long *ul){
 	char *endptr=NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_unsignedlong() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_unsignedlong(%s) start\n", buf);
 
 	if(buf==NULL)
 		return IDO_ERROR;
@@ -2405,7 +2414,7 @@ int ido2db_convert_string_to_unsignedlong(char *buf, unsigned long *ul){
 	if(*ul==0L && endptr==buf)
 		return IDO_ERROR;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_unsignedlong() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_unsignedlong(%lu) end\n", ul);
 	return IDO_OK;
 }
 
@@ -2415,7 +2424,7 @@ int ido2db_convert_string_to_timeval(char *buf, struct timeval *tv){
 	char *ptr=NULL;
 	int result=IDO_OK;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_timeval() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_convert_string_to_timeval(%s) start\n", buf);
 
 	if(buf==NULL)
 		return IDO_ERROR;

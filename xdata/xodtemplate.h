@@ -3,7 +3,8 @@
  * XODTEMPLATE.H - Template-based object configuration data header file
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -330,6 +331,9 @@ typedef struct xodtemplate_host_struct{
 	int       has_been_resolved;
 	int       register_object;
 	struct xodtemplate_host_struct *next;
+	/* 2011-02-07 MF: added for dualstack IPv6 support as
+	   $HOSTADDRESS6$ macro  */
+	char    *address6;
         }xodtemplate_host;
 
 

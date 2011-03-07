@@ -3,7 +3,7 @@
  * CGIUTILS.C - Common utilities for Icinga CGIs
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -56,6 +56,8 @@ char            *statusmap_background_image=NULL;
 char            *statuswrl_include=NULL;
 
 char            *illegal_output_chars=NULL;
+
+char            *http_charset=NULL;
 
 char            *notes_url_target=NULL;
 char            *action_url_target=NULL;
@@ -240,6 +242,9 @@ void reset_cgi_vars(void){
 	host_down_sound=NULL;
 	host_unreachable_sound=NULL;
 	normal_sound=NULL;
+
+	my_free(http_charset);
+	http_charset = strdup(DEFAULT_HTTP_CHARSET);
 
 	statusmap_background_image=NULL;
 	color_transparency_index_r=255;
@@ -479,6 +484,9 @@ int read_cgi_config_file(char *filename){
 
 		else if(!strcmp(var,"illegal_macro_output_chars"))
 			illegal_output_chars=strdup(val);
+
+		else if(!strcmp(var,"http_charset"))
+			http_charset=strdup(val);
 
 		else if(!strcmp(var,"notes_url_target"))
 			notes_url_target=strdup(val);
@@ -899,11 +907,17 @@ void document_header(int cgi_id, int use_stylesheet){
                         cgi_title       = "Trends";
                         cgi_body_class  = "trends";
                         break;
+                case ERROR_CGI_ID:
+                        cgi_name        = "";
+                        cgi_css         = CMD_CSS;
+                        cgi_title       = "ERROR";
+                        cgi_body_class  = "error";
+                        break;
         }
 
 	if(content_type==WML_CONTENT){
                 /* used by cmd.cgi */
-		printf("Content-type: text/vnd.wap.wml\r\n\r\n");
+		printf("Content-type: text/vnd.wap.wml; charset=\"%s\"\r\n\r\n", http_charset);
 
 		printf("<?xml version=\"1.0\"?>\n");
 		printf("<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\" \"http://www.wapforum.org/DTD/wml_1.1.xml\">\n");
@@ -915,18 +929,20 @@ void document_header(int cgi_id, int use_stylesheet){
 		return;
 	}
 
-	printf("Cache-Control: no-store\r\n");
-	printf("Pragma: no-cache\r\n");
+	if(cgi_id!=ERROR_CGI_ID){
+		printf("Cache-Control: no-store\r\n");
+		printf("Pragma: no-cache\r\n");
 
-	if(refresh)
-		printf("Refresh: %d\r\n",refresh_rate);
+		if(refresh)
+			printf("Refresh: %d\r\n",refresh_rate);
 
-	get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Last-Modified: %s\r\n",date_time);
+		get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
+		printf("Last-Modified: %s\r\n",date_time);
 
-	expire_time=(time_t)0L;
-	get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
-	printf("Expires: %s\r\n",date_time);
+		expire_time=(time_t)0L;
+		get_time_string(&expire_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
+		printf("Expires: %s\r\n",date_time);
+	}
 
 	if(cgi_id==STATUSWRL_CGI_ID) {
 		printf("Content-Type: x-world/x-vrml\r\n\r\n");
@@ -934,7 +950,7 @@ void document_header(int cgi_id, int use_stylesheet){
 	}
 	if(cgi_id==STATUSWML_CGI_ID) {
 
-		printf("Content-type: text/vnd.wap.wml\r\n\r\n");
+		printf("Content-type: text/vnd.wap.wml; charset=\"%s\"\r\n\r\n", http_charset);
 
 		printf("<?xml version=\"1.0\"?>\n");
 		printf("<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\" \"http://www.wapforum.org/DTD/wml_1.1.xml\">\n");
@@ -953,12 +969,14 @@ void document_header(int cgi_id, int use_stylesheet){
 	}
 
 	if(content_type==CSV_CONTENT) {
-		printf("Content-type: text/plain\r\n\r\n");
+		printf("Content-type: text/plain; charset=\"%s\"\r\n\r\n", http_charset);
 		return;
 	}
 
-	// send HTML CONTENT
-	printf("Content-type: text/html\r\n\r\n");
+	if(cgi_id!=ERROR_CGI_ID){
+		// send HTML CONTENT
+		printf("Content-type: text/html; charset=\"%s\"\r\n\r\n", http_charset);
+	}
 
 	if(embedded==TRUE)
 		return;
@@ -1590,6 +1608,10 @@ char * html_encode(char *input, int escape_newlines){
 				}
 		        }
 
+		/* high bit chars don't get encoded, so we won't be breaking utf8 characters */
+		else if ((unsigned char)input[x] >= 0x7f)
+			encoded_html_string[y++]=input[x];
+
 		/* for simplicity, all other chars represented by their numeric value */
 		else{
 			if(escape_html_tags==FALSE)
@@ -2116,14 +2138,14 @@ void include_ssi_files(char *cgi_name, int type){
 		cgi_ssi_file[x]=tolower(cgi_ssi_file[x]);
 
 	if(type==SSI_HEADER){
-		printf("\n<!-- Produced by %s (http://www.%s.org).\nCopyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)\nCopyright (c) 2009-2010 Icinga Development Team -->\n", PROGRAM_NAME, PROGRAM_NAME_LC);
+		printf("\n<!-- Produced by %s (http://www.%s.org).\nCopyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)\nCopyright (c) 2009-2011 Icinga Development Team -->\n", PROGRAM_NAME, PROGRAM_NAME_LC);
 		include_ssi_file(common_ssi_file);
 		include_ssi_file(cgi_ssi_file);
 	        }
 	else{
 		include_ssi_file(cgi_ssi_file);
 		include_ssi_file(common_ssi_file);
-		printf("\n<!-- Produced by %s (http://www.%s.org).\nCopyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)\nCopyright (c) 2009-2010 Icinga Development Team -->\n", PROGRAM_NAME, PROGRAM_NAME_LC);
+		printf("\n<!-- Produced by %s (http://www.%s.org).\nCopyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)\nCopyright (c) 2009-2011 Icinga Development Team -->\n", PROGRAM_NAME, PROGRAM_NAME_LC);
 	        }
 
 	return;
@@ -2207,14 +2229,14 @@ void cgi_config_file_error(char *config_file){
 	printf("<P>\n");
 	printf("<OL>\n");
 
-	printf("<LI>Make sure you've installed a CGI config file in its proper location.  See the error message about for details on where the CGI is expecting to find the configuration file.  A sample CGI configuration file (named <b>cgi.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
+	printf("<LI>Make sure you've installed a CGI config file in its proper location.  A sample CGI configuration file (named <b>cgi.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
 	printf("<LI>Make sure the user your web server is running as has permission to read the CGI config file.\n");
 
 	printf("</OL>\n");
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing and configuring %s thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
+	printf("Make sure you read the documentation on installing and configuring %s thoroughly before continuing.  If everything else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
 	printf("</P>\n");
 
 	return;
@@ -2236,14 +2258,14 @@ void main_config_file_error(char *config_file){
 	printf("<P>\n");
 	printf("<OL>\n");
 
-	printf("<LI>Make sure you've installed a main config file in its proper location.  See the error message about for details on where the CGI is expecting to find the configuration file.  A sample main configuration file (named <b>icinga.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
+	printf("<LI>Make sure you've installed a main config file in its proper location. A sample main configuration file (named <b>icinga.cfg</b>) can be found in the <b>sample-config/</b> subdirectory of the %s source code distribution.\n", PROGRAM_NAME);
 	printf("<LI>Make sure the user your web server is running as has permission to read the main config file.\n");
 
 	printf("</OL>\n");
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing and configuring %s thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
+	printf("Make sure you read the documentation on installing and configuring %s thoroughly before continuing.  If everything else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
 	printf("</P>\n");
 
 	return;
@@ -2271,7 +2293,7 @@ void object_data_error(void){
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing, configuring and running %s thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
+	printf("Make sure you read the documentation on installing, configuring and running %s thoroughly before continuing.  If everything else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
 	printf("</P>\n");
 
 	return;
@@ -2286,11 +2308,12 @@ void status_data_error(void){
 	printf("<P><STRONG><FONT COLOR='RED'>Error: Could not read host and service status information!</FONT></STRONG></P>\n");
 
 	printf("<P>\n");
-	printf("The most common cause of this error message (especially for new users), is the fact that %s is not actually running.  If %s is indeed not running, this is a normal error message.  It simply indicates that the CGIs could not obtain the current status of hosts and services that are being monitored.  If you've just installed things, make sure you read the documentation on starting %s.\n", PROGRAM_NAME, PROGRAM_NAME, PROGRAM_NAME);
+	printf("It seems that %s is not running or has not yet finished the startup procedure and then creating the status data file. If %s is indeed not running, this is a normal error message.\n", PROGRAM_NAME, PROGRAM_NAME);
+	printf("Please note that event broker modules and/or rdbms backends may slow down the overall (re)start and the cgis cannot retrieve any status information.");
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Some other things you should check in order to resolve this error include:\n");
+	printf("Things to check in order to resolve this error include:\n");
 	printf("</P>\n");
 
 	printf("<P>\n");
@@ -2298,19 +2321,57 @@ void status_data_error(void){
 
 	printf("<LI>Check the %s log file for messages relating to startup or status data errors.\n", PROGRAM_NAME);
 	printf("<LI>Always verify configuration options using the <b>-v</b> command-line option before starting or restarting %s!\n", PROGRAM_NAME);
+	printf("<LI>If using any event broker module for %s, look into their respective logs and/or on their behavior!\n", PROGRAM_NAME);
 
 	printf("</OL>\n");
 	printf("</P>\n");
 
 	printf("<P>\n");
-	printf("Make sure you read the documentation on installing, configuring and running %s thoroughly before continuing.  If all else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
+	printf("Make sure you read the documentation on installing, configuring and running %s thoroughly before continuing.  If everything else fails, try sending a message to one of the mailing lists.  More information can be found at <a href='http://www.icinga.org'>http://www.icinga.org</a>.\n", PROGRAM_NAME);
 	printf("</P>\n");
 
 	return;
         }
 
 
+void print_error(char *config_file, int error_type){
 
+	/* if cgi.cfg is missing, we don't know which fancy style to use, take our own */
+	if(error_type!=ERROR_CGI_CFG_FILE){
+	        document_header(ERROR_CGI_ID,TRUE);
+	}
+
+         /* Giving credits to stop.png image source */
+        printf("\n<!-- Image \"stop.png\" has been taken from \"http://fedoraproject.org/wiki/Template:Admon/caution\" -->\n\n");
+
+        printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
+	if(error_type==ERROR_CGI_CFG_FILE){
+	        printf("<DIV style='font-family:  Helvetica, serif; background-color: #fff; color: #000; font-size: 8pt; text-align:left; font-weight: bold; margin:1em; border:1px red solid; background-color: #FFE5E5;' CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55 valign=top></td>");
+	} else {
+	        printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55 valign=top><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
+	}
+        printf("<td class='errorDescription'>");
+
+	switch(error_type){
+		case ERROR_CGI_STATUS_DATA:
+			status_data_error();
+			break;
+		case ERROR_CGI_OBJECT_DATA:
+			object_data_error();
+			break;
+		case ERROR_CGI_CFG_FILE:
+			cgi_config_file_error(config_file);
+			break;
+		case ERROR_CGI_MAIN_CFG:
+			main_config_file_error(config_file);
+			break;
+	}
+
+        printf("</td></tr></table></DIV>\n");
+        printf("</DIV>\n");
+
+	return;
+}
 
 /* displays context-sensitive help window */
 void display_context_help(char *chid){
@@ -2405,4 +2466,34 @@ void strip_splunk_query_terms(char *buffer){
 
 	return;
 	}
+
+void print_generic_error_message(char *title, char *text, int returnlevels) {
+
+	if(content_type==WML_CONTENT) {
+		printf("<p>");
+
+		if(title!=NULL && title[0]!='\x0')
+			printf("%s",title);
+		if(text!=NULL && text[0]!='\x0')
+			printf("<br>%s",text);
+
+		printf("</p>\n");
+	} else {
+		printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
+		printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
+
+		if(title!=NULL && title[0]!='\x0')
+			printf("<td CLASS='errorMessage'>%s</td></tr></table></DIV>\n",title);
+
+		if(text!=NULL && text[0]!='\x0')
+			printf("<DIV CLASS='errorDescription'>%s</DIV><br>",text);
+
+		printf("</DIV>\n");
+
+		if(returnlevels!=0)
+			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-%d);' class='submitButton'></DIV>\n",returnlevels);
+	}
+
+	return;
+}
 

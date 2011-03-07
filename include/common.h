@@ -3,7 +3,8 @@
  * Icinga Common Header File
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -27,7 +28,7 @@
 #define PROGRAM_NAME_UC "ICINGA"
 #define PROGRAM_NAME_LC "icinga"
 #define PROGRAM_VERSION "1.3.0"
-#define PROGRAM_MODIFICATION_DATE "10-25-2010"
+#define PROGRAM_MODIFICATION_DATE "02-16-2011"
 
 /*#define DEBUG_CHECK_IPC 1 */
 /*#define DEBUG_CHECK_IPC2 1*/

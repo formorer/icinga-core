@@ -2,7 +2,7 @@
  *
  * DB.H - IDO Database Include File
  * Copyright (c) 2005-2006 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  ************************************************************************/
 
@@ -33,6 +33,7 @@ typedef struct ido2db_dbconfig_struct{
 	unsigned long housekeeping_thread_startup_delay;
         unsigned long clean_realtime_tables_on_core_startup;
         unsigned long clean_config_tables_on_core_startup;
+	unsigned long oci_errors_to_syslog;
         }ido2db_dbconfig;
 
 /*************** DB server types ***************/
@@ -106,8 +107,9 @@ typedef struct ido2db_dbconfig_struct{
 #define IDO2DB_DBTABLE_SERVICECONTACTGROUPS           65
 #define IDO2DB_DBTABLE_HOSTESCALATIONCONTACTGROUPS    66
 #define IDO2DB_DBTABLE_SERVICEESCALATIONCONTACTGROUPS 67
+#define IDO2DB_DBTABLE_DBVERSION                      68
 
-#define IDO2DB_MAX_DBTABLES                           68
+#define IDO2DB_MAX_DBTABLES                           69
 
 
 /**************** Object types *****************/

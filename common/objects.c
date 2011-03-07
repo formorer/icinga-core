@@ -3,7 +3,8 @@
  * OBJECTS.C - Object addition and search functions for Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -596,7 +597,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *address6, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *new_host=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -643,6 +644,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if((new_host->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if((new_host->address=(char *)strdup(address))==NULL)
+		result=ERROR;
+	if((new_host->address6=(char *)strdup(address6))==NULL)
 		result=ERROR;
 	if(check_period){
 		if((new_host->check_period=(char *)strdup(check_period))==NULL)
@@ -826,6 +829,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->notification_period);
 		my_free(new_host->check_period);
 		my_free(new_host->address);
+		my_free(new_host->address6);
 		my_free(new_host->alias);
 		my_free(new_host->display_name);
 		my_free(new_host->name);
@@ -2920,72 +2924,27 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 /* 06/14/10 MF all 3 functions mandatory for mk_livestatus */
 /*  tests whether a contact is a member of a particular contactgroup - used only by the CGIs */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
-        contactsmember *temp_contactsmember=NULL;
+	contactsmember *member;
+	contact *temp_contact=NULL;
 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        /* search all contacts in this contact group */
-        for(temp_contactsmember=group->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
- 
-#ifdef NSCORE
-                if(temp_contactsmember->contact_ptr==cntct)
-                        return TRUE;
-#else
-                if(!strcmp(temp_contactsmember->contact_name,cntct->name))
-                        return TRUE;
-#endif
-                 }
- 
-        return FALSE;
-        }
+	if (!group || !cntct)
+		return FALSE;
 
+	/* search all contacts in this contact group */
+	for (member = group->members; member; member = member->next) {
+#ifdef NSCORE
+		temp_contact=member->contact_ptr;
+#else
+		temp_contact=find_contact(member->contact_name);
+#endif
+		if(temp_contact==NULL)
+			continue;
+		if (temp_contact == cntct)
+			return TRUE;
+	}
 
-/*  tests whether a contact is a member of a particular hostgroup - used only by the CGIs */
-int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
-        hostsmember *temp_hostsmember=NULL;
-        host *temp_host=NULL;
- 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        for(temp_hostsmember=group->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-#ifdef NSCORE
-                temp_host=temp_hostsmember->host_ptr;
-#else
-                temp_host=find_host(temp_hostsmember->host_name);
-#endif
-                if(temp_host==NULL)
-                        continue;
-                if(is_contact_for_host(temp_host,cntct)==TRUE)
-                        return TRUE;
-                }
- 
-        return FALSE;
-        }
- 
- /*  tests whether a contact is a member of a particular servicegroup - used only by the CGIs */
- int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
-        servicesmember *temp_servicesmember=NULL;
-        service *temp_service=NULL;
- 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        for(temp_servicesmember=group->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-#ifdef NSCORE
-                temp_service=temp_servicesmember->service_ptr;
-#else
-                temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
-#endif
-                if(temp_service==NULL)
-                        continue;
-                if(is_contact_for_service(temp_service,cntct)==TRUE)
-                        return TRUE;
-                }
- 
-        return FALSE;
-        }
+	return FALSE;
+}
 
 
 /*  tests whether a contact is a contact for a particular host */
@@ -2994,7 +2953,7 @@ int is_contact_for_host(host *hst, contact *cntct){
 	contact *temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
-	
+
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
@@ -3022,17 +2981,8 @@ int is_contact_for_host(host *hst, contact *cntct){
 		if(temp_contactgroup==NULL)
 			continue;
 
-		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-			temp_contact=temp_contactsmember->contact_ptr;
-#else
-			temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact==NULL)
-				continue;
-			if(temp_contact==cntct)
-				return TRUE;
-			}
+		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+			return TRUE;
 		}
 
 	return FALSE;
@@ -3076,17 +3026,9 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 			if(temp_contactgroup==NULL)
 				continue;
 
-			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-				temp_contact=temp_contactsmember->contact_ptr;
-#else
-				temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-				if(temp_contact==NULL)
-					continue;
-				if(temp_contact==cntct)
-					return TRUE;
-				}
+			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+				return TRUE;
+
 			}
 		}
 
@@ -3126,17 +3068,9 @@ int is_contact_for_service(service *svc, contact *cntct){
 		if(temp_contactgroup==NULL)
 			continue;
 
-		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-			temp_contact=temp_contactsmember->contact_ptr;
-#else
-			temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact==NULL)
-				continue;
-			if(temp_contact==cntct)
-				return TRUE;
-			}
+		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+			return TRUE;
+
 		}
 
 	return FALSE;
@@ -3179,17 +3113,9 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 			if(temp_contactgroup==NULL)
 				continue;
 
-			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-				temp_contact=temp_contactsmember->contact_ptr;
-#else
-				temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-				if(temp_contact==NULL)
-					continue;
-				if(temp_contact==cntct)
-					return TRUE;
-				}
+			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+				return TRUE;
+
 			}
 	        }
 
@@ -3470,10 +3396,12 @@ int free_object_data(void){
 		my_free(this_host->display_name);
 		my_free(this_host->alias);
 		my_free(this_host->address);
+		my_free(this_host->address6);
 #ifdef NSCORE
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);
 		my_free(this_host->perf_data);
+		my_free(this_host->processed_command);
 
 		free_objectlist(&this_host->hostgroups_ptr);
 #endif
@@ -3674,6 +3602,7 @@ int free_object_data(void){
 		my_free(this_service->plugin_output);
 		my_free(this_service->long_plugin_output);
 		my_free(this_service->perf_data);
+		my_free(this_service->processed_command);
 
 		my_free(this_service->event_handler_args);
 		my_free(this_service->check_command_args);

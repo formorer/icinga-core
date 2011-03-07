@@ -2,7 +2,7 @@
  *
  * DBQUERIES.H - IDO2DB DB QUERY Handler Include File
  *
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  * 
  ************************************************************************/
 
@@ -33,10 +33,10 @@ int ido2db_query_insert_or_update_contactnotificationdata_add(ido2db_idi *idi, v
 int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *idi, void **data);
 
 /* SERVICECHECKS */
-int ido2db_query_insert_or_update_servicecheckdata_add(ido2db_idi *idi, void **data);
+int ido2db_query_insert_servicecheckdata_add(ido2db_idi *idi, void **data);
 
 /* HOSTCHECKS */
-int ido2db_query_insert_or_update_hostcheckdata_add(ido2db_idi *idi, void **data);
+int ido2db_query_insert_hostcheckdata_add(ido2db_idi *idi, void **data);
 
 /* COMMENTS */
 int ido2db_query_insert_or_update_commentdata_add(ido2db_idi *idi, void **data);
@@ -68,7 +68,6 @@ int ido2db_query_insert_or_update_runtimevariables_add(ido2db_idi *idi, void **d
 int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi, void **data);
 int ido2db_query_insert_or_update_hostdefinition_parenthosts_add(ido2db_idi *idi, void **data);
 int ido2db_query_insert_or_update_hostdefinition_contactgroups_add(ido2db_idi *idi, void **data);
-int ido2db_query_insert_or_update_hostdefinition_contacts_add(ido2db_idi *idi, void **data);
 
 /* HOSTGROUPDEFINITION */
 int ido2db_query_insert_or_update_hostgroupdefinition_definition_add(ido2db_idi *idi, void **data);
@@ -77,7 +76,6 @@ int ido2db_query_insert_or_update_hostgroupdefinition_hostgroupmembers_add(ido2d
 /* SERVICEDEFINITION */
 int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *idi, void **data);
 int ido2db_query_insert_or_update_servicedefinition_contactgroups_add(ido2db_idi *idi, void **data);
-int ido2db_query_insert_or_update_servicedefinition_contacts_add(ido2db_idi *idi, void **data);
 
 /* SERVICEGROUPDEFINITION */
 int ido2db_query_insert_or_update_servicegroupdefinition_definition_add(ido2db_idi *idi, void **data);

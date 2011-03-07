@@ -3,7 +3,7 @@
  * CGIUTILS.H - Header file for common CGI functions
  *
  * Copyright (c) 1999-2008  Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org) 
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org) 
  *
  * License:
  * 
@@ -87,6 +87,17 @@ extern "C" {
 #define TRACEROUTE_CGI_ID	17
 #define CHECKSANITY_CGI_ID	18
 #define MINISTATUS_CGI_ID	19
+
+/* for error msg */
+#define ERROR_CGI_ID	20
+
+
+/******************************* ERROR CGI IDS **********************************/
+
+#define ERROR_CGI_STATUS_DATA	1
+#define ERROR_CGI_OBJECT_DATA	2
+#define ERROR_CGI_CFG_FILE	3
+#define ERROR_CGI_MAIN_CFG	4
 
 
 /**************************** STYLE SHEET NAMES ******************************/
@@ -467,6 +478,11 @@ extern "C" {
 #define LIFO_ERROR_DATA		3
 
 
+/************************** HTTP CHARSET ****************************/
+
+#define DEFAULT_HTTP_CHARSET "utf-8"
+
+
 /************************** BUFFER  ***************************************/
 
 #define MAX_MESSAGE_BUFFER              4096
@@ -569,6 +585,7 @@ void cgi_config_file_error(char *);
 void main_config_file_error(char *);
 void object_data_error(void);
 void status_data_error(void);
+void print_error(char*, int);
 
 void display_context_help(char *);				/* displays context-sensitive help window */
 
@@ -583,6 +600,7 @@ void document_footer(int);					/* print document footer */
 void write_popup_code(int);					/* PopUp's for graphics */
 int check_daemon_running(void);
 
+void print_generic_error_message(char *, char *, int);
 
 /******************************** MULTIURL PATCH *******************************/
 

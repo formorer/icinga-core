@@ -3,7 +3,7 @@
  * NOTIFICATIONS.C - Icinga Notifications CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * This CGI program will display the notification events for
  * a given host or contact or for all contacts/hosts.
@@ -109,7 +109,7 @@ int main(void){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -118,7 +118,7 @@ int main(void){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -127,7 +127,7 @@ int main(void){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -449,6 +449,7 @@ void display_notifications(void){
 	char service_name[MAX_INPUT_BUFFER];
 	char host_name[MAX_INPUT_BUFFER];
 	char method_name[MAX_INPUT_BUFFER];
+	char error_text[MAX_INPUT_BUFFER];
 	int show_entry;
 	int total_notifications;
 	int notification_type=SERVICE_NOTIFICATION;
@@ -463,10 +464,12 @@ void display_notifications(void){
 		result=read_file_into_lifo(log_file_to_use);
 		if(result!=LIFO_OK){
 			if(result==LIFO_ERROR_MEMORY){
-				printf("<P><DIV CLASS='warningMessage'>Not enough memory to reverse log file - displaying notifications in natural order...</DIV></P>");
+				print_generic_error_message("Not enough memory to reverse log file - displaying notifications in natural order...",NULL,0);
 			}
 			else if(result==LIFO_ERROR_FILE){
-				printf("<P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P>",log_file_to_use);
+				snprintf(error_text,sizeof(error_text),"Error: Cannot open log file '%s' for reading!",log_file_to_use);
+				error_text[sizeof(error_text)-1]='\x0';
+				print_generic_error_message(error_text,NULL,0);
 				return;
 			}
 			use_lifo=FALSE;
@@ -476,7 +479,9 @@ void display_notifications(void){
 	if(use_lifo==FALSE){
 
 		if((thefile=mmap_fopen(log_file_to_use))==NULL){
-			printf("<P><DIV CLASS='errorMessage'>Error: Cannot open log file '%s' for reading!</DIV></P>",log_file_to_use);
+			snprintf(error_text,sizeof(error_text),"Error: Cannot open log file '%s' for reading!",log_file_to_use);
+			error_text[sizeof(error_text)-1]='\x0';
+			print_generic_error_message(error_text,NULL,0);
 			return;
 		}
 	}
@@ -742,7 +747,7 @@ void display_notifications(void){
 		printf("</p>\n");
 
 		if(total_notifications==0){
-			printf("<P><DIV CLASS='errorMessage'>No notifications have been recorded");
+			printf("<P><DIV CLASS='errorMessage' style='text-align:center;'>No notifications have been recorded");
 			if(find_all==FALSE){
 				if(query_type==FIND_SERVICE)
 					printf(" for this service");

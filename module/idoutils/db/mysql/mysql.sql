@@ -1,9 +1,8 @@
 -- --------------------------------------------------------
 -- mysql.sql
 -- DB definition for MySQL
--- 
--- 
--- Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+--
+-- Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
 --
 -- -- --------------------------------------------------------
 
@@ -14,6 +13,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
+
 
 --
 -- Database: `icinga`
@@ -370,8 +370,11 @@ CREATE TABLE IF NOT EXISTS `icinga_customvariablestatus` (
 --
 
 CREATE TABLE IF NOT EXISTS `icinga_dbversion` (
+  `dbversion_id` int(11) NOT NULL auto_increment,
   `name` varchar(10) character set latin1 NOT NULL default '',
-  `version` varchar(10) character set latin1 NOT NULL default ''
+  `version` varchar(10) character set latin1 NOT NULL default '',
+  PRIMARY KEY (`dbversion_id`),
+  UNIQUE KEY `dbversion` (`name`)
 ) ENGINE=InnoDB;
 
 -- --------------------------------------------------------
@@ -504,8 +507,7 @@ CREATE TABLE IF NOT EXISTS `icinga_hostchecks` (
   `output` varchar(255) character set latin1 NOT NULL default '',
   `long_output` TEXT NOT NULL default '',
   `perfdata` TEXT character set latin1 NOT NULL default '',
-  PRIMARY KEY  (`hostcheck_id`),
-  UNIQUE KEY `instance_id` (`instance_id`,`host_object_id`,`start_time`,`start_time_usec`)
+  PRIMARY KEY  (`hostcheck_id`)
 ) ENGINE=InnoDB  COMMENT='Historical host checks';
 
 -- --------------------------------------------------------
@@ -627,6 +629,7 @@ CREATE TABLE IF NOT EXISTS `icinga_hosts` (
   `alias` varchar(64) character set latin1 NOT NULL default '',
   `display_name` varchar(255) character set latin1 collate latin1_general_cs NOT NULL default '',
   `address` varchar(128) character set latin1 NOT NULL default '',
+  `address6` varchar(128) character set latin1 NOT NULL default '',
   `check_command_object_id` int(11) NOT NULL default '0',
   `check_command_args` varchar(255) character set latin1 NOT NULL default '',
   `eventhandler_command_object_id` int(11) NOT NULL default '0',
@@ -767,8 +770,7 @@ CREATE TABLE IF NOT EXISTS `icinga_host_contacts` (
   `instance_id` smallint(6) NOT NULL default '0',
   `host_id` int(11) NOT NULL default '0',
   `contact_object_id` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`host_contact_id`),
-  UNIQUE KEY `instance_id` (`instance_id`,`host_id`,`contact_object_id`)
+  PRIMARY KEY  (`host_contact_id`)
 ) ENGINE=InnoDB  COMMENT='Host contacts';
 
 -- --------------------------------------------------------
@@ -987,8 +989,7 @@ CREATE TABLE IF NOT EXISTS `icinga_servicechecks` (
   `output` varchar(255) character set latin1 NOT NULL default '',
   `long_output` TEXT NOT NULL default '',
   `perfdata` TEXT character set latin1 NOT NULL default '',
-  PRIMARY KEY  (`servicecheck_id`),
-  UNIQUE KEY `instance_id` (`instance_id`,`service_object_id`,`start_time`,`start_time_usec`)
+  PRIMARY KEY  (`servicecheck_id`)
 ) ENGINE=InnoDB  COMMENT='Historical service checks';
 
 -- --------------------------------------------------------
@@ -1247,8 +1248,7 @@ CREATE TABLE IF NOT EXISTS `icinga_service_contacts` (
   `instance_id` smallint(6) NOT NULL default '0',
   `service_id` int(11) NOT NULL default '0',
   `contact_object_id` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`service_contact_id`),
-  UNIQUE KEY `instance_id` (`instance_id`,`service_id`,`contact_object_id`)
+  PRIMARY KEY  (`service_contact_id`)
 ) ENGINE=InnoDB  COMMENT='Service contacts';
 
 -- --------------------------------------------------------
@@ -1374,6 +1374,11 @@ CREATE TABLE IF NOT EXISTS `icinga_timeperiod_timeranges` (
   UNIQUE KEY `instance_id` (`timeperiod_id`,`day`,`start_sec`,`end_sec`)
 ) ENGINE=InnoDB  COMMENT='Timeperiod definitions';
 
+
+-- -----------------------------------------
+-- set dbversion
+-- -----------------------------------------
+INSERT INTO icinga_dbversion (name, version) VALUES ('idoutils', '1.3.0') ON DUPLICATE KEY UPDATE version='1.3.0';
 
 -- -----------------------------------------
 -- add index (delete)
@@ -1519,14 +1524,6 @@ CREATE INDEX objects_name1_idx ON icinga_objects(name1);
 CREATE INDEX objects_name2_idx ON icinga_objects(name2);
 CREATE INDEX objects_inst_id_idx ON icinga_objects(instance_id);
 
-
--- hostchecks
--- CREATE INDEX hostchks_h_obj_id_idx on icinga_hostchecks(host_object_id);
-
--- servicechecks
--- CREATE INDEX servicechks_s_obj_id_idx on icinga_servicechecks(service_object_id);
-
-
 -- instances
 -- CREATE INDEX instances_name_idx on icinga_instances(instance_name);
 
@@ -1535,6 +1532,7 @@ CREATE INDEX objects_inst_id_idx ON icinga_objects(instance_id);
 -- #236
 CREATE INDEX loge_time_idx on icinga_logentries(logentry_time);
 -- CREATE INDEX loge_data_idx on icinga_logentries(logentry_data);
+CREATE INDEX loge_inst_id_time_idx on icinga_logentries (instance_id ASC, logentry_time DESC);
 
 -- commenthistory
 -- CREATE INDEX c_hist_instance_id_idx on icinga_logentries(instance_id);

@@ -3,7 +3,7 @@
  * AVAIL.C -  Icinga Availability CGI
  *
  * Copyright (c) 2000-2010 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -285,7 +285,7 @@ int main(int argc, char **argv){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -294,7 +294,7 @@ int main(int argc, char **argv){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -303,7 +303,7 @@ int main(int argc, char **argv){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -312,7 +312,7 @@ int main(int argc, char **argv){
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
-		status_data_error();
+		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -496,11 +496,14 @@ int main(int argc, char **argv){
 		/* right hand column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
+		printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 
 		if(display_type!=DISPLAY_NO_AVAIL && get_date_parts==FALSE){
 
-			printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
+			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
+			printf("<tr>\n");
+			printf("<td valign=top align=left class='optBoxItem'>\n");
 
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
@@ -522,9 +525,6 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='includesoftstates' value='%s'>\n",(include_soft_states==TRUE)?"yes":"no");
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
-			printf("<tr>\n");
-			printf("<td valign=top align=left class='optBoxItem'>\n");
 			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 				printf("<select name='initialassumedhoststate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
@@ -588,8 +588,6 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td>\n");
 			printf("</tr>\n");
-
-			printf("</form>\n");
 		        }
 
 		/* display context-sensitive help */
@@ -615,6 +613,7 @@ int main(int argc, char **argv){
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 
@@ -977,10 +976,13 @@ int main(int argc, char **argv){
 				is_authorized=is_authorized_for_service(find_service(host_name,service_desc),&current_authdata);
 		        }
 
-		if(is_authorized==FALSE)
-			printf("<P><DIV ALIGN=CENTER CLASS='errorMessage'>It appears as though you are not authorized to view information for the specified %s...</DIV></P>\n",(display_type==DISPLAY_HOST_AVAIL)?"host":"service");
+		if(is_authorized==FALSE) {
+			if (display_type==DISPLAY_HOST_AVAIL)
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified host...",NULL,0);
+			else
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified service...",NULL,0);
 
-		else{
+		}else{
 
 			time(&report_start_time);
 

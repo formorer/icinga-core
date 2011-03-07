@@ -3,8 +3,8 @@
  * NOTIFICATIONS.C - Service and host notification functions for Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Nagios Core Development Team and Community Contributors
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -148,8 +148,8 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 	if(notification_list!=NULL){
 
 		/* grab the macro variables */
-		grab_host_macros(mac, temp_host);
-		grab_service_macros(mac, svc);
+		grab_host_macros_r(mac, temp_host);
+		grab_service_macros_r(mac, svc);
 
 		/* if this notification has an author, attempt to lookup the associated contact */
 		if(not_author!=NULL){
@@ -236,10 +236,10 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
 
 			/* grab the macro variables for this contact */
-			grab_contact_macros(mac, temp_notification->contact);
+			grab_contact_macros_r(mac, temp_notification->contact);
 
 			/* clear summary macros (they are customized for each contact) */
-			clear_summary_macros(mac);
+			clear_summary_macros_r(mac);
 
 			/* notify this contact */
 			result=notify_contact_of_service(mac, temp_notification->contact,svc,type,not_author,not_data,options,escalated);
@@ -253,7 +253,7 @@ int service_notification(service *svc, int type, char *not_author, char *not_dat
 		free_notification_list();
 
 		/* clear summary macros so they will be regenerated without contact filters when needed next */
-		clear_summary_macros(mac);
+		clear_summary_macros_r(mac);
 
 		if(type==NOTIFICATION_NORMAL){
 
@@ -561,7 +561,7 @@ int check_service_notification_viability(service *svc, int type, int options){
 		if((svc->last_time_critical < first_problem_time) && (svc->last_time_critical > svc->last_time_ok))
 			first_problem_time=svc->last_time_critical;
 
-		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time + (svc->first_notification_delay*interval_length))){
+		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time) + (time_t)(svc->first_notification_delay*interval_length)){
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the service changed to a non-OK state, so we should not notify about this problem yet\n");
 			return ERROR;
 		}
@@ -1224,7 +1224,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 
 	/* clear volatile macros */
 	mac = get_global_macros();
-	clear_volatile_macros(mac);
+	clear_volatile_macros_r(mac);
 
 	log_debug_info(DEBUGL_NOTIFICATIONS,0,"Notification viability test passed.\n");
 
@@ -1271,7 +1271,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 	if(notification_list!=NULL){
 
 		/* grab the macro variables */
-		grab_host_macros(mac, hst);
+		grab_host_macros_r(mac, hst);
 
 		/* if this notification has an author, attempt to lookup the associated contact */
 		if(not_author!=NULL){
@@ -1359,10 +1359,10 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		for(temp_notification=notification_list;temp_notification!=NULL;temp_notification=temp_notification->next){
 
 			/* grab the macro variables for this contact */
-			grab_contact_macros(mac, temp_notification->contact);
+			grab_contact_macros_r(mac, temp_notification->contact);
 
 			/* clear summary macros (they are customized for each contact) */
-			clear_summary_macros(mac);
+			clear_summary_macros_r(mac);
 
 			/* notify this contact */
 			result=notify_contact_of_host(mac, temp_notification->contact,hst,type,not_author,not_data,options,escalated);
@@ -1376,7 +1376,7 @@ int host_notification(host *hst, int type, char *not_author, char *not_data, int
 		free_notification_list();
 
 		/* clear summary macros so they will be regenerated without contact filters when needednext */
-		clear_summary_macros(mac);
+		clear_summary_macros_r(mac);
 
 		if(type==NOTIFICATION_NORMAL){
 
@@ -1642,7 +1642,7 @@ int check_host_notification_viability(host *hst, int type, int options){
 		if((hst->last_time_unreachable < first_problem_time) && (hst->last_time_unreachable > hst->last_time_unreachable))
 			first_problem_time=hst->last_time_unreachable;
 
-		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time + (hst->first_notification_delay*interval_length))){
+		if(current_time < (time_t)((first_problem_time==(time_t)0L)?program_start:first_problem_time) + (time_t)(hst->first_notification_delay*interval_length)){
 			log_debug_info(DEBUGL_NOTIFICATIONS,1,"Not enough time has elapsed since the host changed to a non-UP state (or since program start), so we shouldn't notify about this problem yet.\n");
 			return ERROR;
 		}

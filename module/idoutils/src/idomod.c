@@ -3,7 +3,7 @@
  * IDOMOD.C - Icinga Data Output Event Broker Module
  *
  * Copyright (c) 2005-2007 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  *****************************************************************************/
 
@@ -31,10 +31,6 @@
 /* specify event broker API version (required) */
 NEB_API_VERSION(CURRENT_NEB_API_VERSION)
 
-
-#define IDOMOD_VERSION "1.3.0"
-#define IDOMOD_NAME "IDOMOD"
-#define IDOMOD_DATE "10-25-2010"
 
 
 void *idomod_module_handle=NULL;
@@ -106,7 +102,7 @@ int nebmodule_init(int flags, char *args, void *handle){
 	idomod_module_handle=handle;
 
 	/* log module info to the Icinga log file */
-	snprintf(temp_buffer, sizeof(temp_buffer)-1, "idomod: %s %s (%s) Copyright (c) 2005-2008 Ethan Galstad (nagios@nagios.org), Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org))", IDOMOD_NAME, IDOMOD_VERSION, IDOMOD_DATE);
+	snprintf(temp_buffer, sizeof(temp_buffer)-1, "idomod: %s %s (%s) Copyright (c) 2005-2008 Ethan Galstad (nagios@nagios.org), Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org))", IDOMOD_NAME, IDOMOD_VERSION, IDOMOD_DATE);
 	temp_buffer[sizeof(temp_buffer)-1]='\x0';
 	idomod_write_to_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 
@@ -329,11 +325,16 @@ int idomod_process_module_args(char *args){
 int idomod_process_config_file(char *filename){
 	ido_mmapfile *thefile=NULL;
 	char *buf=NULL;
+	char temp_buffer[IDOMOD_MAX_BUFLEN];
 	int result=IDO_OK;
 
 	/* open the file */
-	if((thefile=ido_mmap_fopen(filename))==NULL)
+	if((thefile=ido_mmap_fopen(filename))==NULL){
+		snprintf(temp_buffer,sizeof(temp_buffer)-1,"idomod: Unable to open configuration file %s: %s\n", filename, strerror(errno));
+		temp_buffer[sizeof(temp_buffer)-1]='\x0';
+		idomod_write_to_logs(temp_buffer,NSLOG_INFO_MESSAGE);
 		return IDO_ERROR;
+	}
 
 	/* process each line of the file */
 	while((buf=ido_mmap_fgets(thefile))){
@@ -629,8 +630,12 @@ int idomod_rotate_sink_file(void *args){
 	char *processed_command_line_3x=NULL;
 	int early_timeout=FALSE;
 	double exectime;
+	icinga_macros *mac;
 
 	idomod_log_debug_info(IDOMOD_DEBUGL_PROCESSINFO, 2, "idomod_rotate_sink_file() start\n");
+
+	/* get global macros */
+	mac=get_global_macros();
 
 	/* close sink */
 	idomod_goodbye_sink();
@@ -643,11 +648,11 @@ int idomod_rotate_sink_file(void *args){
 	/****** ROTATE THE FILE *****/
 
 	/* get the raw command line */
-	get_raw_command_line(find_command(idomod_sink_rotation_command),idomod_sink_rotation_command,&raw_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	get_raw_command_line_r(mac, find_command(idomod_sink_rotation_command),idomod_sink_rotation_command,&raw_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 	strip(raw_command_line_3x);
 
 	/* process any macros in the raw command line */
-	process_macros(raw_command_line_3x,&processed_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
+	process_macros_r(mac, raw_command_line_3x,&processed_command_line_3x,STRIP_ILLEGAL_MACRO_CHARS|ESCAPE_MACRO_CHARS);
 
 	/* run the command */
 	my_system(processed_command_line_3x,idomod_sink_rotation_timeout,&early_timeout,&exectime,NULL,0);
@@ -1771,6 +1776,10 @@ int idomod_broker_data(int event_type, void *data){
 
 		scdata=(nebstruct_service_check_data *)data;
 
+		/* only pass NEBTYPE_SERVICECHECK_PROCESSED to ido2db */
+		if(scdata->type!=NEBTYPE_SERVICECHECK_PROCESSED)
+			break;
+
 		es[0]=ido_escape_buffer(scdata->host_name);
 		es[1]=ido_escape_buffer(scdata->service_description);
 		es[2]=ido_escape_buffer(scdata->command_name);
@@ -1845,6 +1854,10 @@ int idomod_broker_data(int event_type, void *data){
 	case NEBCALLBACK_HOST_CHECK_DATA:
 
 		hcdata=(nebstruct_host_check_data *)data;
+
+                /* only pass NEBTYPE_HOSTCHECK_PROCESSED to ido2db */
+                if(hcdata->type!=NEBTYPE_HOSTCHECK_PROCESSED)
+                        break;
 
 		es[0]=ido_escape_buffer(hcdata->host_name);
 		es[1]=ido_escape_buffer(hcdata->command_name);
@@ -3173,7 +3186,7 @@ int idomod_write_config(int config_type){
         }
 
 
-#define OBJECTCONFIG_ES_ITEMS 15
+#define OBJECTCONFIG_ES_ITEMS 16
 
 /* dumps object configuration data to sink */
 int idomod_write_object_config(int config_type){
@@ -3582,9 +3595,10 @@ int idomod_write_object_config(int config_type){
 		flap_detection_on_down=temp_host->flap_detection_on_down;
 		flap_detection_on_unreachable=temp_host->flap_detection_on_unreachable;
 		es[14]=ido_escape_buffer(temp_host->display_name);
+		es[15]=ido_escape_buffer(temp_host->address6);
 
 		snprintf(temp_buffer,sizeof(temp_buffer)-1
-			 ,"\n%d:\n%d=%ld.%ld\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%lf\n%d=%lf\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%lf\n"
+			 ,"\n%d:\n%d=%ld.%ld\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%lf\n%d=%lf\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%s\n%d=%d\n%d=%d\n%d=%d\n%d=%d\n%d=%lf\n%d=%lf\n%d=%lf\n"
 			 ,IDO_API_HOSTDEFINITION
 			 ,IDO_DATA_TIMESTAMP
 			 ,now.tv_sec
@@ -3597,6 +3611,8 @@ int idomod_write_object_config(int config_type){
 			 ,(es[1]==NULL)?"":es[1]
 			 ,IDO_DATA_HOSTADDRESS
 			 ,(es[2]==NULL)?"":es[2]
+                         ,IDO_DATA_HOSTADDRESS6
+                         ,(es[15]==NULL)?"":es[15]
 			 ,IDO_DATA_HOSTCHECKCOMMAND
 			 ,(es[3]==NULL)?"":es[3]
 			 ,IDO_DATA_HOSTEVENTHANDLER
