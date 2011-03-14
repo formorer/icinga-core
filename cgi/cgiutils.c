@@ -882,6 +882,7 @@ void document_header(int cgi_id, int use_stylesheet){
                         cgi_css         = SHOWLOG_CSS;
                         cgi_title       = "Log File";
                         cgi_body_class  = "showlog";
+			refresh         = FALSE;
                         break;
                 case STATUSMAP_CGI_ID:
                         cgi_name        = STATUSMAP_CGI;
@@ -894,6 +895,7 @@ void document_header(int cgi_id, int use_stylesheet){
                         cgi_css         = SUMMARY_CSS;
                         cgi_title       = "Event Summary";
                         cgi_body_class  = "summary";
+			refresh         = FALSE;
                         break;
                 case TAC_CGI_ID:
                         cgi_name        = TAC_CGI;
@@ -906,6 +908,7 @@ void document_header(int cgi_id, int use_stylesheet){
                         cgi_css         = TRENDS_CSS;
                         cgi_title       = "Trends";
                         cgi_body_class  = "trends";
+			refresh         = FALSE;
                         break;
                 case ERROR_CGI_ID:
                         cgi_name        = "";
@@ -933,7 +936,7 @@ void document_header(int cgi_id, int use_stylesheet){
 		printf("Cache-Control: no-store\r\n");
 		printf("Pragma: no-cache\r\n");
 
-		if(refresh)
+		if(refresh==TRUE)
 			printf("Refresh: %d\r\n",refresh_rate);
 
 		get_time_string(&current_time,date_time,(int)sizeof(date_time),HTTP_DATE_TIME);
