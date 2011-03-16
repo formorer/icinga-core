@@ -64,7 +64,7 @@ extern char     *debug_file;
 extern int      debug_level;
 extern int      debug_verbosity;
 extern unsigned long max_debug_file_size;
-FILE            *debug_file_fp=NULL;
+FILE_HANDLE_T debug_file_fp=NULL;
 
 
 #define CHKASPRINTF(RET)                                                \
@@ -186,7 +186,7 @@ static void write_to_all_logs_with_timestamp(char *buffer, unsigned long data_ty
 
 /* write something to the icinga log file */
 int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp){
-	FILE *fp=NULL;
+	FILE_HANDLE_T fp=NULL;
 	time_t log_time=0L;
 
 	if(buffer==NULL)

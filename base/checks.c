@@ -143,7 +143,7 @@ extern int      use_embedded_perl;
 /******************************************************************/
 
 /* extract check result */
-static void extract_check_result(FILE *fp,dbuf *checkresult_dbuf){
+static void extract_check_result(FILE_HANDLE_T OAfp,dbuf *checkresult_dbuf){
 	char output_buffer[MAX_INPUT_BUFFER]="";
 	char *temp_buffer;
 
@@ -218,7 +218,7 @@ static int parse_command_line(char *cmd, char *argv[MAX_CMD_ARGS]){
 /* run a check */
 static int run_check(char *processed_command,dbuf *checkresult_dbuf){
 	char *argv[MAX_CMD_ARGS];
-	FILE *fp;
+	FILE_HANDLE_T fp;
 	pid_t pid;
 	int pipefds[2];
 	int retval;

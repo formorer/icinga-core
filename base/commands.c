@@ -83,7 +83,7 @@ extern command  *global_service_event_handler_ptr;
 extern host     *host_list;
 extern service  *service_list;
 
-extern FILE     *command_file_fp;
+extern FILE_HANDLE_T command_file_fp;
 extern int      command_file_fd;
 
 passive_check_result    *passive_check_result_list=NULL;
@@ -2147,24 +2147,23 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 
 	/* initialize vars */
 	new_pcr->object_check_type=SERVICE_CHECK;
-	new_pcr->host_name=NULL;
-	new_pcr->service_description=NULL;
-	new_pcr->output=NULL;
+	new_pcr->host_name.erase();
+	new_pcr->service_description.erase();
+	new_pcr->output.erase();
 	new_pcr->next=NULL;
 
 	/* save string vars */
-	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL)
-		result=ERROR;
-	if((new_pcr->service_description=(char *)strdup(svc_description))==NULL)
-		result=ERROR;
-	if((new_pcr->output=(char *)strdup(output))==NULL)
-		result=ERROR;
+	new_pcr->host_name=real_host_name;
+	new_pcr->service_description=svc_description;
+	new_pcr->output=output;
+
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free(new_pcr->output);
+	  /*	my_free(new_pcr->output);
 		my_free(new_pcr->service_description);
 		my_free(new_pcr->host_name);
+	  */
 		my_free(new_pcr);
 		return ERROR;
 	        }
@@ -2211,7 +2210,7 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 	/* get the host name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	host_name=(char *)strdup(temp_ptr);
+	host_name=(temp_ptr);
 
 	/* get the host check return code */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL){
@@ -2222,9 +2221,9 @@ int cmd_process_host_check_result(int cmd,time_t check_time,char *args){
 
 	/* get the plugin output (may be empty) */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL)
-		output=(char *)strdup("");
+		output=("");
 	else
-		output=(char *)strdup(temp_ptr);
+		output=(temp_ptr);
 
 	/* submit the check result */
 	result=process_passive_host_check(check_time,host_name,return_code,output);
@@ -2290,22 +2289,22 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 
 	/* initialize vars */
 	new_pcr->object_check_type=HOST_CHECK;
-	new_pcr->host_name=NULL;
-	new_pcr->service_description=NULL;
-	new_pcr->output=NULL;
+	new_pcr->host_name.erase();
+	new_pcr->service_description.erase();
+	new_pcr->output.erase();
 	new_pcr->next=NULL;
 
 	/* save string vars */
-	if((new_pcr->host_name=(char *)strdup(real_host_name))==NULL)
-		result=ERROR;
-	if((new_pcr->output=(char *)strdup(output))==NULL)
-		result=ERROR;
+	new_pcr->host_name=real_host_name;
+
+	new_pcr->output=output;
+
 
 	/* handle errors */
 	if(result==ERROR){
-		my_free(new_pcr->output);
-		my_free(new_pcr->service_description);
-		my_free(new_pcr->host_name);
+	  //	my_free(new_pcr->output);
+	  //	my_free(new_pcr->service_description);
+	  //	my_free(new_pcr->host_name);
 		my_free(new_pcr);
 		return ERROR;
 	        }
@@ -2389,14 +2388,14 @@ int cmd_acknowledge_problem(int cmd,char *args){
 	/* get the acknowledgement author */
 	if((temp_ptr=my_strtok(NULL,";"))==NULL)
 		return ERROR;
-	ack_author=(char *)strdup(temp_ptr);
+	ack_author=(temp_ptr);
 	
 	/* get the acknowledgement data */
 	if((temp_ptr=my_strtok(NULL,"\n"))==NULL){
 		my_free(ack_author);
 		return ERROR;
 	        }
-	ack_data=(char *)strdup(temp_ptr);
+	ack_data=(temp_ptr);
 	
 	/* acknowledge the host problem */
 	if(cmd==CMD_ACKNOWLEDGE_HOST_PROBLEM)
@@ -3065,7 +3064,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 
 	        }
 
-	if((temp_ptr=(char *)strdup(charval))==NULL)
+	if((temp_ptr=(charval))==NULL)
 		return ERROR;
 
 
@@ -3102,7 +3101,7 @@ int cmd_change_object_char_var(int cmd,char *args){
 		        }
 
 		my_free(temp_ptr);
-		if((temp_ptr=(char *)strdup(charval))==NULL)
+		if((temp_ptr=(charval))==NULL)
 			return ERROR;
 
 		break;
@@ -3325,7 +3324,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 	/* get the host or contact name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	if((name1=(char *)strdup(temp_ptr))==NULL)
+	if((name1=(temp_ptr))==NULL)
 		return ERROR;
 
 	/* get the service description if necessary */
@@ -3334,7 +3333,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 			my_free(name1);
 			return ERROR;
 		        }
-		if((name2=(char *)strdup(temp_ptr))==NULL){
+		if((name2=(temp_ptr))==NULL){
 			my_free(name1);
 			return ERROR;
 		        }
@@ -3346,7 +3345,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 		my_free(name2);
 		return ERROR;
 	        }
-	if((varname=(char *)strdup(temp_ptr))==NULL){
+	if((varname=(temp_ptr))==NULL){
 		my_free(name1);
 		my_free(name2);
 		return ERROR;
@@ -3359,7 +3358,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 		my_free(varname);
 		return ERROR;
 	        }
-	if((varvalue=(char *)strdup(temp_ptr))==NULL){
+	if((varvalue=(temp_ptr))==NULL){
 		my_free(name1);
 		my_free(name2);
 		my_free(varname);
@@ -3400,7 +3399,7 @@ int cmd_change_object_custom_var(int cmd, char *args){
 			/* update the value */
 			if(temp_customvariablesmember->variable_value)
 				my_free(temp_customvariablesmember->variable_value);
-			temp_customvariablesmember->variable_value=(char *)strdup(varvalue);
+			temp_customvariablesmember->variable_value=(varvalue);
 
 			/* mark the variable value as having been changed */
 			temp_customvariablesmember->has_been_modified=TRUE;
@@ -3446,7 +3445,7 @@ int cmd_process_external_commands_from_file(int cmd, char *args){
 	/* get the file name */
 	if((temp_ptr=my_strtok(args,";"))==NULL)
 		return ERROR;
-	if((fname=(char *)strdup(temp_ptr))==NULL)
+	if(!(fname=(temp_ptr)))
 		return ERROR;
 
 	/* find the deletion option */
@@ -5021,6 +5020,23 @@ void set_service_notification_number(service *svc, int num){
 
 
 
+
+template<typename T, typename... Args>
+  void fprintf2(FILE_HANDLE_T & ofile, const char* s, const T& value, const Args&... args) {
+  std::ofstream out(ofile);
+
+  while (*s) {
+    if (*s == '%' && *++s != '%') {
+      out << value;
+      return sprintf(++s, args...);
+    }
+    out << *s++;
+  }
+  throw "";//std::runtime_error("extra arguments provided to printf");
+}
+
+
+
 /* process all passive host and service checks we found in the external command file */
 void process_passive_checks(void){
 	passive_check_result *temp_pcr=NULL;
@@ -5028,7 +5044,7 @@ void process_passive_checks(void){
 	passive_check_result *next_pcr=NULL;
 	char *checkresult_file=NULL;
 	int checkresult_file_fd=-1;
-	FILE *checkresult_file_fp=NULL;
+	FILE_HANDLE_T checkresult_file_fp=NULL;
 	mode_t new_umask=077;
 	mode_t old_umask;
 	time_t current_time;
@@ -5076,10 +5092,10 @@ void process_passive_checks(void){
 		if(checkresult_file_fp){
 		
 			fprintf(checkresult_file_fp,"### Icinga %s Check Result ###\n",(temp_pcr->object_check_type==SERVICE_CHECK)?"Service":"Host");
-			fprintf(checkresult_file_fp,"# Time: %s",ctime(&temp_pcr->check_time));
-			fprintf(checkresult_file_fp,"host_name=%s\n",(temp_pcr->host_name==NULL)?"":temp_pcr->host_name);
+			fprintf2(checkresult_file_fp,"# Time: %s",ctime(&temp_pcr->check_time));
+			fprintf2(checkresult_file_fp,"host_name=%s\n",temp_pcr->host_name);
 			if(temp_pcr->object_check_type==SERVICE_CHECK)
-				fprintf(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description==NULL)?"":temp_pcr->service_description);
+				fprintf2(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description==NULL)?"":temp_pcr->service_description);
 			fprintf(checkresult_file_fp,"check_type=%d\n",(temp_pcr->object_check_type==HOST_CHECK)?HOST_CHECK_PASSIVE:SERVICE_CHECK_PASSIVE);
 			fprintf(checkresult_file_fp,"scheduled_check=0\n");
 			fprintf(checkresult_file_fp,"reschedule_check=0\n");
@@ -5088,7 +5104,7 @@ void process_passive_checks(void){
 			fprintf(checkresult_file_fp,"finish_time=%lu.%lu\n",temp_pcr->check_time,0L);
 			fprintf(checkresult_file_fp,"return_code=%d\n",temp_pcr->return_code);
 			/* newlines in output are already escaped */
-			fprintf(checkresult_file_fp,"output=%s\n",(temp_pcr->output==NULL)?"":temp_pcr->output);
+			fprintf2(checkresult_file_fp,"output=%s\n",(temp_pcr->output==NULL)?"":temp_pcr->output);
 			fprintf(checkresult_file_fp,"\n");
 			}
 		}

@@ -82,7 +82,8 @@ profile_object* profile_object_create(char * name)
 profile_object* profile_object_find_by_name(char * name)
 {
 	profile_object* p = profiled_data;
-	char * n_name = calloc(strlen(name)+1,sizeof(char)); //TODO:
+	//	char * n_name = calloc(strlen(name)+1,sizeof(char)); //TODO:
+	char * n_name = new char[strlen(name)+1,sizeof(char)]; //TODO:
 	strncpy(n_name,name,strlen(name));
 
 	while(p != NULL)
@@ -104,8 +105,8 @@ profile_object* profile_object_find_by_name(char * name)
 
 void test()
 {
-  profile_object_update_count ("TEST",1); // to trick the linker
-  profile_object_update_elapsed("PROFILE_ELAPSED_",1);
+  //  profile_object_update_count ("TEST",1); // to trick the linker
+  //  profile_object_update_elapsed("PROFILE_ELAPSED_",1);
 }
 
 void profile_object_update_count(char * name, int val)

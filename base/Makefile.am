@@ -1,9 +1,8 @@
 # additional include paths necessary to compile the C++ library
-AM_CXXFLAGS = -I$(top_srcdir)/include @AM_CXXFLAGS@
-
-AM_CFLAGS = --pedantic -Wall -std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99 -D_GNU_SOURCE
-
-
+AM_CXXFLAGS = -std=c++0x -I$(top_srcdir)/include @AM_CXXFLAGS@ -I/
+AM_CFLAGS = --pedantic -Wall -std=c++0x -D_GNU_SOURCE
+#-std=c99 -O2 -D_POSIX_C_SOURCE=200112L,-std=c99
+#lt_LD_CXX="g++"
 ###############################################################################
 # THE LIBRARIES TO BUILD
 ###############################################################################

@@ -250,7 +250,7 @@ char            *use_timezone=NULL;
 int             allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
 int             command_file_fd;
-FILE            *command_file_fp;
+FILE_HANDLE_T command_file_fp;
 int             command_file_created=FALSE;
 
 /* make sure gcc3 won't hit here */

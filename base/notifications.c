@@ -788,7 +788,11 @@ int notify_contact_of_service(icinga_macros *mac, contact_ptr_t cntct, service *
 #endif
 
 		/* get the raw command line */
-		get_raw_command_line_r(mac, temp_commandsmember->command_ptr,temp_commandsmember->command,&raw_command,macro_options);
+		get_raw_command_line_r(mac, 
+				       temp_commandsmember->command_ptr,
+				       temp_commandsmember->command,
+				       &raw_command,
+				       macro_options);
 		if(raw_command==NULL)
 			continue;
 

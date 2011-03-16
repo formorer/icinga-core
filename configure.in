@@ -24,13 +24,23 @@ dnl What OS are we running?
 AC_CANONICAL_HOST
 
 dnl Checks for programs.
-AC_PROG_CC
+#AC_PROG_CC remove the c support
 
 AC_PROG_CXX
 AC_PROG_MAKE_SET
 AC_PATH_PROG([STRIP],[strip],[true])
+#LTCC="g++"
+lt_LD_CXX="g++"
+lt_LD_CC="g++"
+lt_CC="g++"
+ac_ct_CC="g++"
+old_CC="g++"
+CC="g++"
+AC_LANG_CPLUSPLUS
+AC_LIBTOOL_CXX
+AM_PROG_LIBTOOL
 
-LT_INIT
+#LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -69,7 +79,11 @@ AC_FUNC_MKTIME
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
+BOOST_ROOT==~/install/include/boost-1_34_1/
+#export BOOST_ROOT=~/install/include/boost-1_34_1/
 
+AX_BOOST_BASE #([MINIMUM-VERSION], [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
+AX_BOOST_IOSTREAMS
 
 dnl Check for asprintf() and friends...
 AC_CACHE_CHECK([for va_copy],ac_cv_HAVE_VA_COPY,[

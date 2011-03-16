@@ -317,19 +317,96 @@ typedef struct notify_list_struct{
 	struct notify_list_struct *next;
         }notification;
 
+#include <string>
+
+class czstring_ptr_t : public std::string
+{
+ public:
+ template <class T>  czstring_ptr_t(T s) : std::string(s) {}
+
+  // czstring_ptr_t(char & s) :  czstring_ptr_t((char)*s) {}
+  // czstring_ptr_t(char * s) : std::string(s) {}
+  //czstring_ptr_t(const char s) : std::string(s) {}
+  // czstring_ptr_t(const char * s) : std::string(s) {}
+ czstring_ptr_t(czstring_ptr_t const& s) : std::string(s) {}
+czstring_ptr_t(czstring_ptr_t & s) : std::string(s) {}
+  bool operator==(bool null) { return !this->empty(); }
+
+  operator const char * () { return (const char * )*this; }
+
+};
+#include <iostream>
+void printf2(const char* s) {
+  while (*s) {
+    if (*s == '%' && *++s != '%') 
+      throw "BOO";//std::runtime_error("invalid format string: missing arguments");
+    std::cout << *s++;
+  }
+}
+
+template<typename T, typename... Args>
+  void printf2(const char* s, const T& value, const Args&... args) {
+  while (*s) {
+    if (*s == '%' && *++s != '%') {
+      std::cout << value;
+      return printf2(++s, args...);
+    }
+    std::cout << *s++;
+  }
+  throw "";//std::runtime_error("extra arguments provided to printf");
+}
+
+//fprintf
+void fprintf(const char* s) {
+  while (*s) {
+    if (*s == '%' && *++s != '%') 
+      throw "BOO";//std::runtime_error("invalid format string: missing arguments");
+    std::cout << *s++;
+  }
+}
+#include <fstream>
+
+// 
+class FILE_HANDLE_T 
+{
+ public :
+  FILE_HANDLE_T ()
+    {}
+  ~FILE_HANDLE_T ()
+    {}
+  std::ofstream handle;
+};
+
+template<typename T, typename... Args>
+  void fprintf(FILE_HANDLE_T  ofile, const char* s, const T& value, const Args&... args) {
+  std::ofstream out(ofile);
+
+  while (*s) {
+    if (*s == '%' && *++s != '%') {
+      out << value;
+      return sprintf(++s, args...);
+    }
+    out << *s++;
+  }
+  throw "";//std::runtime_error("extra arguments provided to printf");
+}
+
+//typedef std::string /*const char */ czstring_ptr_t;
+//typedef std::string /*char */ czstring_w_ptr_t;
+typedef czstring_ptr_t czstring_w_ptr_t;
 
 /* CHECK_RESULT structure */
 typedef struct check_result_struct{
 	int object_check_type;                          /* is this a service or a host check? */
-	char *host_name;                                /* host name */
-	char *service_description;                      /* service description */
+	czstring_ptr_t host_name;                                /* host name */
+	czstring_ptr_t service_description;                      /* service description */
 	int check_type;					/* was this an active or passive service check? */
 	int check_options;
 	int scheduled_check;                            /* was this a scheduled or an on-demand check? */
 	int reschedule_check;                           /* should we reschedule the next check */
-	char *output_file;                              /* what file is the output stored in? */
+	czstring_ptr_t output_file;                              /* what file is the output stored in? */
 
-	FILE *output_file_fp;
+	FILE_HANDLE_T output_file_fp;
 
 	int output_file_fd;
 	double latency;
@@ -340,7 +417,7 @@ typedef struct check_result_struct{
 	int early_timeout;                              /* did the service check timeout? */
 	int exited_ok;					/* did the plugin check return okay? */
 	int return_code;				/* plugin return code */
-	char *output;	                                /* plugin output */
+	czstring_ptr_t output;	                                /* plugin output */
 	struct check_result_struct *next;
 	}check_result;
 
@@ -375,10 +452,10 @@ typedef struct sched_info_struct{
 /* PASSIVE_CHECK_RESULT structure */
 typedef struct passive_check_result_struct{
 	int object_check_type;
-	char *host_name;
-	char *service_description;
+	czstring_ptr_t host_name;
+	czstring_ptr_t service_description;
 	int return_code;
-	char *output;
+	czstring_ptr_t output;
 	time_t check_time;
 	double latency;
 	struct passive_check_result_struct *next;
@@ -406,7 +483,7 @@ pthread_mutex_t buffer_lock;
 
 /* DBUF structure - dynamic string storage */
 typedef struct dbuf_struct{
-	char *buf;
+  czstring_w_ptr_t buf; // stores a truncated output from plugin
 	unsigned long used_size;
 	unsigned long allocated_size;
 	unsigned long chunk_size;
@@ -440,9 +517,9 @@ typedef struct check_stats_struct{
 /******************** FUNCTIONS **********************/
 
 /**** Configuration Functions ****/
-int read_main_config_file(char *);                     		/* reads the main config file (icinga.cfg) */
-int read_resource_file(char *);					/* processes macros in resource file */
-int read_all_object_data(char *);				/* reads all object config data */
+int read_main_config_file(czstring_ptr_t );                     		/* reads the main config file (icinga.cfg) */
+int read_resource_file(czstring_ptr_t );					/* processes macros in resource file */
+int read_all_object_data(czstring_ptr_t );				/* reads all object config data */
 
 
 /**** Setup Functions ****/
@@ -453,7 +530,7 @@ void init_timing_loop(void);                         		/* setup the initial sche
 void setup_sighandler(void);                         		/* trap signals */
 void reset_sighandler(void);                         		/* reset signals to default action */
 int daemon_init(void);				     		/* switches to daemon mode */
-int drop_privileges(char *,char *);				/* drops privileges before startup */
+int drop_privileges(czstring_ptr_t ,czstring_ptr_t );				/* drops privileges before startup */
 void display_scheduling_info(void);				/* displays service check scheduling information */
 
 
@@ -483,16 +560,16 @@ void resort_event_list(timed_event **,timed_event **);                 	/* resor
 
 
 /**** IPC Functions ****/
-int move_check_result_to_queue(char *);
-int process_check_result_queue(char *);
-int process_check_result_file(char *);
+int move_check_result_to_queue(czstring_ptr_t );
+int process_check_result_queue(czstring_ptr_t );
+int process_check_result_file(czstring_ptr_t );
 int add_check_result_to_list(check_result *);
 check_result *read_check_result(void);                  	/* reads a host/service check result from the list in memory */
-int delete_check_result_file(char *);
+int delete_check_result_file(czstring_ptr_t );
 int free_check_result_list(void);
 int init_check_result(check_result *);
 int free_check_result(check_result *);                  	/* frees memory associated with a host/service check result */
-int parse_check_output(char *,char **,char **,char **,int,int);
+int parse_check_output(czstring_ptr_t ,czstring_ptr_t *,czstring_ptr_t *,czstring_ptr_t *,int,int);
 int open_command_file(void);					/* creates the external command file as a named pipe (FIFO) and opens it for reading */
 int close_command_file(void);					/* closes and deletes the external command file (FIFO) */
 
@@ -506,8 +583,8 @@ void check_service_result_freshness(void);              	/* checks the "freshnes
 int is_service_result_fresh(service *,time_t,int);              /* determines if a service's check results are fresh */
 void check_host_result_freshness(void);                 	/* checks the "freshness" of host check results */
 int is_host_result_fresh(host *,time_t,int);                    /* determines if a host's check results are fresh */
-int my_system(char *,int,int *,double *,char **,int);         	/* executes a command via popen(), but also protects against timeouts */
-int my_system_r(icinga_macros *mac, char *,int,int *,double *,char **,int); /* thread-safe version of the above */
+int my_system(czstring_ptr_t ,int,int *,double *,czstring_ptr_t *,int);         	/* executes a command via popen(), but also protects against timeouts */
+int my_system_r(icinga_macros *mac, czstring_ptr_t ,int,int *,double *,czstring_ptr_t *,int); /* thread-safe version of the above */
 
 /**** Flap Detection Functions ****/
 void check_for_service_flapping(service *,int,int);	        /* determines whether or not a service is "flapping" between states */
@@ -532,7 +609,7 @@ int perform_scheduled_host_check(host *,int,double);
 int check_host_check_viability_3x(host *,int,int *,time_t *);
 int adjust_host_check_attempt_3x(host *,int);
 int determine_host_reachability(host *);
-int process_host_check_result_3x(host *,int,char *,int,int,int,unsigned long);
+int process_host_check_result_3x(host *,int,czstring_ptr_t ,int,int,int,unsigned long);
 int perform_on_demand_host_check_3x(host *,int *,int,int,unsigned long);
 int run_sync_host_check_3x(host *,int *,int,int,unsigned long);
 int execute_sync_host_check_3x(host *);
@@ -579,15 +656,15 @@ int run_global_host_event_handler(icinga_macros *mac, host *);			/* runs the glo
 int check_service_notification_viability(service *,int,int);			/* checks viability of notifying all contacts about a service */
 int is_valid_escalation_for_service_notification(service *,serviceescalation *,int);	/* checks if an escalation entry is valid for a particular service notification */
 int should_service_notification_be_escalated(service *);			/* checks if a service notification should be escalated */
-int service_notification(service *,int,char *,char *,int);                     	/* notify all contacts about a service (problem or recovery) */
+int service_notification(service *,int,czstring_ptr_t ,czstring_ptr_t ,int);                     	/* notify all contacts about a service (problem or recovery) */
 int check_contact_service_notification_viability(contact_ptr_t ,service *,int,int);	/* checks viability of notifying a contact about a service */
-int notify_contact_of_service(icinga_macros *mac, contact_ptr_t ,service *,int,char *,char *,int,int);  	/* notify a single contact about a service */
+int notify_contact_of_service(icinga_macros *mac, contact_ptr_t ,service *,int,czstring_ptr_t ,czstring_ptr_t ,int,int);  	/* notify a single contact about a service */
 int check_host_notification_viability(host *,int,int);				/* checks viability of notifying all contacts about a host */
 int is_valid_escalation_for_host_notification(host *,hostescalation *,int);	/* checks if an escalation entry is valid for a particular host notification */
 int should_host_notification_be_escalated(host *);				/* checks if a host notification should be escalated */
-int host_notification(host *,int,char *,char *,int);                           	/* notify all contacts about a host (problem or recovery) */
+int host_notification(host *,int,czstring_ptr_t ,czstring_ptr_t ,int);                           	/* notify all contacts about a host (problem or recovery) */
 int check_contact_host_notification_viability(contact_ptr_t ,host *,int,int);	/* checks viability of notifying a contact about a host */
-int notify_contact_of_host(icinga_macros *mac, contact_ptr_t ,host *,int,char *,char *,int,int);        	/* notify a single contact about a host */
+int notify_contact_of_host(icinga_macros *mac, contact_ptr_t ,host *,int,czstring_ptr_t ,czstring_ptr_t ,int,int);        	/* notify a single contact about a host */
 int create_notification_list_from_host(icinga_macros *mac, host *,int,int *);         		/* given a host, create list of contacts to be notified (remove duplicates) */
 int create_notification_list_from_service(icinga_macros *mac, service *,int,int *);    		/* given a service, create list of contacts to be notified (remove duplicates) */
 int add_notification(icinga_macros *mac, contact_ptr_t );						/* adds a notification instance */
@@ -610,22 +687,22 @@ void host_check_sighandler(int);                        /* handles timeouts when
 void my_system_sighandler(int);				/* handles timeouts when executing commands via my_system() */
 void file_lock_sighandler(int);                         /* handles timeouts while waiting for file locks */
 
-char *get_next_string_from_buf(char *buf, int *start_index, int bufsize);
-int compare_strings(char *,char *);                     /* compares two strings for equality */
-char *escape_newlines(char *);
-int contains_illegal_object_chars(char *);		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
-int my_rename(char *,char *);                           /* renames a file - works across filesystems */
-int my_fcopy(char *,char *);                            /* copies a file - works across filesystems */
-int my_fdcopy(char *, char *, int);                     /* copies a named source to an already opened destination file */
+czstring_ptr_t get_next_string_from_buf(czstring_ptr_t buf, int *start_index, int bufsize);
+int compare_strings(czstring_ptr_t ,czstring_ptr_t );                     /* compares two strings for equality */
+czstring_ptr_t escape_newlines(czstring_ptr_t );
+int contains_illegal_object_chars(czstring_ptr_t );		/* tests whether or not an object name (host, service, etc.) contains illegal characters */
+int my_rename(czstring_ptr_t ,czstring_ptr_t );                           /* renames a file - works across filesystems */
+int my_fcopy(czstring_ptr_t ,czstring_ptr_t );                            /* copies a file - works across filesystems */
+int my_fdcopy(czstring_ptr_t , czstring_ptr_t , int);                     /* copies a named source to an already opened destination file */
 
 /* thread-safe version of get_raw_command_line_r() */
-extern int get_raw_command_line_r(icinga_macros *mac, command *,char *,char **,int);
+extern int get_raw_command_line_r(icinga_macros *mac, command *,czstring_ptr_t ,czstring_w_ptr_t *,int);
 
 /*
  * given a raw command line, determine the actual command to run
  * Manipulates global_macros.argv and is thus not threadsafe
  */
-extern int get_raw_command_line(command *,char *,char **,int);
+extern int get_raw_command_line(command *,czstring_ptr_t ,czstring_ptr_t *,int);
 
 int check_time_against_period(time_t,timeperiod *);	/* check to see if a specific time is covered by a time period */
 int is_daterange_single_day(daterange *);
@@ -636,50 +713,50 @@ void _get_next_valid_time_per_timeperiod(time_t, time_t *, time_t, timeperiod *)
 void get_earliest_time(time_t, time_t *, time_t, timeperiod *, int);
 void get_min_invalid_time_per_timeperiod(time_t, time_t *, time_t, timeperiod *);
 time_t get_next_log_rotation_time(void);	     	/* determine the next time to schedule a log rotation */
-int init_embedded_perl(char **);			/* initialized embedded perl interpreter */
+int init_embedded_perl(czstring_ptr_t *);			/* initialized embedded perl interpreter */
 int deinit_embedded_perl(void);				/* cleans up embedded perl */
-int file_uses_embedded_perl(char *);			/* tests whether or not the embedded perl interpreter should be used on a file */
+int file_uses_embedded_perl(czstring_ptr_t );			/* tests whether or not the embedded perl interpreter should be used on a file */
 int dbuf_init(dbuf *,int);
 int dbuf_free(dbuf *);
-int dbuf_strcat(dbuf *,char *);
-int set_environment_var(char *,char *,int);             /* sets/clears and environment variable */
+int dbuf_strcat(dbuf *,czstring_ptr_t );
+int set_environment_var(czstring_ptr_t ,czstring_ptr_t ,int);             /* sets/clears and environment variable */
 
 
 /**** External Command Functions ****/
 int check_for_external_commands(void);			/* checks for any external commands */
-int process_external_command1(char *);                  /* top-level external command processor */
-int process_external_command2(int,time_t,char *);	/* process an external command */
-int process_external_commands_from_file(char *,int);    /* process external commands in a file */
-int process_host_command(int,time_t,char *);            /* process an external host command */
-int process_hostgroup_command(int,time_t,char *);       /* process an external hostgroup command */
-int process_service_command(int,time_t,char *);         /* process an external service command */
-int process_servicegroup_command(int,time_t,char *);    /* process an external servicegroup command */
-int process_contact_command(int,time_t,char *);         /* process an external contact command */
-int process_contactgroup_command(int,time_t,char *);    /* process an external contactgroup command */
+int process_external_command1(czstring_ptr_t );                  /* top-level external command processor */
+int process_external_command2(int,time_t,czstring_ptr_t );	/* process an external command */
+int process_external_commands_from_file(czstring_ptr_t ,int);    /* process external commands in a file */
+int process_host_command(int,time_t,czstring_ptr_t );            /* process an external host command */
+int process_hostgroup_command(int,time_t,czstring_ptr_t );       /* process an external hostgroup command */
+int process_service_command(int,time_t,czstring_ptr_t );         /* process an external service command */
+int process_servicegroup_command(int,time_t,czstring_ptr_t );    /* process an external servicegroup command */
+int process_contact_command(int,time_t,czstring_ptr_t );         /* process an external contact command */
+int process_contactgroup_command(int,time_t,czstring_ptr_t );    /* process an external contactgroup command */
 
 
 /**** External Command Implementations ****/
-int cmd_add_comment(int,time_t,char *);				/* add a service or host comment */
-int cmd_delete_comment(int,char *);				/* delete a service or host comment */
-int cmd_delete_all_comments(int,char *);			/* delete all comments associated with a host or service */
-int cmd_delay_notification(int,char *);				/* delay a service or host notification */
-int cmd_schedule_service_check(int,char *,int);                 /* schedule an immediate or delayed service check */
-int cmd_schedule_check(int,char *);				/* schedule an immediate or delayed host check */
-int cmd_schedule_host_service_checks(int,char *,int);		/* schedule an immediate or delayed checks of all services on a host */
-int cmd_signal_process(int,char *);				/* schedules a program shutdown or restart */
-int cmd_process_service_check_result(int,time_t,char *);	/* processes a passive service check */
-int cmd_process_host_check_result(int,time_t,char *);		/* processes a passive host check */
-int cmd_acknowledge_problem(int,char *);			/* acknowledges a host or service problem */
-int cmd_remove_acknowledgement(int,char *);			/* removes a host or service acknowledgement */
-int cmd_schedule_downtime(int,time_t,char *);                   /* schedules host or service downtime */
-int cmd_delete_downtime(int,char *);				/* cancels active/pending host or service scheduled downtime */
-int cmd_change_object_int_var(int,char *);                      /* changes host/svc (int) variable */
-int cmd_change_object_char_var(int,char *);			/* changes host/svc (char) variable */
-int cmd_change_object_custom_var(int,char *);                   /* changes host/svc custom variable */
-int cmd_process_external_commands_from_file(int,char *);        /* process external commands from a file */
+int cmd_add_comment(int,time_t,czstring_ptr_t );				/* add a service or host comment */
+int cmd_delete_comment(int,czstring_ptr_t );				/* delete a service or host comment */
+int cmd_delete_all_comments(int,czstring_ptr_t );			/* delete all comments associated with a host or service */
+int cmd_delay_notification(int,czstring_ptr_t );				/* delay a service or host notification */
+int cmd_schedule_service_check(int,czstring_ptr_t ,int);                 /* schedule an immediate or delayed service check */
+int cmd_schedule_check(int,czstring_ptr_t );				/* schedule an immediate or delayed host check */
+int cmd_schedule_host_service_checks(int,czstring_ptr_t ,int);		/* schedule an immediate or delayed checks of all services on a host */
+int cmd_signal_process(int,czstring_ptr_t );				/* schedules a program shutdown or restart */
+int cmd_process_service_check_result(int,time_t,czstring_ptr_t );	/* processes a passive service check */
+int cmd_process_host_check_result(int,time_t,czstring_ptr_t );		/* processes a passive host check */
+int cmd_acknowledge_problem(int,czstring_ptr_t );			/* acknowledges a host or service problem */
+int cmd_remove_acknowledgement(int,czstring_ptr_t );			/* removes a host or service acknowledgement */
+int cmd_schedule_downtime(int,time_t,czstring_ptr_t );                   /* schedules host or service downtime */
+int cmd_delete_downtime(int,czstring_ptr_t );				/* cancels active/pending host or service scheduled downtime */
+int cmd_change_object_int_var(int,czstring_ptr_t );                      /* changes host/svc (int) variable */
+int cmd_change_object_char_var(int,czstring_ptr_t );			/* changes host/svc (char) variable */
+int cmd_change_object_custom_var(int,czstring_ptr_t );                   /* changes host/svc custom variable */
+int cmd_process_external_commands_from_file(int,czstring_ptr_t );        /* process external commands from a file */
 
-int process_passive_service_check(time_t,char *,char *,int,char *);
-int process_passive_host_check(time_t,char *,int,char *);
+int process_passive_service_check(time_t,czstring_ptr_t ,czstring_ptr_t ,int,czstring_ptr_t );
+int process_passive_host_check(time_t,czstring_ptr_t ,int,czstring_ptr_t );
 
 
 /**** Internal Command Implementations ****/
@@ -695,9 +772,9 @@ void enable_host_notifications(host *);			/* enables host notifications */
 void disable_host_notifications(host *);		/* disables host notifications */
 void enable_and_propagate_notifications(host *,int,int,int,int);	/* enables notifications for all hosts and services beyond a given host */
 void disable_and_propagate_notifications(host *,int,int,int,int);	/* disables notifications for all hosts and services beyond a given host */
-void schedule_and_propagate_downtime(host *,time_t,char *,char *,time_t,time_t,int,unsigned long,unsigned long); /* schedules downtime for all hosts beyond a given host */
-void acknowledge_host_problem(host *,char *,char *,int,int,int);	/* acknowledges a host problem */
-void acknowledge_service_problem(service *,char *,char *,int,int,int);	/* acknowledges a service problem */
+void schedule_and_propagate_downtime(host *,time_t,czstring_ptr_t ,czstring_ptr_t ,time_t,time_t,int,unsigned long,unsigned long); /* schedules downtime for all hosts beyond a given host */
+void acknowledge_host_problem(host *,czstring_ptr_t ,czstring_ptr_t ,int,int,int);	/* acknowledges a host problem */
+void acknowledge_service_problem(service *,czstring_ptr_t ,czstring_ptr_t ,int,int,int);	/* acknowledges a service problem */
 void remove_host_acknowledgement(host *);		/* removes a host acknowledgement */
 void remove_service_acknowledgement(service *);		/* removes a service acknowledgement */
 void start_executing_service_checks(void);		/* starts executing service checks */
@@ -756,40 +833,40 @@ int shutdown_command_file_worker_thread(void);
 void * command_file_worker_thread(void *);
 void cleanup_command_file_worker_thread(void *);
 
-int submit_external_command(char *,int *);
-int submit_raw_external_command(char *,time_t *,int *);
+int submit_external_command(czstring_ptr_t ,int *);
+int submit_raw_external_command(czstring_ptr_t ,time_t *,int *);
 
-char *get_program_version(void);
-char *get_program_modification_date(void);
-int has_shell_metachars(const char *);
+czstring_ptr_t get_program_version(void);
+czstring_ptr_t get_program_modification_date(void);
+int has_shell_metachars(const czstring_ptr_t );
 
 
   // missing declarations for these in utils.c
   void _get_next_valid_time(time_t pref_time, time_t current_time, time_t *valid_time, timeperiod *tperiod);
 
   // commons/objects.c
-  escalation_condition *add_host_service_escalation_condition(hostescalation *my_hostescalation, serviceescalation *my_serviceescalation, escalation_condition *last_condition, char *host_name, char *service_description, int connector, int escalate_on_down, int escalate_on_unreachable, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_ok);
+  escalation_condition *add_host_service_escalation_condition(hostescalation *my_hostescalation, serviceescalation *my_serviceescalation, escalation_condition *last_condition, czstring_ptr_t host_name, czstring_ptr_t service_description, int connector, int escalate_on_down, int escalate_on_unreachable, int escalate_on_warning, int escalate_on_unknown, int escalate_on_critical, int escalate_on_ok);
 
 
   //cleanup_status_data
-  int cleanup_status_data(char *config_file,int delete_status_data);
+  int cleanup_status_data(czstring_ptr_t config_file,int delete_status_data);
   //initialize_status_data
-  int initialize_status_data(char *config_file);
+  int initialize_status_data(czstring_ptr_t config_file);
 
   //initialize_comment_data
-  int initialize_comment_data(char *config_file);
+  int initialize_comment_data(czstring_ptr_t config_file);
 
   //initialize_downtime_data
-  int initialize_downtime_data(char *config_file);
+  int initialize_downtime_data(czstring_ptr_t config_file);
 
   //update_all_status_data
   int update_all_status_data(void);
 
   //cleanup_downtime_data
-  int cleanup_downtime_data(char *config_file);
+  int cleanup_downtime_data(czstring_ptr_t config_file);
 
   //cleanup_comment_data
-  int cleanup_comment_data(char *config_file);
+  int cleanup_comment_data(czstring_ptr_t config_file);
   // events.c
   int update_service_status(service *svc,int aggregated_dump);
   int update_host_status(host *hst,int aggregated_dump);
@@ -797,21 +874,21 @@ int has_shell_metachars(const char *);
   int check_for_expired_comment(unsigned long comment_id);
 
   //xcddefault_initialize_comment_data
-int xcddefault_initialize_comment_data(char *main_config_file);
+int xcddefault_initialize_comment_data(czstring_ptr_t main_config_file);
   //xcddefault_cleanup_comment_data
-  int xcddefault_cleanup_comment_data(char *main_config_file);
+  int xcddefault_cleanup_comment_data(czstring_ptr_t main_config_file);
 
   //add_new_host_comment
-  int add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+  int add_new_host_comment(int entry_type, czstring_ptr_t host_name, time_t entry_time, czstring_ptr_t author_name, czstring_ptr_t comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
 
   //add_new_service_comment
-  int add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+  int add_new_service_comment(int entry_type, czstring_ptr_t host_name, czstring_ptr_t svc_description, time_t entry_time, czstring_ptr_t author_name, czstring_ptr_t comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
 
   //xcddefault_add_new_host_comment
-  int xcddefault_add_new_host_comment(int entry_type, char *host_name, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+  int xcddefault_add_new_host_comment(int entry_type, czstring_ptr_t host_name, time_t entry_time, czstring_ptr_t author_name, czstring_ptr_t comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
 
   //xcddefault_add_new_service_comment
-  int xcddefault_add_new_service_comment(int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+  int xcddefault_add_new_service_comment(int entry_type, czstring_ptr_t host_name, czstring_ptr_t svc_description, time_t entry_time, czstring_ptr_t author_name, czstring_ptr_t comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
 
   //xcddefault_delete_host_comment
   int xcddefault_delete_host_comment(unsigned long comment_id);
@@ -828,22 +905,22 @@ int xcddefault_initialize_comment_data(char *main_config_file);
   int delete_host_acknowledgement_comments(host *host);
   int update_contact_status(contact_ptr_t cntct,int aggregated_dump);
   //delete_all_host_comments
-  int delete_all_host_comments(char *host_name);
+  int delete_all_host_comments(czstring_ptr_t host_name);
   //delete_all_service_comments
-  int delete_all_service_comments(char *host_name, char *svc_description);
+  int delete_all_service_comments(czstring_ptr_t host_name, czstring_ptr_t svc_description);
 
   //xdddefault_initialize_downtime_data
-  int xdddefault_initialize_downtime_data(char *main_config_file);
+  int xdddefault_initialize_downtime_data(czstring_ptr_t main_config_file);
 
   //xdddefault_cleanup_downtime_data
-  int xdddefault_cleanup_downtime_data(char *main_config_file);
+  int xdddefault_cleanup_downtime_data(czstring_ptr_t main_config_file);
   //add_new_comment
-  int add_new_comment(int type, int entry_type, char *host_name, char *svc_description, time_t entry_time, char *author_name, char *comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
+  int add_new_comment(int type, int entry_type, czstring_ptr_t host_name, czstring_ptr_t svc_description, time_t entry_time, czstring_ptr_t author_name, czstring_ptr_t comment_data, int persistent, int source, int expires, time_t expire_time, unsigned long *comment_id);
 
   //xdddefault_add_new_host_downtime
-  int xdddefault_add_new_host_downtime(char *host_name, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
+  int xdddefault_add_new_host_downtime(czstring_ptr_t host_name, time_t entry_time, czstring_ptr_t author, czstring_ptr_t comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
   //xdddefault_add_new_service_downtime
-  int xdddefault_add_new_service_downtime(char *host_name, char *service_description, time_t entry_time, char *author, char *comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
+  int xdddefault_add_new_service_downtime(czstring_ptr_t host_name, czstring_ptr_t service_description, time_t entry_time, czstring_ptr_t author, czstring_ptr_t comment, time_t start_time, time_t end_time, int fixed, unsigned long triggered_by, unsigned long duration, unsigned long *downtime_id,int is_in_effect);
 
   //xdddefault_delete_host_downtime
   int xdddefault_delete_host_downtime(unsigned long downtime_id);
@@ -881,16 +958,16 @@ int xcddefault_initialize_comment_data(char *main_config_file);
   int write_log_file_info(time_t *timestamp);
 
   //write_to_all_logs
-  int write_to_all_logs(char *buffer, unsigned long data_type);
+  int write_to_all_logs(czstring_ptr_t buffer, unsigned long data_type);
   
   //write_to_log
-  int write_to_log(char *buffer, unsigned long data_type, time_t *timestamp);
+  int write_to_log(czstring_ptr_t buffer, unsigned long data_type, time_t *timestamp);
 
   //write_to_syslog
-  int write_to_syslog(char *buffer, unsigned long data_type);
+  int write_to_syslog(czstring_ptr_t buffer, unsigned long data_type);
 
-  void profile_object_update_count(char * name, int val);
-  void profile_object_update_elapsed(char * name, double val);
+  void profile_object_update_count(const czstring_ptr_t  name, int val);
+  void profile_object_update_elapsed(const czstring_ptr_t  name, double val);
 //#ifdef __cplusplus
 //}
 //#endif

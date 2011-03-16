@@ -928,7 +928,7 @@ int display_stats(void){
 
 int read_config_file(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp;
+	FILE_HANDLE_T fp;
 	char *var;
 	char *val;
 
@@ -967,7 +967,7 @@ int read_config_file(void){
 
 int read_status_file(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp=NULL;
+	FILE_HANDLE_T fp=NULL;
 	int data_type=STATUS_NO_DATA;
 	char *var=NULL;
 	char *val=NULL;
@@ -1459,7 +1459,7 @@ int read_status_file(void){
 
 int read_icingastats_file(void){
 	char temp_buffer[MAX_INPUT_BUFFER];
-	FILE *fp=NULL;
+	FILE_HANDLE_T fp=NULL;
 	char *var=NULL;
 	char *val=NULL;
 	char *temp_ptr=NULL;

@@ -1758,7 +1758,6 @@ void adjust_check_scheduling(void){
 
 		return;
 	        }
-
 	if((unsigned long)total_check_exec_time>(unsigned long)auto_rescheduling_window){
 		inter_check_delay=0.0;
 		exec_time_factor=(double)((double)auto_rescheduling_window/total_check_exec_time);

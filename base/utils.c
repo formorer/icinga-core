@@ -260,7 +260,7 @@ extern command          *command_list;
 extern timeperiod       *timeperiod_list;
 
 extern int      command_file_fd;
-extern FILE     *command_file_fp;
+extern FILE_HANDLE_T command_file_fp;
 extern int      command_file_created;
 
 #ifdef HAVE_TZNAME
@@ -317,7 +317,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 	char buffer[MAX_INPUT_BUFFER]="";
 	const char *temp_buffer=NULL;
 	int fd[2];
-	FILE *fp=NULL;
+	FILE_HANDLE_T fp=NULL;
 	int bytes_read=0;
 	timeval_t start_time,end_time;
 	dbuf output_dbuf;
@@ -535,7 +535,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 
 
 		/* run the command */
-		fp=(FILE *)popen(cmd,"r");
+		fp=(FILE_HANDLE_T )popen(cmd,"r");
 
 		/* report an error if we couldn't run the command */
 		if(fp==NULL){
@@ -696,7 +696,8 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 
 #ifdef USE_EVENT_BROKER
 		/* send data to event broker */
-		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,(output_dbuf.buf==NULL)?NULL:output_dbuf.buf,NULL);
+		broker_system_command(NEBTYPE_SYSTEM_COMMAND_END,NEBFLAG_NONE,NEBATTR_NONE,start_time,end_time,*exectime,timeout,*early_timeout,result,cmd,
+				      (output_dbuf.buf==NULL)?NULL:output_dbuf.buf,NULL);
 #endif
 
 		/* free memory */
@@ -3269,7 +3270,7 @@ int open_command_file(void){
 	        }
 
 	/* re-open the FIFO for use with fgets() */
-	if((command_file_fp=(FILE *)fdopen(command_file_fd,"r"))==NULL){
+	if((command_file_fp=(FILE_HANDLE_T )fdopen(command_file_fd,"r"))==NULL){
 
 		logit(NSLOG_RUNTIME_ERROR,TRUE,"Error: Could not open external command file for reading via fdopen(): (%d) -> %s\n",errno,strerror(errno));
 
@@ -3380,8 +3381,8 @@ int contains_illegal_object_chars(char *name){
 
 
 /* escapes newlines in a string */
-char *escape_newlines(char *rawbuf){
-	char *newbuf=NULL;
+czstring_w_ptr_t escape_newlines(czstring_ptr_t rawbuf){
+	czstring_ptr_t newbuf=NULL;
 	register int x,y;
 
 	if(rawbuf==NULL)
@@ -3421,7 +3422,7 @@ if (!newbuf)
 
 
 /* compares strings */
-int compare_strings(char *val1a, char *val2a){
+int compare_strings(czstring_ptr_t val1a, czstring_ptr_t val2a){
 
 	/* use the compare_hashdata() function */
 	return compare_hashdata(val1a,NULL,val2a,NULL);
@@ -3433,7 +3434,7 @@ int compare_strings(char *val1a, char *val2a){
 /******************************************************************/
 
 /* renames a file - works across filesystems (Mike Wiacek) */
-int my_rename(char *source, char *dest){
+int my_rename(czstring_ptr_t source, czstring_ptr_t dest){
 	int rename_result=0;
 
 
@@ -3478,11 +3479,11 @@ int my_rename(char *source, char *dest){
  * destination file dest.
  * This is handy when creating tempfiles with mkstemp()
  */
-int my_fdcopy(char *source, char *dest, int dest_fd){
+int my_fdcopy(czstring_ptr_t source, czstring_ptr_t dest, int dest_fd){
 	int source_fd, rd_result = 0, wr_result = 0;
 	unsigned long tot_written = 0, tot_read = 0, buf_size = 0;
 	struct stat st;
-	char *buf;
+	czstring_ptr_t buf;
 
 	/* open source file for reading */
 	if((source_fd=open(source,O_RDONLY,0644)) < 0){
@@ -3563,7 +3564,7 @@ int my_fdcopy(char *source, char *dest, int dest_fd){
 
 
 /* copies a file */
-int my_fcopy(char *source, char *dest){
+int my_fcopy(czstring_ptr_t source, czstring_ptr_t dest){
 	int dest_fd, result;
 
 	/* make sure we have something */
@@ -3620,10 +3621,10 @@ int dbuf_free(dbuf *db){
         }
 
 
-int dbuf_strcat(dbuf *db, const char *buf);
+int dbuf_strcat(dbuf *db, const czstring_ptr_t buf);
 /* dynamically expands a string */
-int dbuf_strcat(dbuf *db, const char *buf){
-	char *newbuf=NULL;
+int dbuf_strcat(dbuf *db, const czstring_ptr_t buf){
+	czstring_ptr_t newbuf=NULL;
 	unsigned long buflen=0L;
 	unsigned long new_size=0L;
 	unsigned long memory_needed=0L;
@@ -3641,7 +3642,7 @@ int dbuf_strcat(dbuf *db, const char *buf){
 		memory_needed=((ceil(new_size/db->chunk_size)+1)*db->chunk_size);
 
 		/* allocate memory to store old and new string */
-		if((newbuf=(char *)realloc((void *)db->buf,(size_t)memory_needed))==NULL)
+		if((newbuf=(czstring_ptr_t )realloc((void *)db->buf,(size_t)memory_needed))==NULL)
 			return ERROR;
 
 		/* update buffer pointer */
@@ -3670,9 +3671,9 @@ int dbuf_strcat(dbuf *db, const char *buf){
 /******************************************************************/
 
 /* initializes embedded perl interpreter */
-int init_embedded_perl(char **env){
+int init_embedded_perl(czstring_ptr_t *env){
 #ifdef EMBEDDEDPERL
-	char **embedding=NULL;
+	czstring_ptr_t *embedding=NULL;
 	int exitstatus=0;
 	int argc=2;
 	struct stat stat_buf;
@@ -3687,7 +3688,7 @@ int init_embedded_perl(char **env){
 
 	else{
 
-		embedding=malloc(2*sizeof(char *));
+		embedding=malloc(2*sizeof(czstring_ptr_t ));
 		if(embedding==NULL)
 			return ERROR;
 		*embedding=strdup("");
@@ -3713,7 +3714,7 @@ int init_embedded_perl(char **env){
 		}
 
 	perl_construct(my_perl);
-	exitstatus=perl_parse(my_perl,xs_init,2,(char **)embedding,env);
+	exitstatus=perl_parse(my_perl,xs_init,2,(czstring_ptr_t *)embedding,env);
 	if(!exitstatus)
 		exitstatus=perl_run(my_perl);
 
@@ -3737,14 +3738,14 @@ int deinit_embedded_perl(void){
 
 
 /* checks to see if we should run a script using the embedded Perl interpreter */
-int file_uses_embedded_perl(char *fname){
+int file_uses_embedded_perl(czstring_ptr_t fname){
 	int use_epn=FALSE;
 #ifdef EMBEDDEDPERL
-	FILE *fp=NULL;
+	FILE_HANDLE_T fp=NULL;
 	char line1[80]="";
 	char linen[80]="";
 	int line=0;
-	char *ptr=NULL;
+	czstring_ptr_t ptr=NULL;
 	int found_epn_directive=FALSE;
 
 	if(enable_embedded_perl==TRUE){
@@ -3826,7 +3827,7 @@ int init_command_file_worker_thread(void){
 	external_command_buffer.items=0;
 	external_command_buffer.high=0;
 	external_command_buffer.overflow=0L;
-	external_command_buffer.buffer=(void **)malloc(external_command_buffer_slots*sizeof(char **));
+	external_command_buffer.buffer=(void **)malloc(external_command_buffer_slots*sizeof(czstring_ptr_t *));
 	if(external_command_buffer.buffer==NULL)
 		return ERROR;
 
@@ -3889,7 +3890,7 @@ void cleanup_command_file_worker_thread(void *arg){
 
 	/* release memory allocated to circular buffer */
 	for(x=external_command_buffer.tail;x!=external_command_buffer.head;x=(x+1) % external_command_buffer_slots){
-		my_free(((char **)external_command_buffer.buffer)[x]);
+		my_free(((czstring_ptr_t *)external_command_buffer.buffer)[x]);
 	        }
 	my_free(external_command_buffer.buffer);
 
@@ -4043,7 +4044,7 @@ void * command_file_worker_thread(void *arg){
 
 
 /* submits an external command for processing */
-int submit_external_command(char *cmd, int *buffer_items){
+int submit_external_command(czstring_ptr_t cmd, int *buffer_items){
 	int result=OK;
 
 	if(cmd==NULL || external_command_buffer.buffer==NULL){
@@ -4058,7 +4059,7 @@ int submit_external_command(char *cmd, int *buffer_items){
 	if(external_command_buffer.items<external_command_buffer_slots){
 
 		/* save the line in the buffer */
-		((char **)external_command_buffer.buffer)[external_command_buffer.head]=(char *)strdup(cmd);
+		((czstring_ptr_t *)external_command_buffer.buffer)[external_command_buffer.head]=(czstring_ptr_t )strdup(cmd);
 
 		/* increment the head counter and items */
 		external_command_buffer.head=(external_command_buffer.head + 1) % external_command_buffer_slots;
@@ -4084,8 +4085,8 @@ int submit_external_command(char *cmd, int *buffer_items){
 
 
 /* submits a raw external command (without timestamp) for processing */
-int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
-	char *newcmd=NULL;
+int submit_raw_external_command(czstring_ptr_t cmd, time_t *ts, int *buffer_items){
+	czstring__w_ptr_t newcmd=NULL;
 	int result=OK;
 	time_t timestamp;
 
@@ -4363,19 +4364,19 @@ int generate_check_stats(void){
 /******************************************************************/
 
 /* returns Icinga version */
-char *get_program_version(void){
+czstring_ptr_t get_program_version(void){
 
-	return (char *)PROGRAM_VERSION;
+	return (czstring_ptr_t )PROGRAM_VERSION;
         }
 
 
 /* returns Icinga modification date */
-char *get_program_modification_date(void){
+czstring_ptr_t get_program_modification_date(void){
 
-	return (char *)PROGRAM_MODIFICATION_DATE;
+	return (czstring_ptr_t )PROGRAM_MODIFICATION_DATE;
         }
 
-int has_shell_metachars(const char *s){
+int has_shell_metachars(const czstring_ptr_t s){
 	if (strpbrk(s,"!$^&*()~[]\\|{};<>?'\""))
 		return 1;
 	else
@@ -4512,19 +4513,19 @@ void free_notification_list(void){
 /* reset all system-wide variables, so when we've receive a SIGHUP we can restart cleanly */
 int reset_variables(void){
 
-	log_file=(char *)strdup(DEFAULT_LOG_FILE);
-	temp_file=(char *)strdup(DEFAULT_TEMP_FILE);
-	temp_path=(char *)strdup(DEFAULT_TEMP_PATH);
-	check_result_path=(char *)strdup(DEFAULT_CHECK_RESULT_PATH);
-	command_file=(char *)strdup(DEFAULT_COMMAND_FILE);
-	lock_file=(char *)strdup(DEFAULT_LOCK_FILE);
-	auth_file=(char *)strdup(DEFAULT_AUTH_FILE);
-	p1_file=(char *)strdup(DEFAULT_P1_FILE);
-	log_archive_path=(char *)strdup(DEFAULT_LOG_ARCHIVE_PATH);
-	debug_file=(char *)strdup(DEFAULT_DEBUG_FILE);
+  log_file=(czstring_w_ptr_t )strdup(DEFAULT_LOG_FILE);
+	temp_file= (czstring_w_ptr_t )strdup(DEFAULT_TEMP_FILE);
+	temp_path=(czstring_w_ptr_t )strdup(DEFAULT_TEMP_PATH);
+	check_result_path=(czstring_w_ptr_t )strdup(DEFAULT_CHECK_RESULT_PATH);
+	command_file=(czstring_w_ptr_t )strdup(DEFAULT_COMMAND_FILE);
+	lock_file=(czstring_w_ptr_t )strdup(DEFAULT_LOCK_FILE);
+	auth_file=(czstring_w_ptr_t )strdup(DEFAULT_AUTH_FILE);
+	p1_file=(czstring_w_ptr_t )strdup(DEFAULT_P1_FILE);
+	log_archive_path=(czstring_w_ptr_t )strdup(DEFAULT_LOG_ARCHIVE_PATH);
+	debug_file=(czstring_w_ptr_t )strdup(DEFAULT_DEBUG_FILE);
 
-	nagios_user=(char *)strdup(DEFAULT_ICINGA_USER);
-	nagios_group=(char *)strdup(DEFAULT_ICINGA_GROUP);
+	nagios_user=(czstring_w_ptr_t )strdup(DEFAULT_ICINGA_USER);
+	nagios_group=(czstring_w_ptr_t )strdup(DEFAULT_ICINGA_GROUP);
 
 	use_regexp_matches=FALSE;
 	use_true_regexp_matching=FALSE;
