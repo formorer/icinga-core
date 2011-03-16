@@ -5021,6 +5021,7 @@ void set_service_notification_number(service *svc, int num){
 
 
 
+/*
 template<typename T, typename... Args>
   void fprintf2(FILE_HANDLE_T & ofile, const char* s, const T& value, const Args&... args) {
   std::ofstream out(ofile);
@@ -5034,7 +5035,7 @@ template<typename T, typename... Args>
   }
   throw "";//std::runtime_error("extra arguments provided to printf");
 }
-
+*/
 
 
 /* process all passive host and service checks we found in the external command file */
@@ -5044,7 +5045,7 @@ void process_passive_checks(void){
 	passive_check_result *next_pcr=NULL;
 	char *checkresult_file=NULL;
 	int checkresult_file_fd=-1;
-	FILE_HANDLE_T checkresult_file_fp=NULL;
+	FILE_HANDLE_OBJ_T checkresult_file_fp;
 	mode_t new_umask=077;
 	mode_t old_umask;
 	time_t current_time;
@@ -5075,13 +5076,14 @@ void process_passive_checks(void){
 		return;
 	}
 
-	checkresult_file_fp=fdopen(checkresult_file_fd,"w");
-	
+	checkresult_file_fp.open(checkresult_file, std::ios_base::trunc | std::ios_base::out);
+	close (checkresult_file_fd); // close the tmp file opend by the c func http://stackoverflow.com/questions/499636/c-how-to-create-a-stdofstream-to-a-temp-file
+
 	time(&current_time);
-	fprintf(checkresult_file_fp,"### Passive Check Result File ###\n");
-	fprintf(checkresult_file_fp,"# Time: %s",ctime(&current_time));
-	fprintf(checkresult_file_fp,"file_time=%lu\n",(unsigned long)current_time);
-	fprintf(checkresult_file_fp,"\n");
+	fprintf2(checkresult_file_fp,"### Passive Check Result File ###\n");
+	fprintf2(checkresult_file_fp,"# Time: %s",ctime(&current_time));
+	fprintf2(checkresult_file_fp,"file_time=%lu\n",(unsigned long)current_time);
+	fprintf2(checkresult_file_fp,"\n");
 
 	log_debug_info(DEBUGL_CHECKS|DEBUGL_IPC,1,"Passive check result(s) will be written to '%s' (fd=%d)\n",checkresult_file,checkresult_file_fd);
 
@@ -5096,21 +5098,21 @@ void process_passive_checks(void){
 			fprintf2(checkresult_file_fp,"host_name=%s\n",temp_pcr->host_name);
 			if(temp_pcr->object_check_type==SERVICE_CHECK)
 				fprintf2(checkresult_file_fp,"service_description=%s\n",(temp_pcr->service_description==NULL)?"":temp_pcr->service_description);
-			fprintf(checkresult_file_fp,"check_type=%d\n",(temp_pcr->object_check_type==HOST_CHECK)?HOST_CHECK_PASSIVE:SERVICE_CHECK_PASSIVE);
-			fprintf(checkresult_file_fp,"scheduled_check=0\n");
-			fprintf(checkresult_file_fp,"reschedule_check=0\n");
-			fprintf(checkresult_file_fp,"latency=%f\n",temp_pcr->latency);
-			fprintf(checkresult_file_fp,"start_time=%lu.%lu\n",temp_pcr->check_time,0L);
-			fprintf(checkresult_file_fp,"finish_time=%lu.%lu\n",temp_pcr->check_time,0L);
-			fprintf(checkresult_file_fp,"return_code=%d\n",temp_pcr->return_code);
+			fprintf2(checkresult_file_fp,"check_type=%d\n",(temp_pcr->object_check_type==HOST_CHECK)?HOST_CHECK_PASSIVE:SERVICE_CHECK_PASSIVE);
+			fprintf2(checkresult_file_fp,"scheduled_check=0\n");
+			fprintf2(checkresult_file_fp,"reschedule_check=0\n");
+			fprintf2(checkresult_file_fp,"latency=%f\n",temp_pcr->latency);
+			fprintf2(checkresult_file_fp,"start_time=%lu.%lu\n",temp_pcr->check_time,0L);
+			fprintf2(checkresult_file_fp,"finish_time=%lu.%lu\n",temp_pcr->check_time,0L);
+			fprintf2(checkresult_file_fp,"return_code=%d\n",temp_pcr->return_code);
 			/* newlines in output are already escaped */
 			fprintf2(checkresult_file_fp,"output=%s\n",(temp_pcr->output==NULL)?"":temp_pcr->output);
-			fprintf(checkresult_file_fp,"\n");
+			fprintf2(checkresult_file_fp,"\n");
 			}
 		}
 
 	/* close the temp file */
-	fclose(checkresult_file_fp);
+	checkresult_file_fp.close();
 
 	/* move check result to queue directory */
 	move_check_result_to_queue(checkresult_file);

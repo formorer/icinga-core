@@ -1,6 +1,9 @@
 ###############################
 # Makefile for Include Files
 ###############################
+all : 
+# done call make here	
+	cd ..; make 
 
 clean:
 	rm -f *~

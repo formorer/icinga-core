@@ -22,7 +22,8 @@
 
 #ifndef _ICINGA_H
 #define _ICINGA_H
-
+#include <string>
+#include <fstream>
 #include "stdheaders.h"
 
 
@@ -317,7 +318,7 @@ typedef struct notify_list_struct{
 	struct notify_list_struct *next;
         }notification;
 
-#include <string>
+
 
 class czstring_ptr_t : public std::string
 {
@@ -364,18 +365,37 @@ void fprintf(const char* s) {
     std::cout << *s++;
   }
 }
-#include <fstream>
+
+
+
+typedef   std::ofstream & FILE_HANDLE_T ;
+typedef   std::ofstream FILE_HANDLE_OBJ_T ;
+
+
+void fprintf2(FILE_HANDLE_T  file,const char* s) {
+  while (*s) {
+    if (*s == '%' && *++s != '%') 
+      throw "BOO";//std::runtime_error("invalid format string: missing arguments");
+    file << *s++;
+  }
+}
+
+//void fprintf2(FILE_HANDLE_T,const char* s);
+ template<typename T, typename... Args>
+  void fprintf2(FILE_HANDLE_T  file, const char* s, const T& value, const Args&... args) {
+  while (*s) {
+    if (*s == '%' && *++s != '%') {
+      file << value;
+      return fprintf2(file,++s, args...);
+    }
+     file << *s++;
+  }
+  throw "";//std::runtime_error("extra arguments provided to printf");
+}
+
+
 
 // 
-class FILE_HANDLE_T 
-{
- public :
-  FILE_HANDLE_T ()
-    {}
-  ~FILE_HANDLE_T ()
-    {}
-  std::ofstream handle;
-};
 
 template<typename T, typename... Args>
   void fprintf(FILE_HANDLE_T  ofile, const char* s, const T& value, const Args&... args) {
