@@ -137,6 +137,10 @@ int ido2db_query_insert_or_update_timedevent_add(ido2db_idi *idi, void **data) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */
 			if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_timedevents_queue, MT(":X1"), (big_uint *) data[0])) {
 				return IDO_ERROR;
@@ -272,6 +276,10 @@ int ido2db_query_insert_or_update_timedeventqueue_add(ido2db_idi *idi, void **da
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */
 			if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_timedeventqueue, MT(":X1"), (big_uint *) data[0])) {
 				return IDO_ERROR;
@@ -404,6 +412,11 @@ int ido2db_query_insert_or_update_timedevents_execute_add(ido2db_idi *idi, void 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* bind params to prepared statement */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_timedevents, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -562,6 +575,11 @@ int ido2db_query_insert_or_update_systemcommanddata_add(ido2db_idi *idi, void **
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_systemcommanddata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
                         }
@@ -775,6 +793,10 @@ int ido2db_query_insert_or_update_eventhandlerdata_add(ido2db_idi *idi, void **d
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_eventhandlerdata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -992,6 +1014,11 @@ int ido2db_query_insert_or_update_notificationdata_add(ido2db_idi *idi, void **d
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_notificationdata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -1161,6 +1188,11 @@ int ido2db_query_insert_or_update_contactnotificationdata_add(ido2db_idi *idi, v
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactnotificationdata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
                         }
@@ -1300,6 +1332,10 @@ int ido2db_query_insert_or_update_contactnotificationmethoddata_add(ido2db_idi *
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactnotificationmethoddata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
                         }
@@ -1425,6 +1461,11 @@ int ido2db_query_insert_servicecheckdata_add(ido2db_idi *idi, void **data) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */ 
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicechecks, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -1624,6 +1665,11 @@ int ido2db_query_insert_hostcheckdata_add(ido2db_idi *idi, void **data) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* bind params to prepared statement */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostchecks, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -1864,6 +1910,11 @@ int ido2db_query_insert_or_update_commentdata_add(ido2db_idi *idi, void **data) 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_commentdata, MT(":X1"), (big_uint *) data[14])) { /* unixtimestamp instead of time2sql */
                                 return IDO_ERROR;
                         }
@@ -2054,6 +2105,11 @@ int ido2db_query_insert_or_update_commentdata_history_add(ido2db_idi *idi, void 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_commentdata_history, MT(":X1"), (big_uint *) data[14])) { /* unixtimestamp instead of time2sql */
                                 return IDO_ERROR;
@@ -2244,6 +2300,11 @@ int ido2db_query_insert_or_update_downtimedata_scheduled_downtime_add(ido2db_idi
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_downtimedata_scheduled_downtime, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -2424,6 +2485,11 @@ int ido2db_query_insert_or_update_downtimedata_downtime_history_add(ido2db_idi *
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_downtimedata_downtime_history, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -2652,6 +2718,11 @@ int ido2db_query_insert_or_update_programstatusdata_add(ido2db_idi *idi, void **
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_programstatus, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -3007,6 +3078,11 @@ int ido2db_query_insert_or_update_hoststatusdata_add(ido2db_idi *idi, void **dat
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */ 
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hoststatus, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -3456,6 +3532,11 @@ int ido2db_query_insert_or_update_servicestatusdata_add(ido2db_idi *idi, void **
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 			/* bind params to prepared statement */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicestatus, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -3758,6 +3839,11 @@ int ido2db_query_insert_or_update_contactstatusdata_add(ido2db_idi *idi, void **
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactstatusdata, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -3898,6 +3984,11 @@ int ido2db_query_insert_or_update_configfilevariables_add(ido2db_idi *idi, void 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_configfilevariables, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -4015,6 +4106,11 @@ int ido2db_query_insert_or_update_runtimevariables_add(ido2db_idi *idi, void **d
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_runtimevariables, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -4357,6 +4453,11 @@ int ido2db_query_insert_or_update_hostdefinition_definition_add(ido2db_idi *idi,
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -4713,6 +4814,11 @@ int ido2db_query_insert_or_update_hostdefinition_parenthosts_add(ido2db_idi *idi
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_parenthosts, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -4820,6 +4926,11 @@ int ido2db_query_insert_or_update_hostdefinition_contactgroups_add(ido2db_idi *i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdefinition_contactgroups, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -4935,6 +5046,11 @@ int ido2db_query_insert_or_update_hostgroupdefinition_definition_add(ido2db_idi 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostgroupdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -5354,6 +5470,11 @@ int ido2db_query_insert_or_update_servicedefinition_definition_add(ido2db_idi *i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -5665,6 +5786,11 @@ int ido2db_query_insert_or_update_servicedefinition_contactgroups_add(ido2db_idi
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedefinition_contactgroups, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -5779,6 +5905,11 @@ int ido2db_query_insert_or_update_servicegroupdefinition_definition_add(ido2db_i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicegroupdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -5896,6 +6027,11 @@ int ido2db_query_insert_or_update_servicegroupdefinition_members_add(ido2db_idi 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicegroupdefinition_members, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6028,6 +6164,11 @@ int ido2db_query_insert_or_update_hostdependencydefinition_definition_add(ido2db
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostdependencydefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6184,6 +6325,11 @@ int ido2db_query_insert_or_update_servicedependencydefinition_definition_add(ido
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_servicedependencydefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6343,6 +6489,11 @@ int ido2db_query_insert_or_update_hostescalationdefinition_definition_add(ido2db
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostescalationdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6470,6 +6621,11 @@ int ido2db_query_insert_or_update_hostescalationdefinition_contactgroups_add(ido
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostescalationdefinition_contactgroups, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6582,6 +6738,11 @@ int ido2db_query_insert_or_update_hostescalationdefinition_contacts_add(ido2db_i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_hostescalationdefinition_contacts, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6721,6 +6882,11 @@ int ido2db_query_insert_or_update_serviceescalationdefinition_definition_add(ido
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_serviceescalationdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6852,6 +7018,11 @@ int ido2db_query_insert_or_update_serviceescalationdefinition_contactgroups_add(
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_serviceescalationdefinition_contactgroups, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -6964,6 +7135,11 @@ int ido2db_query_insert_or_update_serviceescalationdefinition_contacts_add(ido2d
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_serviceescalationdefinition_contacts, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7078,6 +7254,11 @@ int ido2db_query_insert_or_update_commanddefinition_definition_add(ido2db_idi *i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_commanddefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7202,6 +7383,11 @@ int ido2db_query_insert_or_update_timeperiodefinition_definition_add(ido2db_idi 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_timeperiodefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7324,6 +7510,11 @@ int ido2db_query_insert_or_update_timeperiodefinition_timeranges_add(ido2db_idi 
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_timeperiodefinition_timeranges, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7514,6 +7705,11 @@ int ido2db_query_insert_or_update_contactdefinition_definition_add(ido2db_idi *i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7700,6 +7896,11 @@ int ido2db_query_insert_or_update_contactdefinition_addresses_add(ido2db_idi *id
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactdefinition_addresses, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7822,6 +8023,11 @@ int ido2db_query_insert_or_update_contactdefinition_notificationcommands_add(ido
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* bind params to prepared statement */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contact_notificationcommands, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -7947,6 +8153,11 @@ int ido2db_query_insert_or_update_contactdefinition_servicenotificationcommands_
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactdefinition_servicenotificationcommands, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -8077,6 +8288,11 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariables_add(ido2
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_save_custom_variables_customvariables, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -8219,6 +8435,11 @@ int ido2db_query_insert_or_update_save_custom_variables_customvariablestatus_add
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_save_custom_variables_customvariablestatus, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -8363,6 +8584,11 @@ int ido2db_query_insert_or_update_contactgroupdefinition_definition_add(ido2db_i
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactgroupdefinition_definition, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;
@@ -8479,6 +8705,11 @@ int ido2db_query_insert_or_update_contactgroupdefinition_contactgroupmembers_add
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
                         /* use prepared statements and ocilib */
                         if(!OCI_BindUnsignedBigInt(idi->dbinfo.oci_statement_contactgroupdefinition_contactgroupmembers, MT(":X1"), (big_uint *) data[0])) {
                                 return IDO_ERROR;

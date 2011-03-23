@@ -16,6 +16,7 @@ FIXES
 * classic ui: fix segfaults if no default_user_name= given in cgi.cfg #1289
 
 * idoutils: update oracle hints in ido2db.cfg with tnsnames.ora and port cfg #1283
+* idoutils: fix rdbms reconnect after connection error #1313
 
 
 1.3.0 - 16/02/2011

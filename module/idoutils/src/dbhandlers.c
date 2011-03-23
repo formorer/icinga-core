@@ -172,6 +172,10 @@ int ido2db_get_object_id(ido2db_idi *idi, int object_type, char *n1, char *n2, u
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	/* above code for other rdbms is real bullshit and not even modular for prepared statements ... */
 	/* ......... db.c ......... */
 	/* ok we have prepared 4 queries - now for the fun part */
@@ -464,6 +468,10 @@ int ido2db_get_object_id_with_insert(ido2db_idi *idi, int object_type, char *n1,
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	es[0] = ido2db_db_escape_string(idi, name1);
 	es[1] = ido2db_db_escape_string(idi, name2);
 
@@ -595,6 +603,11 @@ int ido2db_get_cached_object_ids(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 
@@ -954,6 +967,10 @@ int ido2db_set_object_as_active(ido2db_idi *idi, int object_type,
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &is_active;
         data[1] = (void *) &idi->dbinfo.instance_id;
         data[2] = (void *) &object_type;
@@ -1063,6 +1080,10 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &etime;
 	data[2] = (void *) &es[0];
@@ -1128,6 +1149,10 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	/* set only values needed */
 	n_zero = 0;
@@ -1265,6 +1290,10 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &type;
@@ -1427,6 +1456,10 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &is_currently_running;
@@ -1604,6 +1637,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
         data[2] = (void *) &idi->dbinfo.instance_id;
@@ -1675,6 +1712,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
                 data[0] = (void *) &idi->dbinfo.instance_id;
                 data[1] = (void *) &tstamp.tv_sec;
@@ -1761,6 +1802,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &event_type;
         data[2] = (void *) &run_time;
@@ -1819,6 +1864,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
                 data[0] = (void *) &idi->dbinfo.instance_id;
                 data[1] = (void *) &run_time;
@@ -1919,6 +1968,10 @@ int ido2db_handle_logdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &etime;
@@ -2928,6 +2981,11 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
         void *data[5];
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
         data[2] = (void *) &idi->dbinfo.instance_id;
@@ -3033,6 +3091,10 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
         void *data[3];
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &comment_time;
         data[2] = (void *) &internal_comment_id;
@@ -3200,6 +3262,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	was_started = 1;
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
@@ -3283,6 +3349,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
 	int was_cancelled;
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	if(attr == NEBATTR_DOWNTIME_STOP_CANCELLED) {
 		was_cancelled = 1;
@@ -3411,6 +3481,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         was_started = 1;
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
@@ -3492,6 +3566,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &downtime_type;
@@ -3614,6 +3692,10 @@ int ido2db_handle_flappingdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
@@ -4444,6 +4526,10 @@ int ido2db_handle_externalcommanddata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &command_type;
 	data[2] = (void *) &entry_time;
@@ -4619,6 +4705,10 @@ int ido2db_handle_acknowledgementdata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
 	data[2] = (void *) &tstamp.tv_usec;
@@ -4781,6 +4871,10 @@ int ido2db_handle_statechangedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
@@ -5028,6 +5122,10 @@ int ido2db_handle_configfilevariables(ido2db_idi *idi, int configfile_type) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 		data[0] = (void *) &idi->dbinfo.instance_id;
 		data[1] = (void *) &configfile_id;
