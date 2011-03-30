@@ -1460,7 +1460,7 @@ CREATE TABLE timeperiods (
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO dbversion (id, name, version) VALUES ('1', 'idoutils', '1.3.0');
+INSERT INTO dbversion (id, name, version) VALUES ('1', 'idoutils', '1.3.1');
 
 
 -- -----------------------------------------

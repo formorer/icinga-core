@@ -1378,7 +1378,7 @@ CREATE TABLE IF NOT EXISTS `icinga_timeperiod_timeranges` (
 -- -----------------------------------------
 -- set dbversion
 -- -----------------------------------------
-INSERT INTO icinga_dbversion (name, version) VALUES ('idoutils', '1.3.0') ON DUPLICATE KEY UPDATE version='1.3.0';
+INSERT INTO icinga_dbversion (name, version) VALUES ('idoutils', '1.3.1') ON DUPLICATE KEY UPDATE version='1.3.1';
 
 -- -----------------------------------------
 -- add index (delete)

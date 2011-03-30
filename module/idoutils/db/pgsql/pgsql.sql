@@ -9,7 +9,7 @@
 --
 -- --------------------------------------------------------
 
-CREATE LANGUAGE plpgsql;
+--CREATE LANGUAGE plpgsql;
 
 --
 -- Functions
@@ -1411,7 +1411,7 @@ CREATE TABLE  icinga_timeperiod_timeranges (
 -- set dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.3.0');
+SELECT updatedbversion('1.3.1');
 
 -- -----------------------------------------
 -- add index (delete)
