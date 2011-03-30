@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Aktualisierung von Icinga Webund Icinga Web Datenbank</title>
+<title>Aktualisierung von Icinga Web und Icinga Web Datenbank</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.1">
 <meta name="keywords" content="Supervision, Icinga, Nagios, Linux">
 <link rel="home" href="index.html" title="Icinga Version 1.3 Dokumentation">
@@ -13,7 +13,7 @@
 <CENTER><IMG src="../images/logofullsize.png" border="0" alt="Icinga" title="Icinga"></CENTER>
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Aktualisierung von Icinga Webund Icinga Web Datenbank</th></tr>
+<tr><th colspan="3" align="center">Aktualisierung von Icinga Web und Icinga Web Datenbank</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="icinga-web-config.html">Zurück</a> </td>
@@ -24,9 +24,9 @@
 </table>
 <hr>
 </div>
-<div class="section" title="Aktualisierung von Icinga Webund Icinga Web Datenbank">
+<div class="section" title="Aktualisierung von Icinga Web und Icinga Web Datenbank">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="upgrading_icingaweb"></a>Aktualisierung von Icinga Webund Icinga Web Datenbank</h2></div></div></div>
+<a name="upgrading_icingaweb"></a>Aktualisierung von Icinga Web und Icinga Web Datenbank</h2></div></div></div>
   
 
   <p><span class="bold"><strong>Aktualisieren von Icinga Web</strong></span></p>
@@ -54,11 +54,11 @@
 
   <p>Entpacken Sie das Archiv (tarball):</p>
 
-  <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.tar.gz</pre>
+  <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.0.tar.gz</pre>
 
   <p>Wechseln Sie in das Verzeichnis</p>
 
-  <pre class="programlisting"> #&gt; cd icinga-web</pre>
+  <pre class="programlisting"> #&gt; cd icinga-web-1.3.0</pre>
 
   <p>Icinga Web bietet diverse Konfigurationsoptionen an:</p>
 
@@ -124,9 +124,9 @@
 
   <pre class="programlisting"> #&gt; rm -rf app/cache/config/*.php</pre>
 
-  <p>oder</p>
+  <p>oder /path/to/clearcache.sh</p>
 
-  <pre class="programlisting">#&gt; /icinga-web/bin/clearcache.sh.</pre>
+  <pre class="programlisting"> #&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
 
   <p>Das war's, Sie können sich nun an Ihrem aktualisierten Icinga Web anmelden.</p>
 
@@ -134,7 +134,7 @@
 
   <p><span class="bold"><strong>Aktualisieren der Icinga Web Datenbank</strong></span></p>
 
-  <p>Die Aktualisierung Ihrer Icinga Web Datenbank ist optional aber es mag einen Bug im Datenbankschema geben, der behoben wurde. Wenn
+  <p>Die Aktualisierung Ihrer Icinga Web Datenbank ist optional, aber es mag einen Bug im Datenbankschema geben, der behoben wurde. Wenn
   Sie eine ältere Icinga Web Datenbank-Version aktualisieren, dann müssen Sie außerdem diese Anpassungen manuell ausführen. Wenn Sie
   rpm/deb-Pakete benutzen, lesen Sie bitte die Hinweise und/oder fragen Sie den Maintainer, der diese Anpassungen in der
   Installationsroutine hinzugefügt hat.</p>
@@ -185,13 +185,13 @@
  $ sqlplus dbuser/dbpass
  SQL&gt; @oracle_&lt;alteVersion&gt;_to_&lt;neueVersion&gt;.sql</pre>
 
-  <a class="indexterm" name="id5643418"></a>
+  <a class="indexterm" name="id5740583"></a>
 
-  <a class="indexterm" name="id5643427"></a>
+  <a class="indexterm" name="id5740586"></a>
 
-  <a class="indexterm" name="id5643442"></a>
+  <a class="indexterm" name="id5740606"></a>
 
-  <a class="indexterm" name="id5643449"></a>
+  <a class="indexterm" name="id5740608"></a>
 </div>
 <div class="navfooter">
 <hr>

@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="Icinga Version 1.3 Documentation">
 <link rel="up" href="ch10.html" title="Chapter 10. Additional software">
 <link rel="prev" href="ch10.html" title="Chapter 10. Additional software">
-<link rel="next" href="nsca.html" title="NSCA">
+<link rel="next" href="nrpe.html" title="NRPE">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <CENTER><IMG src="../images/logofullsize.png" border="0" alt="Icinga" title="Icinga"></CENTER>
@@ -18,7 +18,7 @@
 <td width="20%" align="left">
 <a accesskey="p" href="ch10.html">Prev</a> </td>
 <th width="60%" align="center">Chapter 10. Additional software</th>
-<td width="20%" align="right"> <a accesskey="n" href="nsca.html">Next</a>
+<td width="20%" align="right"> <a accesskey="n" href="nrpe.html">Next</a>
 </td>
 </tr>
 </table>
@@ -41,7 +41,8 @@
       <p><a name="addons-conf"></a>Managing the config files through a web interface</p>
 
       <div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
-          <p><a class="link" href="http://www.nconf.org" target="_top">NConf</a>, <a class="link" href="http://www.nagiosql.org" target="_top">NagiosQL</a>, ...</p>
+          <p><a class="link" href="http://www.nconf.org" target="_top">NConf</a>, <a class="link" href="http://www.nagiosql.org" target="_top">NagiosQL</a>, 
+          <a class="link" href="http://www.netways.de/nc/en/de/produkte/icinga/addons/lconf" target="_top">LConf</a>, <a class="link" href="http://sourceforge.net/projects/lilac" target="_top">Lilac</a>, ...</p>
         </li></ul></div>
     </li>
 <li class="listitem">
@@ -49,7 +50,7 @@
 
       <div class="itemizedlist"><ul class="itemizedlist" type="circle">
 <li class="listitem">
-          <p><a class="link" href="nsca.html" title="NSCA">NSCA</a>, <a class="link" href="http://mathias-kettner.de/check_mk.html" target="_top">check_mk</a>, ...</p>
+          <p><a class="link" href="nsca.html" title="NSCA">NSCA</a>, <a class="link" href="nrpe.html" title="NRPE">NRPE</a>, <a class="link" href="http://mathias-kettner.de/check_mk.html" target="_top">check_mk</a>, ...</p>
         </li>
 <li class="listitem">
           <p><a class="link" href="http://www.nsclient.org" target="_top">NSClient++</a>, ...</p>
@@ -73,7 +74,7 @@
 
       <div class="itemizedlist"><ul class="itemizedlist" type="circle">
 <li class="listitem">
-          <p><a class="link" href="http://docs.pnp4nagios.org/de/pnp-0.6/start" target="_top">PNP4Nagios</a></p>
+          <p><a class="link" href="http://docs.pnp4nagios.org/pnp-0.6/start" target="_top">PNP4Nagios</a></p>
         </li>
 <li class="listitem">
           <p><a class="link" href="http://www.nagvis.org" target="_top">NagVis</a></p>
@@ -117,7 +118,8 @@
   accomplished by using the <span class="emphasis"><em>check_by_ssh</em></span> plugin, although it can impose a higher CPU load on the monitoring machine -
   especially if you are monitoring hundreds or thousands of hosts.</p>
 
-  <p>The NRPE addon and documentation can be found at <a class="link" href="http://www.nagios.org/" target="_top">http://www.nagios.org/</a>.</p>
+  <p>The NRPE addon can be found at <a class="link" href="https://git.icinga.org/?p=icinga-nrpe.git" target="_top">https://git.icinga.org/?p=icinga-nrpe.git</a>.
+  You will find the <a class="link" href="nrpe.html" title="NRPE">documentation</a> in the next section.</p>
 
   <p><a name="addons-nsca"></a><span class="bold"><strong>NSCA</strong></span></p>
 
@@ -140,47 +142,55 @@
   <p>The IDOUtils addon install instructions can be found in the <a class="link" href="quickstart-idoutils.html" title="Icinga with IDOUtils Quickstart">Quickstart-Idoutils</a> and more
   documentation can be found at <a class="link" href="http://docs.icinga.org/latest/en/" target="_top">http://docs.icinga.org/</a>.</p>
 
-  <a class="indexterm" name="id5088531"></a>
+  <a class="indexterm" name="id2961868"></a>
 
-  <a class="indexterm" name="id5088540"></a>
+  <a class="indexterm" name="id2961881"></a>
 
-  <a class="indexterm" name="id5088557"></a>
+  <a class="indexterm" name="id2961896"></a>
 
-  <a class="indexterm" name="id5088570"></a>
+  <a class="indexterm" name="id2961910"></a>
 
-  <a class="indexterm" name="id5088571"></a>
+  <a class="indexterm" name="id2961918"></a>
 
-  <a class="indexterm" name="id5088542"></a>
+  <a class="indexterm" name="id2961934"></a>
 
-  <a class="indexterm" name="id5088594"></a>
+  <a class="indexterm" name="id2961942"></a>
 
-  <a class="indexterm" name="id5088619"></a>
+  <a class="indexterm" name="id2961958"></a>
 
-  <a class="indexterm" name="id5088626"></a>
+  <a class="indexterm" name="id2961965"></a>
 
-  <a class="indexterm" name="id5088579"></a>
+  <a class="indexterm" name="id2961980"></a>
 
-  <a class="indexterm" name="id5088650"></a>
+  <a class="indexterm" name="id2961989"></a>
 
-  <a class="indexterm" name="id5088666"></a>
+  <a class="indexterm" name="id2962003"></a>
 
-  <a class="indexterm" name="id5088673"></a>
+  <a class="indexterm" name="id2962012"></a>
 
-  <a class="indexterm" name="id5088689"></a>
+  <a class="indexterm" name="id2962027"></a>
 
-  <a class="indexterm" name="id5088696"></a>
+  <a class="indexterm" name="id2962036"></a>
 
-  <a class="indexterm" name="id5088712"></a>
+  <a class="indexterm" name="id2962050"></a>
 
-  <a class="indexterm" name="id5088719"></a>
+  <a class="indexterm" name="id2962059"></a>
 
-  <a class="indexterm" name="id5088734"></a>
+  <a class="indexterm" name="id2962074"></a>
 
-  <a class="indexterm" name="id5088735"></a>
+  <a class="indexterm" name="id2962083"></a>
 
-  <a class="indexterm" name="id5088758"></a>
+  <a class="indexterm" name="id2962098"></a>
 
-  <a class="indexterm" name="id5088767"></a>
+  <a class="indexterm" name="id2962106"></a>
+
+  <a class="indexterm" name="id2962121"></a>
+
+  <a class="indexterm" name="id2962129"></a>
+
+  <a class="indexterm" name="id2962145"></a>
+
+  <a class="indexterm" name="id2962154"></a>
 </div>
 <div class="navfooter">
 <hr>
@@ -189,13 +199,13 @@
 <td width="40%" align="left">
 <a accesskey="p" href="ch10.html">Prev</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch10.html">Up</a></td>
-<td width="40%" align="right"> <a accesskey="n" href="nsca.html">Next</a>
+<td width="40%" align="right"> <a accesskey="n" href="nrpe.html">Next</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left" valign="top">Chapter 10. Additional software </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
-<td width="40%" align="right" valign="top"> NSCA</td>
+<td width="40%" align="right" valign="top"> NRPE</td>
 </tr>
 </table>
 </div>

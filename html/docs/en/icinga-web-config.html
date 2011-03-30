@@ -76,7 +76,7 @@ app/modules/AppKit/
 
   <p><span class="bold"><strong>app/config</strong></span></p>
 
-  <p>Here you find the global configuration files for e.g. the Web session, the Icinga web path and the database informations.</p>
+  <p>Here you find the global configuration files for e.g. the Web session, the Icinga web path and the database information.</p>
 
   <p>The main interesting files:</p>
 
@@ -85,7 +85,7 @@ app/modules/AppKit/
       <p>database.xml - holds the connection information for your icinga-web database</p>
     </li>
 <li class="listitem">
-      <p>factories.xml - holds the config for your web session, e.g. the session_cookie_lifetime- parameter</p>
+      <p>factories.xml - holds the config for your web session, e.g. the session_cookie_lifetime-parameter</p>
     </li>
 <li class="listitem">
       <p>icinga.xml - holds the config for your Icinga Web root-dir, Web path.</p>
@@ -109,7 +109,7 @@ app/modules/AppKit/
 
   <p>Example: Change the default timezone for Icinga Web</p>
 
-  <p>If the time(zone) in Icinga Web differs to your system time(zone), please check the date.timezone entry in
+  <p>If the time(zone) in Icinga Web differs from your system time(zone), please check the date.timezone entry in
   app/modules/AppKit/config/module.xml (e.g. 'Europe/Berlin')</p>
 
   <pre class="programlisting">#&gt; vi app/modules/AppKit/config/module.xml
@@ -157,14 +157,14 @@ app/modules/AppKit/
   <p>You can also duplicate the provider to provide more authentication bases. You can split the auth into authentication and authorising
   parts if you want. If you have new providers, please share them and let the auth database grow!</p>
 
-  <p>Please store your costum authentication configuration in auth.site.xml !</p>
+  <p>Please store your custom authentication configuration in auth.site.xml !</p>
 
   <p><span class="bold"><strong>app/modules/Cronks</strong></span></p>
 
-  <p>All the cronks are implemented there: Grids, iframes. All of them are simple html sites which holds ExtJS component codes. If you
+  <p>All the cronks are implemented there: Grids, iframes. All of them are simple html sites which hold ExtJS component codes. If you
   need to add a new cronk, this module is your friend.</p>
 
-  <p>If you want to develop a new Cronk take a look at <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki/HowToDevelopCronks" target="_top">HowToDevelopCronks</a></p>
+  <p>If you want to develop a new cronk take a look at <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki/HowToDevelopCronks" target="_top">HowToDevelopCronks</a></p>
 
   <p>To change the configuration, go to the Cronks module.</p>
 
@@ -227,7 +227,7 @@ autoload.xml  config_handlers.xml  cronks.xml  module.xml  validators.xml</pre>
     </li>
 <li class="listitem">
       <p>Your specific Icinga Web configuration settings like api, authentication and database settings can be set in
-      app/modules/Appkit(/Cronks/Web)/config/*.site.xml- Files and will be used in the first place. They won't get overwritten during the
+      app/modules/Appkit(/Cronks/Web)/config/*.site.xml files and will be used in the first place. They won't get overwritten during the
       next upgrade process.</p>
 
       <p>These files already exist and you're free to use them for your specific settings:</p>
@@ -260,7 +260,7 @@ autoload.xml  config_handlers.xml  cronks.xml  module.xml  validators.xml</pre>
 
       <p>app/modules/Cronks/data/xml/grid/icinga-host-template.xml</p>
 
-      <p>....</p>
+      <p>...</p>
 
       <p><span class="bold"><strong>and the TO's:</strong></span></p>
 
@@ -294,15 +294,15 @@ autoload.xml  config_handlers.xml  cronks.xml  module.xml  validators.xml</pre>
 
   <pre class="programlisting">#&gt; /icinga-web/bin/clearcache.sh</pre>
 
-  <p>You need more informations? Please have a look at our <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki/" target="_top">Development Wiki.</a></p>
+  <p>You need more information? Please have a look at our <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki/" target="_top">Development Wiki.</a></p>
 
-  <a class="indexterm" name="id5067376"></a>
+  <a class="indexterm" name="id2940694"></a>
 
-  <a class="indexterm" name="id5067393"></a>
+  <a class="indexterm" name="id2940712"></a>
 
-  <a class="indexterm" name="id5067408"></a>
+  <a class="indexterm" name="id2940728"></a>
 
-  <a class="indexterm" name="id5067423"></a>
+  <a class="indexterm" name="id2940714"></a>
 </div>
 <div class="navfooter">
 <hr>

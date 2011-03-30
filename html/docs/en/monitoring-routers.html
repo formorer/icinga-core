@@ -193,8 +193,8 @@
         host_name               linksys-srw224p ; The name of the host the service is associated with
         service_description     PING            ; The service description
         check_command           check_ping!200.0,20%!600.0,60%  ; The command used to monitor the service
-        normal_check_interval   5       ; Check the service every 5 minutes under normal conditions
-        retry_check_interval    1       ; Re-check the service every minute until its final/hard state is determined
+        check_interval          5       ; Check the service every 5 minutes under normal conditions
+        retry_interval          1       ; Re-check the service every minute until its final/hard state is determined
         }</pre>
 
   <p>This service will be:</p>
@@ -293,7 +293,7 @@
 
   <p>If the verification process produces any errors messages, fix your configuration file before continuing. Make sure that
   you don't (re)start Icinga until the verification process completes without any errors!</p>
-  <a class="indexterm" name="id4988513"></a>
+  <a class="indexterm" name="id2861846"></a>
 </div>
 <div class="navfooter">
 <hr>

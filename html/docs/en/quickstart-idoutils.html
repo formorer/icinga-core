@@ -153,6 +153,16 @@
   </td></tr>
 </table></div>
 
+  <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+    <p>Starting with Ubuntu 10.10 the package is called libpng12-0, the name of the dev-package remains the same.</p>
+  </td></tr>
+</table></div>
+
   <p><span class="bold"><strong>MySQL:</strong></span></p>
 
   <pre class="programlisting"> #&gt; apt-get install mysql-server mysql-client libdbi0 libdbi0-dev libdbd-mysql</pre>
@@ -420,9 +430,9 @@
   </td></tr>
 </table></div>
 
-  <p><span class="emphasis"><em>Enable the idomod event broker module:</em></span></p>
+  <p><span class="bold"><strong>Enable the idomod event broker module</strong></span></p>
 
-  <p>Search for broker_module and uncomment the example or edit it matching your filenames in:</p>
+  <p>Edit the main config file, search for broker_module and uncomment the example or edit it matching your filenames in:</p>
 
   <pre class="programlisting"> #&gt; vi /usr/local/icinga/etc/icinga.cfg</pre>
 
@@ -472,7 +482,8 @@
   <p>Create database and User:</p>
 
   <pre class="programlisting"> #&gt; su - postgres
- $psql
+ $ createlang plpgsql icinga;
+ $ psql
  postgres=# CREATE USER icinga;
  postgres=# ALTER USER icinga WITH PASSWORD 'icinga';
  postgres=# CREATE DATABASE icinga; </pre>
@@ -699,7 +710,7 @@
   about "Monitoring ..."</p>
 
 
-  <a class="indexterm" name="id4983929"></a>
+  <a class="indexterm" name="id2857209"></a>
 </div>
 <div class="navfooter">
 <hr>

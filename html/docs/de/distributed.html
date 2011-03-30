@@ -300,7 +300,7 @@
   Ergebnisse für jeden Service sein sollen. Wenn Sie z.B. diesen Wert für einen Ihrer Services auf 300 setzen, wird Icinga
   das Service-Ergebnis als "abgestanden" betrachten, wenn es älter als 5 Minuten (300 Sekunden) ist. Falls Sie keinen Wert für die
   <span class="emphasis"><em>freshness_threshold</em></span>-Option angeben, wird Icinga automatisch einen "Frische"-Schwellwert berechnen,
-  indem es die Werte der <span class="emphasis"><em>normal_check_interval</em></span>- oder der <span class="emphasis"><em>retry_check_interval</em></span>-Option
+  indem es die Werte der <span class="emphasis"><em>check_interval</em></span>- oder der <span class="emphasis"><em>retry_interval</em></span>-Option
   betrachtet (abhängig vom <a class="link" href="statetypes.html" title="Statustypen">Statustyp</a>, in dem sich der Service befindet). Wenn die
   Service-Ergebnisse als "abgestanden" angesehen werden, wird Icinga den Service-Prüf-Befehl ausführen, der in der
   <span class="emphasis"><em>check_command</em></span>-Option der Service-Definition angegeben ist, und dadurch den Service aktiv prüfen.</p>
@@ -365,7 +365,7 @@
   die Verarbeitung von Service-Prüfergebnissen benutzt wird (siehe oben). Um sicherzustellen, dass passive Host-Prüfergebnisse
   aktuell sind, sollten Sie <a class="link" href="freshness.html" title="Service- und Host-Frische-Prüfungen">Frische-Prüfungen</a> für Hosts aktivieren (ähnlich zu dem, was weiter
   oben für Services beschrieben wird).</p>
-  <a class="indexterm" name="id5648169"></a>
+  <a class="indexterm" name="id5745342"></a>
 </div>
 <div class="navfooter">
 <hr>

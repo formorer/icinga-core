@@ -125,7 +125,7 @@
 
   <p>Bitte aktualisieren Sie Ihre Ports bevor Sie beginnen.</p>
 
-  <pre class="programlisting"> #&gt; cd /usr/ports/devel/libtool22/ &amp;&amp; make all install clean
+  <pre class="programlisting"> #&gt; cd /usr/ports/devel/libtool/ &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/jpeg &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/png &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/gd &amp;&amp; make all install clean</pre>
@@ -211,7 +211,9 @@
 
   <p>Führen Sie das Icinga-configure-Script aus. Durch die Nutzung des --help-Flags erhalten Sie Hilfe zu den Optionen.</p>
 
-  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd --enable-idoutils CPPFLAGS=-I/usr/local/include</pre>
+  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd \
+    --enable-idoutils CPPFLAGS=-I/usr/local/include
+    --with-dbi-lib=/usr/local/lib --with-dbi-inc=/usr/local/include</pre>
 
   <div class="important" title="Wichtig" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Important">
 <tr>
@@ -226,7 +228,9 @@
 
   <p><span class="bold"><strong>Mit SSL-Verschlüsselung:</strong></span></p>
 
-  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd --enable-idoutils --enable-ssl CPPFLAGS=-I/usr/local/include</pre>
+  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd \
+    --enable-idoutils --enable-ssl CPPFLAGS=-I/usr/local/include \
+    --with-dbi-lib=/usr/local/lib --with-dbi-inc=/usr/local/include</pre>
 
   <p>Kompilieren Sie den Icinga-Source-Code. Es gibt auch eine extra Option für IDOUtils (<span class="emphasis"><em>make
   idoutils</em></span>), wenn Sie nur dieses Modul erneut kompilieren möchten. Um mögliche Optionen zu sehen, rufen Sie lediglich "make"
@@ -290,8 +294,9 @@
   </td></tr>
 </table></div>
 
-  <p>Aktivieren Sie das idomod-Eventbroker-Modul. Editieren Sie /usr/local/icinga/etc/icinga.cfg und suchen Sie nach "broker_module" und aktivieren Sie
-  diese Zeile bzw. fügen Sie die folgende Zeile hinzu (passen Sie die Namen an, falls nötig).</p>
+  <p><span class="bold"><strong>Aktivieren Sie das idomod-Eventbroker-Modul</strong></span></p>
+  <p>Editieren Sie /usr/local/icinga/etc/icinga.cfg und suchen Sie nach "broker_module" und aktivieren Sie diese Zeile bzw. fügen Sie die folgende 
+  Zeile hinzu (passen Sie die Namen an, falls nötig).</p>
 
   <pre class="programlisting"> broker_module=/usr/local/icinga/bin/idomod.o config_file=/usr/local/icinga/etc/idomod.cfg</pre>
 
@@ -348,7 +353,7 @@
  #&gt; gmake install-cgis
  #&gt; gmake install-html</pre>
 
-  <p>Wenn Sie stattdessen das neue Icinga-Web installieren wollen, lesen Sie bitte <a class="link" href="icinga-web-scratch.html" title="Installation des Icinga Web Frontend">Installation des
+  <p>Wenn Sie (zusätzlich) das neue Icinga-Web installieren wollen, lesen Sie bitte <a class="link" href="icinga-web-scratch.html" title="Installation des Icinga Web Frontend">Installation des
   Web-Interface</a>.</p>
 
   <p>Installieren Sie die Icinga-Web-Konfigurationsdatei im Apache-Includes-Verzeichnis.</p>
@@ -476,7 +481,7 @@
   <pre class="programlisting">make install NAGIOSUSER=icinga NAGIOSGROUP=icinga \
  PREFIX=/usr/local/icinga</pre>
 
-  <a class="indexterm" name="id5563610"></a>
+  <a class="indexterm" name="id5660730"></a>
 </div>
 <div class="navfooter">
 <hr>

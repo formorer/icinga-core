@@ -78,8 +78,7 @@
 <p>* new tabs only opened if tab with the same name does not exist</p>
 <p>* add address6 to hosts view</p>
 
-
-  <p><span class="bold"><strong>Icinga Docs:</strong></span></p>
+<p><span class="bold"><strong>Icinga Docs:</strong></span></p>
 
 <p>* better hints for customized configuration and new section "Upgrade Icinga-web"</p>
 <p>* add hints/list about parameters of the cgis</p>
@@ -90,178 +89,7 @@
 
 
 <p><a class="link" href="https://wiki.icinga.org/display/Dev/Releases" target="_top">More at Icinga Wiki</a></p>
-
-
-  <p><span class="bold"><strong>1.2.1</strong></span></p>
-
-  <p><span class="bold"><strong>Icinga Core:</strong></span></p>
-
-  <p>* corrected "re notification for downtime after icinga restart", fixing downtime detection issues</p>
-
-  <p>* fix initscript, no error when stopping stale lock (OMD patch)</p>
-
-  <p>* fix epn tag for disabling ePN (Yannick Charton)</p>
-
-  <p>* fix snprintf in make for Solaris</p>
-
-  <p>* fix ignoring empty definitions, only warn</p>
-
-  <p><span class="bold"><strong>Icinga IDOUtils: </strong></span></p>
-
-  <p>* fix disconnecting on errors misbheaving, not closing db and daemon</p>
-
-  <p><span class="bold"><strong>Icinga Classic UI:</strong></span></p>
-
-  <p>* fix for "Schedule a check of all services on this host" not working properly in cmd.cgi</p>
-
-  <p>* add config options to hide initial state and current state log entries in showlog.cgi </p>
-
-  <p>* extinfo comment table cell names (Oliver Graf)</p>
-
-  <p>* add csv export to avail.cgi (single|all hosts|services|servicegroups|hostgroups)</p>
-
-  <p>* comment tooltip now show's quotes and back slashes</p>
-
-  <p>* fix change statusmap logo name to icinga</p>
-
-  <p>* add support for ICINGA_ env vars for cgis</p>
-
-  <p><span class="bold"><strong>Icinga Web:</strong></span></p>
-
-  <p>* add option cache clearing from the webinterface</p>
-
-  <p>* fix URL cronk getting static links</p>
-
-  <p>* added favicon to template </p>
-
-  <p>* disabled free edit of language preference</p>
-
-  <p>* fixed pgsql schema</p>
-
-  <p>* fixed wrong time format in data commands</p>
-
-  <p>* fixed starttime format in commands and interface freezing when trying to send an invalid form</p>
-
-  <p>* fixed error window on invalid credentials</p>
-
-  <p>* count queries are not allowed to be grouped</p>
-
-  <p><span class="bold"><strong>Icinga Docs:</strong></span></p>
-
-  <p>* add more info on plugin usage</p>
-
-  <p>* fix pnp install, epn support</p>
-
-  <p>* remove flush privilegues on mysql</p>
-
-  <p>* add hint for safe_mode=off for PHP 5.3</p>
-
-  <p>* add cgiurl hint to nagios-plugins install</p>
-
-  <p>* add hint for selinux in IDOUtils Quickstart</p>
-
-
-  <p><span class="bold"><strong>1.2.0</strong></span></p>
-
-<p>Erste einheitliche Version von Icinga Core und Icinga Web.</p>
-    <p><span class="bold"><strong>Icinga Core:</strong></span></p>
-
-  <p>* Eventprofiler unter Solaris mit gcc3 disabled, verhindert Core Dumps</p>
-
-  <p>* Scheduled Downtimes Notification werden beim Restart nicht mehr gesendet</p>
-
-  <p>* Ein * als Wildcard für die Zuweisung von Hosts in Servicegroup Definitionen hinzugefügt</p>
-
-  <p>* Konfigurationsoption um das Logging des Core Daemon zu deaktivieren</p>
-
-  <p>* Eventhandler override hinzugefügt</p>
-
-  <p>* Entfernen des automatischen Programmupdatecheckers</p>
-
-  <p>* Hostchecks werden nicht mehr ausgelassen, wenn Servicechecks disabled sind</p>
-
-  <p><span class="bold"><strong>Icinga IDOUtils:</strong></span></p>
-
-  <p>* ido2db forkt nun nicht mehr unendlich, wenn keine Datenbankverbindung zur Verfügung steht, sondern disconnected den Client sofort</p>
-
-  <p>* Datenbankport in ido2db.cfg wird nun richtig verwendet mit der libdbi</p>
-
-  <p><span class="bold"><strong>Icinga Classic UI</strong></span></p>
-
-  <p>* Tooltips für Kommentare in der status.cgi</p>
-
-  <p>– Sie müssen nicht mehr den Host/Service öffnen um die Kommentare zu sehen.</p>
-
-  <p>* Gleichzeitiges Löschen von mehreren Downtimes und Kommentaren</p>
-
-  <p>* CVS Export, auf fast jeder Seite möglich</p>
-
-  <p>– Direkter Export von verschiedenen Listen und Zustandsdaten. Es gibt einen kleinen "Export to CSV"-Link, dieser erzeugt eine Seite
-  mit dem aktuellen Inhalt im cvs-Format. Zwei neue Konfigurationseinstellungen erlauben die Auswahl, welche Zeichen für das Ausgabeformat
-  verwendet werden sollen und vervollständigen diese raffinierte Erweiterung.</p>
-
-  <p>* Commands expander für die Konfigurationsanzeige. Dies hilft $ARGn$- Substitutionen und zeigt die exakte Befehlsfolge, die der Core
-  auszuführen versucht. Lange erwartetes Feature, vielen Dank an Jochen Bern!</p>
-
-  <p>* Diverse Fixes, leicht modifiziertes Menü, erweitert um unbehandelte Host/Service- Probleme. JavaScript-Bibliothek
-  Aktualisierungen, Fixed Segfaults auf Solaris in der status.cgi, Entfernen von PHP als Abhängigkeit für das Classic UI.</p>
-
-  <p>Für detaillierte Information der einzelnen Releases schauen Sie bitte in den Changelog.</p>
-
-  <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-      <p>doc/Changelog</p>
-    </li></ul></div>
-
-  <p><span class="bold"><strong>Icinga Web:</strong></span></p>
-
-  <p>* Pending Status: zeigt einen speziellen Status, für Checks die noch nicht ausgeführt wurden.</p>
-
-  <p>* Bessere Protokollierung: Mehr über das, was Icinga-Web macht.</p>
-
-  <p>* Webseiten-Konfiguration: Legen Sie Ihre eigene Konfiguration in XML-Dateien ab, keine Überschreibung bei Aktualisierungen.</p>
-
-  <p>* Integrierte Kommentare für Host und Services</p>
-
-  <p>* PNP4Nagios integriert "on the Fly", wenn Sie möchten.</p>
-
-  <p>* Die Suche nach Objekten skaliert hervorragend!</p>
-
-  <p>* Device Icons aus der Icinga- Konfiguration.</p>
-
-  <p>Insidertips und mehr Dokumentation rund ums Webinterface finden Sie hier: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#24-Icinga-Web" target="_top">Icinga-Wiki</a></p>
-
-  <p>Für detaillierte Information der einzelnen Releases schauen Sie bitte in den Changelog:</p>
-
-  <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-      <p>doc/CHANGELOG</p>
-    </li></ul></div>
-
-  <p><span class="bold"><strong>Icinga Reporting:</strong></span></p>
-
-  <p>* Komplettes Icinga Reporting- Paket im Git, download von <a class="link" href="git://git.icinga.org/icinga-reports.git/" target="_top">git://git.icinga.org/icinga-reports.git/</a></p>
-
-  <p>* Installationsanleitung im Wiki: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#25-Icinga-Reporting" target="_top">Icinga-Wiki</a></p>
-
-  <p><span class="bold"><strong>Icinga Docs:</strong></span></p>
-
-  <p>* Neues Dokument für die Integration von PNP4Nagios in Icinga Web</p>
-<p>* Neues Dokument über die Icinga-Web API</p>
-<p>* Neues Dokument für externen Kommandos</p>
-<p>* Neue Bilder</p>
-
-  <p>* Aktualisierung der Anleitung für die Installation des Webinterfaces</p>
-
   
-  <p>* Aktualisierung der Anleitung zur Icinga Api</p>
-
-  <p>* Aktualisierung der Konfigurationsoptionen, Classical UI</p>
-
-  <p>* Aktualisierung der HowTo- Links</p>
-
-  <p>Neue Testanleitungen für Icinga finden Sie hier: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#2-Development" target="_top">Icinga-Development</a></p>
-
-  <p>Insidertips und mehr Dokumentation rund ums Webinterface finden Sie hier: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#24-Icinga-Web" target="_top">Icinga-Wiki</a></p>
-
   <p>Bitte berichten Sie Probleme hier:</p>
 
   <p><a class="link" href="https://dev.icinga.org/projects/show/icinga-core" target="_top">Problembericht Icinga Core</a></p>
@@ -274,7 +102,7 @@
 
   <p><a class="link" href="https://dev.icinga.org/projects/show/icinga-docs" target="_top">Problembericht Icinga Docs</a></p>
 
-  <a class="indexterm" name="id5559460"></a>
+  <a class="indexterm" name="id5656549"></a>
 </div>
 <div class="navfooter">
 <hr>

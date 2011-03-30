@@ -6,7 +6,7 @@
 <meta name="keywords" content="Supervision, Icinga, Nagios, Linux">
 <link rel="home" href="index.html" title="Icinga Version 1.3 Dokumentation">
 <link rel="up" href="ch10.html" title="Kapitel 10. weitere Software">
-<link rel="prev" href="addons.html" title="Icinga Addons">
+<link rel="prev" href="nrpe.html" title="NRPE">
 <link rel="next" href="ch11.html" title="Kapitel 11. Entwicklung">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,7 +16,7 @@
 <tr><th colspan="3" align="center">NSCA</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="addons.html">Zurück</a> </td>
+<a accesskey="p" href="nrpe.html">Zurück</a> </td>
 <th width="60%" align="center">Kapitel 10. weitere Software</th>
 <td width="20%" align="right"> <a accesskey="n" href="ch11.html">Weiter</a>
 </td>
@@ -36,7 +36,7 @@
   des Namens werden auch Host-Prüfergebnisse übertragen.</p>
 
   <div class="figure">
-<a name="id5665000"></a><p class="title"><b>Abbildung 10.1. NSCA</b></p>
+<a name="id5763587"></a><p class="title"><b>Abbildung 10.3. NSCA</b></p>
 <div class="figure-contents">
     
 
@@ -160,7 +160,7 @@
   <pre class="programlisting"> #&gt; su - icinga
  $&gt; cd /usr/src/icinga-nsca/src
  $&gt; ./nsca -c ../sample-config/nsca.cfg
- $&gt; echo -e "A\tB\tC\D\n" | ./send_nsca -H localhost -c ../sample-config/send_nsca.cfg
+ $&gt; echo -e "A\tB\tC\tD\n" | ./send_nsca -H localhost -c ../sample-config/send_nsca.cfg
  $&gt; exit</pre>
 
   <p>Dies sollte die Meldung "1 data packet(s) sent to host successfully." zurückliefern. Eigentlich heißt das nur, dass sich send_nsca
@@ -271,7 +271,7 @@
   <p>Nun können Sie den Test auf dem entfernten System ausführen</p>
 
   <pre class="programlisting"> #&gt; su - icinga
- $&gt; echo -e "A\tB\tC\D\n" | /usr/local/icinga/bin/send_nsca -H &lt;Icinga server&gt; -c /usr/local/icinga/etc/send_nsca.cfg</pre>
+ $&gt; echo -e "A\tB\tC\tD\n" | /usr/local/icinga/bin/send_nsca -H &lt;Icinga server&gt; -c /usr/local/icinga/etc/send_nsca.cfg</pre>
 
   <p>Dies sollte ebenfalls die Meldung "1 data packet(s) sent to host successfully." liefern und es sollte Warnungen im icinga.log auf
   dem Icinga-Server geben, die ähnlich zu den o.g. sind. Wenn es keine Meldungen gibt, dann prüfen Sie die Einstellung von <a class="link" href="configmain.html#configmain-log_passive_checks">log_passive_checks</a> in <code class="literal">icinga.cfg</code>.</p>
@@ -380,22 +380,22 @@
   sollten die Daten dann auch im klassischen Web-Interface sehen sowie feststellen, dass der Service-Status von "Pending" auf "OK"
   gewechselt ist und die Ausgabe die Daten enthält, die Sie versandt haben.</p>
 
-  <a class="indexterm" name="id5665717"></a>
+  <a class="indexterm" name="id5764286"></a>
 
-  <a class="indexterm" name="id5665728"></a>
+  <a class="indexterm" name="id5764318"></a>
 </div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="addons.html">Zurück</a> </td>
+<a accesskey="p" href="nrpe.html">Zurück</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch10.html">Nach oben</a></td>
 <td width="40%" align="right"> <a accesskey="n" href="ch11.html">Weiter</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Icinga Addons </td>
+<td width="40%" align="left" valign="top">NRPE </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Zum Anfang</a></td>
 <td width="40%" align="right" valign="top"> Kapitel 11. Entwicklung</td>
 </tr>

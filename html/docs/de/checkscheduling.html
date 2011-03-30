@@ -43,10 +43,10 @@
 
   <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-      <p><span class="emphasis"><em>normal_check_interval</em></span></p>
+      <p><span class="emphasis"><em>check_interval</em></span></p>
     </li>
 <li class="listitem">
-      <p><span class="emphasis"><em>retry_check_interval</em></span></p>
+      <p><span class="emphasis"><em>retry_interval</em></span></p>
     </li>
 <li class="listitem">
       <p><span class="emphasis"><em>check_period</em></span></p>
@@ -359,29 +359,29 @@
   <p><a name="checkscheduling-service_options"></a><span class="bold"><strong>Service-Definitionsoptionen, die die Planung
   beeinflussen</strong></span></p>
 
-  <p>Jede Service-Definition enthält eine <span class="emphasis"><em>normal_check_interval</em></span>- und eine
-  <span class="emphasis"><em>retry_check_interval</em></span>-Option. Hoffentlich klärt das Folgende, was diese zwei Optionen tun, wie sie mit der
+  <p>Jede Service-Definition enthält eine <span class="emphasis"><em>check_interval</em></span>- und eine
+  <span class="emphasis"><em>retry_interval</em></span>-Option. Hoffentlich klärt das Folgende, was diese zwei Optionen tun, wie sie mit der
   <span class="emphasis"><em>max_check_attempts</em></span>-Option in der Service-Definition zusammenwirken, und wie sie die Planung des Service
   beeinflussen.</p>
 
-  <p>Zuallererst gibt die <span class="emphasis"><em>normal_check_interval</em></span>-Option das Intervall an, in dem der Service unter
+  <p>Zuallererst gibt die <span class="emphasis"><em>check_interval</em></span>-Option das Intervall an, in dem der Service unter
   "normalen" Umständen geprüft wird. "Normale" Umstände bedeutet, wenn sich der Service in einem "OK"- oder einem <a class="link" href="statetypes.html" title="Statustypen">harten</a> nicht-OK-Zustand befindet.</p>
 
   <p>Wenn ein Service das erste Mal von einem OK- in einen nicht-OK-Zustand wechselt, gibt Ihnen Icinga die Möglichkeit,
   das Intervall temporär zu verkleinern oder zu vergrößern, in dem nachfolgende Prüfungen für diesen Service ausgeführt werden.
   Wenn der Service-Zustand das erste Mal wechselt, wird Icinga bis zu <span class="emphasis"><em>max_check_attempts</em></span>-1 Versuche
   durchführen, bevor es entscheidet, dass es sich um ein richtiges Problem handelt. Während die Prüfungen wiederholt werden,
-  werden sie gemäß der <span class="emphasis"><em>retry_check_interval</em></span>-Option neu eingeplant, was schneller oder langsam als die
-  <span class="emphasis"><em>normal_check_interval</em></span>-Option ist. Während der Service erneut geprüft wird (bis zu
+  werden sie gemäß der <span class="emphasis"><em>retry_interval</em></span>-Option neu eingeplant, was schneller oder langsam als die
+  <span class="emphasis"><em>check_interval</em></span>-Option ist. Während der Service erneut geprüft wird (bis zu
   <span class="emphasis"><em>max_check_attempts</em></span>-1 mal), ist der Service in einem <a class="link" href="statetypes.html" title="Statustypen">soft-Zustand</a>. Wenn
   der Service <span class="emphasis"><em>max_check_attempts</em></span>-1 mal geprüft wurde und sich immer noch in einem nicht-OK-Zustand befindet,
   wird der Service in einen <a class="link" href="statetypes.html" title="Statustypen">hard-Zustand</a> wechseln und wird nachfolgend wieder mit der normalen
   Rate eingeplant, die in der <span class="emphasis"><em>check_interval</em></span>-Option festgelegt ist.</p>
 
   <p>Als Randbemerkung, wenn Sie einen Wert von 1 für die <span class="emphasis"><em>max_check_attempts</em></span>-Option definieren, wird der
-  Service niemals mit dem Intervall geprüft, das in der <span class="emphasis"><em>retry_check_interval</em></span>-Option angegeben ist. Statt
+  Service niemals mit dem Intervall geprüft, das in der <span class="emphasis"><em>retry_interval</em></span>-Option angegeben ist. Statt
   dessen wird er sofort in einen <a class="link" href="statetypes.html" title="Statustypen">hard-Zustand</a> wechseln und anschließend mit dem in der Option
-  <span class="emphasis"><em>normal_check_interval</em></span> festgelegten Intervall geprüft.</p>
+  <span class="emphasis"><em>check_interval</em></span> festgelegten Intervall geprüft.</p>
 
   <p><span class="bold"><strong>TODO</strong></span></p>
 
@@ -390,20 +390,20 @@
   <p>Die meisten der o.g. Informationen treffen auch auf Host-Prüfungen zu.</p>
 
   <p>Dieser Abschnitt wird aktualisiert. Voraussichtlich gibt es mehr Informationen in einer der nächsten Ausgaben...</p>
-  <a class="indexterm" name="id5656112"></a>
-  <a class="indexterm" name="id5656044"></a>
-  <a class="indexterm" name="id5656130"></a>
-  <a class="indexterm" name="id5656141"></a>
-  <a class="indexterm" name="id5656152"></a>
-  <a class="indexterm" name="id5656159"></a>
-  <a class="indexterm" name="id5656171"></a>
-  <a class="indexterm" name="id5656180"></a>
-  <a class="indexterm" name="id5656190"></a>
-  <a class="indexterm" name="id5656200"></a>
-  <a class="indexterm" name="id5656191"></a>
-  <a class="indexterm" name="id5656219"></a>
-  <a class="indexterm" name="id5656229"></a>
-  <a class="indexterm" name="id5656237"></a>
+  <a class="indexterm" name="id5753269"></a>
+  <a class="indexterm" name="id5753276"></a>
+  <a class="indexterm" name="id5753288"></a>
+  <a class="indexterm" name="id5753297"></a>
+  <a class="indexterm" name="id5753253"></a>
+  <a class="indexterm" name="id5753317"></a>
+  <a class="indexterm" name="id5753299"></a>
+  <a class="indexterm" name="id5753331"></a>
+  <a class="indexterm" name="id5753329"></a>
+  <a class="indexterm" name="id5753349"></a>
+  <a class="indexterm" name="id5753358"></a>
+  <a class="indexterm" name="id5753376"></a>
+  <a class="indexterm" name="id5753386"></a>
+  <a class="indexterm" name="id5753397"></a>
 </div>
 <div class="navfooter">
 <hr>

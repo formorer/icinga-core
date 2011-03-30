@@ -43,10 +43,10 @@
 
   <div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
-      <p><span class="emphasis"><em>normal_check_interval</em></span></p>
+      <p><span class="emphasis"><em>check_interval</em></span></p>
     </li>
 <li class="listitem">
-      <p><span class="emphasis"><em>retry_check_interval</em></span></p>
+      <p><span class="emphasis"><em>retry_interval</em></span></p>
     </li>
 <li class="listitem">
       <p><span class="emphasis"><em>check_period</em></span></p>
@@ -349,28 +349,28 @@
   <p><a name="checkscheduling-service_options"></a><span class="bold"><strong>Service Definition Options That Affect
   Scheduling</strong></span></p>
 
-  <p>Each service definition contains a <span class="emphasis"><em>normal_check_interval</em></span> and
-  <span class="emphasis"><em>retry_check_interval</em></span> option. Hopefully this will clarify what these two options do, how they relate to the
+  <p>Each service definition contains a <span class="emphasis"><em>check_interval</em></span> and
+  <span class="emphasis"><em>retry_interval</em></span> option. Hopefully this will clarify what these two options do, how they relate to the
   <span class="emphasis"><em>max_check_attempts</em></span> option in the service definition, and how they affect the scheduling of the
   service.</p>
 
-  <p>First off, the <span class="emphasis"><em>normal_check_interval</em></span> option is the interval at which the service is checked under
+  <p>First off, the <span class="emphasis"><em>check_interval</em></span> option is the interval at which the service is checked under
   "normal" circumstances. "Normal" circumstances mean whenever the service is in an OK state or when its in a <a class="link" href="statetypes.html" title="State Types">hard</a> non-OK state.</p>
 
   <p>When a service first changes from an OK state to a non-OK state, Icinga gives you the ability to temporarily slow
   down or speed up the interval at which subsequent checks of that service will occur. When the service first changes state,
   Icinga will perform up to <span class="emphasis"><em>max_check_attempts</em></span>-1 retries of the service check before it decides its a
-  real problem. While the service is being retried, it is scheduled according to the <span class="emphasis"><em>retry_check_interval</em></span>
-  option, which might be faster or slower than the normal <span class="emphasis"><em>normal_check_interval</em></span> option. While the service is
+  real problem. While the service is being retried, it is scheduled according to the <span class="emphasis"><em>retry_interval</em></span>
+  option, which might be faster or slower than the normal <span class="emphasis"><em>check_interval</em></span> option. While the service is
   being rechecked (up to <span class="emphasis"><em>max_check_attempts</em></span>-1 times), the service is in a <a class="link" href="statetypes.html" title="State Types">soft
   state</a>. If the service is rechecked <span class="emphasis"><em>max_check_attempts</em></span>-1 times and it is still in a non-OK state, the
   service turns into a <a class="link" href="statetypes.html" title="State Types">hard state</a> and is subsequently rescheduled at the normal rate specified
   by the <span class="emphasis"><em>check_interval</em></span> option.</p>
 
   <p>On a side note, it you specify a value of 1 for the <span class="emphasis"><em>max_check_attempts</em></span> option, the service will not
-  ever be checked at the interval specified by the <span class="emphasis"><em>retry_check_interval</em></span> option. Instead, it immediately turns
+  ever be checked at the interval specified by the <span class="emphasis"><em>retry_interval</em></span> option. Instead, it immediately turns
   into a <a class="link" href="statetypes.html" title="State Types">hard state</a> and is subsequently rescheduled at the rate specified by the
-  <span class="emphasis"><em>normal_check_interval</em></span> option.</p>
+  <span class="emphasis"><em>check_interval</em></span> option.</p>
 
   <p><span class="bold"><strong>TODO</strong></span></p>
 
@@ -380,20 +380,20 @@
 
   <p>This documentation is being rewritten. Stay tuned for more information in a later beta release...</p>
 
-  <a class="indexterm" name="id5079909"></a>
-  <a class="indexterm" name="id5079916"></a>
-  <a class="indexterm" name="id5079925"></a>
-  <a class="indexterm" name="id5079934"></a>
-  <a class="indexterm" name="id5079945"></a>
-  <a class="indexterm" name="id5079954"></a>
-  <a class="indexterm" name="id5079964"></a>
-  <a class="indexterm" name="id5079973"></a>
-  <a class="indexterm" name="id5079981"></a>
-  <a class="indexterm" name="id5079993"></a>
-  <a class="indexterm" name="id5079984"></a>
-  <a class="indexterm" name="id5080011"></a>
-  <a class="indexterm" name="id5080021"></a>
-  <a class="indexterm" name="id5080031"></a>
+  <a class="indexterm" name="id2953199"></a>
+  <a class="indexterm" name="id2953232"></a>
+  <a class="indexterm" name="id2953242"></a>
+  <a class="indexterm" name="id2953233"></a>
+  <a class="indexterm" name="id2953262"></a>
+  <a class="indexterm" name="id2953251"></a>
+  <a class="indexterm" name="id2953263"></a>
+  <a class="indexterm" name="id2953290"></a>
+  <a class="indexterm" name="id2953281"></a>
+  <a class="indexterm" name="id2953291"></a>
+  <a class="indexterm" name="id2953318"></a>
+  <a class="indexterm" name="id2953328"></a>
+  <a class="indexterm" name="id2953339"></a>
+  <a class="indexterm" name="id2953347"></a>
 </div>
 <div class="navfooter">
 <hr>

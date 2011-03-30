@@ -121,7 +121,7 @@
 
   <p>Please update your ports before doing so.</p>
 
-  <pre class="programlisting"> #&gt; cd /usr/ports/devel/libtool22/ &amp;&amp; make all install clean
+  <pre class="programlisting"> #&gt; cd /usr/ports/devel/libtool/ &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/jpeg &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/png &amp;&amp; make all install clean
  #&gt; cd /usr/ports/graphics/gd &amp;&amp; make all install clean</pre>
@@ -204,7 +204,9 @@
 
   <p>Run the Icinga configure script. You will get help by using the --help flag.</p>
 
-  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd --enable-idoutils CPPFLAGS=-I/usr/local/include</pre>
+  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd \
+    --enable-idoutils CPPFLAGS=-I/usr/local/include \
+    --with-dbi-lib=/usr/local/lib --with-dbi-inc=/usr/local/include</pre>
 
   <div class="important" title="Important" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Important">
 <tr>
@@ -219,7 +221,9 @@
 
   <p><span class="bold"><strong>With SSL-encryption:</strong></span></p>
 
-  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd --enable-idoutils --enable-ssl CPPFLAGS=-I/usr/local/include</pre>
+  <pre class="programlisting"> #&gt; ./configure --with-command-group=icinga-cmd \
+    --enable-idoutils --enable-ssl CPPFLAGS=-I/usr/local/include \
+    --with-dbi-lib=/usr/local/lib --with-dbi-inc=/usr/local/include</pre>
 
   <p>Compile the Icinga source code. There is a separate option for IDOUtils (<span class="emphasis"><em>make idoutils</em></span>) if you
   just want to recompile this module. To see possible option just call "make".</p>
@@ -281,8 +285,8 @@
   </td></tr>
 </table></div>
 
-  <p>Activate the idomod event broker module. Edit /usr/local/icinga/etc/icinga.cfg, search for "broker_module" and uncomment or insert the following
-  line (adjust the name if necessary).</p>
+  <p><span class="bold"><strong>Activate the idomod event broker module</strong></span></p>
+  <p>Edit /usr/local/icinga/etc/icinga.cfg, search for "broker_module" and uncomment or insert the following line (adjust the name if necessary).</p>
 
   <pre class="programlisting"> broker_module=/usr/local/icinga/bin/idomod.o config_file=/usr/local/icinga/etc/idomod.cfg</pre>
 
@@ -481,7 +485,7 @@
   <pre class="programlisting">make install NAGIOSUSER=icinga NAGIOSGROUP=icinga \
  PREFIX=/usr/local/icinga</pre>
 
-  <a class="indexterm" name="id4984849"></a>
+  <a class="indexterm" name="id2858135"></a>
 </div>
 <div class="navfooter">
 <hr>

@@ -37,8 +37,8 @@
   <p>More information about the overall architecture can be found on our website: <a class="link" href="http://www.icinga.org/architecture/" target="_top">http://www.icinga.org/architecture/</a>. If you want know more about Icinga web development and
   the module architecture, please check out the development wiki of Icinga Web: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#24-Icinga-Web" target="_top">Icinga Wiki</a></p>
 
-  <p>This installation guide describes the installation of Icinga Web with MySQL as used database. Icinga Web also supports
-  Oracle and PostgreSQL as used database backends.</p>
+  <p>This installation guide describes the installation of Icinga Web with MySQL as underlying database. Icinga Web also supports
+  Oracle and PostgreSQL as database backends.</p>
 
   <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
@@ -109,11 +109,11 @@
 
       <p>Unpack your tarball:</p>
 
-      <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.tar.gz</pre>
+      <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.0.tar.gz</pre>
 
       <p>Then change to the directory:</p>
 
-      <pre class="programlisting"> #&gt; cd icinga-web</pre>
+      <pre class="programlisting"> #&gt; cd icinga-web-1.3.0</pre>
 
       <p>Icinga Web provides several configure options e.g.</p>
 
@@ -172,17 +172,17 @@
 
       <pre class="programlisting"> #&gt; make install-apache-config</pre>
 
-      <p>If you don't need an alias, you can alternatively use the old behavior setting a symlink instead: </p>
+      <p>If you don't need an alias, you can alternatively use the old behaviour setting a symlink instead: </p>
 <pre class="programlisting"> #&gt; make install-javascript</pre>
 
       <p>Make reports after install:</p>
 
       <pre class="programlisting"> #&gt; make install-done
 
- Installation if icinga-web succeeded.
+ Installation of icinga-web succeeded.
  Please check the new Apache2 configuration (etc/apache2/icinga-web.conf).</pre>
 
-      <p>Other usefull target: </p>
+      <p>Other useful target: </p>
 <pre class="programlisting"> #&gt; make icinga-reset-password</pre>
 <p> Reset password for any account on
       icinga-web.</p>
@@ -444,19 +444,18 @@
 
       <pre class="programlisting"> #&gt; rm -rf app/cache/config/*.php</pre>
 
-      <p>or</p>
+      <p>or /path/to/clearcache.sh</p>
 
-      <pre class="programlisting">/icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting"> #&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
     </li>
 <li class="listitem">
       <p><span class="bold"><strong>Apache settings</strong></span></p>
 
       <p>This should be prepared:</p>
 
-      <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+      <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
           <p>mod_rewrite enabled, maybe you have to create a link:</p>
-        </li></ul></div>
-
       <pre class="programlisting"> #&gt; ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load</pre>
 
       <p>Using OpenSuSE or SLES you can use "a2enmod rewrite" to activate the module. If that doesn't work you have to edit the file
@@ -465,14 +464,12 @@
       <p>Using Debian or Ubuntu "a2enmod rewrite" activates the module as well.</p>
 
       <p>The httpd of RHEL / Fedora / CentOS already supports rewriting so you don't have to change anything in this regard.</p>
-
-      <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+        </li>
+<li class="listitem">
           <p>Any htaccess enabled alias settings</p>
-        </li></ul></div>
-
       <p>Edit your .htaccess in /usr/local/icinga-web/pub:</p>
 
-      <p>At line 14, change the RewriteBase direction to suit your needs:</p>
+      <p>At line 14, change the RewriteBase direction to suit to your needs:</p>
 <pre class="programlisting"> DirectoryIndex index.php
 
  Options -MultiViews -Indexes +FollowSymLinks
@@ -517,8 +514,11 @@
  #       require valid-user
  #&lt;/IfModule&gt;</pre>
 
+        </li>
+</ul></div>
+
       <p>Go to the webservers configuration directory. Look if the created config by <span class="bold"><strong>make
-      install-apache-config</strong></span> suit to your configuration. Or create new aliases (maybe in /etc/apache2/conf.d/icinga-web.conf)
+      install-apache-config</strong></span> suits to your configuration. Or create new aliases (maybe in /etc/apache2/conf.d/icinga-web.conf)
       :</p>
 
       <pre class="programlisting">#&gt; cat /etc/apache2/icinga-web.conf
@@ -548,9 +548,9 @@ Alias /icinga-web /usr/local/icinga-web/pub
 
       <pre class="programlisting">#&gt; rm /usr/local/icinga-web/app/cache/config/*.php</pre>
 
-      <p>or</p>
+      <p>or /path/to/clearcache.sh</p>
 
-      <pre class="programlisting">#&gt; /icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting">#&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
 
       <p>Restart your Webserver:</p>
 
@@ -596,9 +596,9 @@ Alias /icinga-web /usr/local/icinga-web/pub
 
       <p>* Delete the config cache in app/cache/config/*.php</p>
 
-      <p>use</p>
+      <p>use /path/to/clearcache.sh</p>
 
-      <pre class="programlisting">#&gt; /icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting">#&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
 
       <p>Icinga Web shows a blank page?</p>
 
@@ -683,7 +683,7 @@ Alias /icinga-web /usr/local/icinga-web/pub
       <p>* Empty Icinga Web? =&gt; If mod_rewrite is enabled and 'index.php' appears in the request url the portal does not work. Try to
       remove the index.php from your url and everything should work</p>
 
-      <p>* Login possible but Icinga Web keeps loading data....</p>
+      <p>* Login possible but Icinga Web keeps loading data...</p>
 
       <p>* Request failed, Ressource /icinga-web/appkit/ext/application State could not be loaded - is the url correct? =&gt; mod_rewrite
       enabled ?</p>
@@ -697,11 +697,11 @@ Alias /icinga-web /usr/local/icinga-web/pub
     </li>
 </ol></div>
 
-  <a class="indexterm" name="id5066218"></a>
+  <a class="indexterm" name="id2939536"></a>
 
-  <a class="indexterm" name="id5066213"></a>
+  <a class="indexterm" name="id2939649"></a>
 
-  <a class="indexterm" name="id5066439"></a>
+  <a class="indexterm" name="id2939752"></a>
 </div>
 <div class="navfooter">
 <hr>

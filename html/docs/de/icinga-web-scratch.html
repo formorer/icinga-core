@@ -33,7 +33,7 @@
 
   <p>Das neue Icinga Web wird aktuell sehr stark weiterentwickelt, sodass sich diese Dokumentation unter Umständen noch ändern kann/wird.
   Falls Sie eine detaillierte Installationsanleitung benötigen, konsultieren Sie bitte doc/INSTALL aus dem Source-Paket. Mehr Informationen
-  über die gesamte Architektur können Sie auf unserer Webseite nachlesen: <a class="link" href="http://www.icinga.org/architecture/" target="_top">http://www.icinga.org/architecture/</a> Falls Sie mehr über das Icinga Web Development und die
+  über die gesamte Architektur können Sie auf unserer Webseite nachlesen: <a class="link" href="http://www.icinga.org/architecture/" target="_top">http://www.icinga.org/architecture/</a> Falls Sie mehr über das Icinga Web-Development und die
   Modularchitektur wissen wollen, verfolgen Sie bitte stetig aktualisierte Einträge im Development-Wiki von Icinga Web: <a class="link" href="https://dev.icinga.org/projects/icinga-development/wiki#24-Icinga-Web" target="_top">Icinga Wiki</a></p>
 
   <p>Diese Installationsanleitung beschreibt die Installation von Icinga Web mit MySQL als verwendeter Datenbank, weitere
@@ -56,7 +56,7 @@
 <th align="left">Anmerkung</th>
 </tr>
 <tr><td align="left" valign="top">
-        <p>Für Ubuntu gibt es kein php5-pdo- Packet, die benötigten PDO- Extensions sind in den Paketen php5 und php5-mysql
+        <p>Für Ubuntu gibt es kein php5-pdo-Paket, die benötigten PDO-Extensions sind in den Paketen php5 und php5-mysql
         enthalten!</p>
       </td></tr>
 </table></div>
@@ -105,11 +105,11 @@
 
       <p>Extrahieren Sie das Archiv (tarball) wie folgt:</p>
 
-      <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.tar.gz</pre>
+      <pre class="programlisting"> #&gt; tar xzvf icinga-web-1.3.0.tar.gz</pre>
 
       <p>Wechseln Sie in das Verzeichnis:</p>
 
-      <pre class="programlisting"> #&gt; cd icinga-web</pre>
+      <pre class="programlisting"> #&gt; cd icinga-web-1.3.0</pre>
 
       <p>Icinga Web stellt verschiedene configure Optionen zur Verfügung z.B.</p>
 
@@ -458,31 +458,32 @@ Please check the new Apache2 configuration (etc/apache2/icinga-web.conf).</pre>
 
       <pre class="programlisting"> #&gt; rm -rf app/cache/config/*.php</pre>
 
-      <p>oder</p>
+      <p>oder /path/to/clearcache.sh</p>
 
-      <pre class="programlisting">/icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting"> #&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
     </li>
 <li class="listitem">
       <p><span class="bold"><strong>Apache-Konfiguration</strong></span></p>
 
       <p>Voraussetzungen:</p>
 
-      <div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+      <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
           <p>mod_rewrite, vielleicht müssen Sie einen Verweis erstellen:</p>
-        </li></ul></div>
+          <pre class="programlisting"> #&gt; ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load</pre>
 
-      <pre class="programlisting"> #&gt; ln -s /etc/apache2/mods-available/rewrite.load /etc/apache2/mods-enabled/rewrite.load</pre>
+          <p>Bei OpenSuSE und SLES können Sie das Modul mit "a2enmod rewrite" aktivieren. Falls das nicht funktioniert, gibt es in der Datei
+          /etc/sysconfig/apache2 die Zeile "APACHE_MODULES=...", der das Modul "rewrite" hinzugefügt werden muss.</p>
 
-      <p>Bei OpenSuSE und SLES können Sie das Modul mit "a2enmod rewrite" aktivieren. Falls das nicht funktioniert, gibt es in der Datei
-      /etc/sysconfig/apache2 die Zeile "APACHE_MODULES=...", der das Modul "rewrite" hinzugefügt werden muss.</p>
+          <p>Bei Debian und Ubuntu können Sie das Modul ebenfalls mit "a2enmod rewrite" aktivieren.</p>
 
-      <p>Bei Debian und Ubuntu können Sie das Modul ebenfalls mit "a2enmod rewrite" aktivieren.</p>
+          <p>Bei RHEL/Fedora/CentOS ist die Unterstützung bereits im httpd enthalten.</p>
 
-      <p>Bei RHEL/Fedora/CentOS ist die Unterstützung bereits im httpd enthalten.</p>
+        </li>
+<li class="listitem">
+          <p>Über htaccess aktivierte Einstellungen</p>
 
-      <p></p>
-
-      <p>Editieren Sie die .htaccess unter /usr/local/icinga-web/pub und ändern Sie die RewriteBase (ab Zeile 14): </p>
+          <p>Editieren Sie die .htaccess unter /usr/local/icinga-web/pub und ändern Sie die RewriteBase (ab Zeile 14): </p>
 <pre class="programlisting"> DirectoryIndex index.php
 
  Options -MultiViews -Indexes +FollowSymLinks
@@ -526,6 +527,8 @@ Please check the new Apache2 configuration (etc/apache2/icinga-web.conf).</pre>
  #       AuthUserFile /path/to/my/htusers
  #       require valid-user
  #&lt;/IfModule&gt;</pre>
+        </li>
+</ul></div> 
 
       <p>Bitte wechseln Sie in das Konfigurationsverzeichnis Ihres Webservers. Überprüfen Sie, ob die, mit <span class="bold"><strong>make
       install-apache-config</strong></span> erstellte Konfiguration Ihren Anforderungen entspricht, oder erstellen Sie noch einen neuen Alias im
@@ -553,9 +556,9 @@ Alias /icinga-web /usr/local/icinga-web/pub
 
       <pre class="programlisting"> #&gt; rm /usr/local/icinga-web/app/cache/config/*.php</pre>
 
-      <p>oder</p>
+      <p>oder /path/to/clearcache.sh</p>
 
-      <pre class="programlisting">#&gt; /icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting">#&gt; /usr/local/icinga-web/bin/clearcache.sh</pre>
 
       <p>und starten Sie den Webserver neu:</p>
 
@@ -609,7 +612,7 @@ Alias /icinga-web /usr/local/icinga-web/pub
 
       <p>* Löschen Sie den Konfigurationscache in app/cache/config/*.php</p>
 
-      <pre class="programlisting">/icinga-web/bin/clearcache.sh</pre>
+      <pre class="programlisting">/usr/local/icinga-web/bin/clearcache.sh</pre>
 
       <p>Icinga Web zeigt eine leere Seite?</p>
 
@@ -711,9 +714,9 @@ Alias /icinga-web /usr/local/icinga-web/pub
     </li>
 </ol></div>
 
-  <a class="indexterm" name="id5642190"></a>
+  <a class="indexterm" name="id5739469"></a>
 
-  <a class="indexterm" name="id5642184"></a>
+  <a class="indexterm" name="id5739354"></a>
 </div>
 <div class="navfooter">
 <hr>

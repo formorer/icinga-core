@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="Icinga Version 1.3 Dokumentation">
 <link rel="up" href="ch10.html" title="Kapitel 10. weitere Software">
 <link rel="prev" href="ch10.html" title="Kapitel 10. weitere Software">
-<link rel="next" href="nsca.html" title="NSCA">
+<link rel="next" href="nrpe.html" title="NRPE">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <CENTER><IMG src="../images/logofullsize.png" border="0" alt="Icinga" title="Icinga"></CENTER>
@@ -18,7 +18,7 @@
 <td width="20%" align="left">
 <a accesskey="p" href="ch10.html">Zurück</a> </td>
 <th width="60%" align="center">Kapitel 10. weitere Software</th>
-<td width="20%" align="right"> <a accesskey="n" href="nsca.html">Weiter</a>
+<td width="20%" align="right"> <a accesskey="n" href="nrpe.html">Weiter</a>
 </td>
 </tr>
 </table>
@@ -40,14 +40,15 @@
 <li class="listitem">
       <p><a name="addons-conf"></a>die Verwaltung der Konfigurationsdateien über ein Web-Interface</p>
       <div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
-          <p><a class="link" href="http://www.nconf.org" target="_top">NConf</a>, <a class="link" href="http://www.nagiosql.org" target="_top">NagiosQL</a>, ...</p>
+          <p><a class="link" href="http://www.nconf.org" target="_top">NConf</a>, <a class="link" href="http://www.nagiosql.org" target="_top">NagiosQL</a>,
+          <a class="link" href="http://www.netways.de/nc/de/produkte/icinga/addons/lconf" target="_top">LConf</a>, <a class="link" href="http://sourceforge.net/projects/lilac" target="_top">Lilac</a>, ...</p>
         </li></ul></div>
     </li>
 <li class="listitem">
       <p><a name="addons-mon"></a>die Überwachung von entfernten Hosts (*NIX, Windows, etc.)</p>
       <div class="itemizedlist"><ul class="itemizedlist" type="circle">
 <li class="listitem">
-          <p><a class="link" href="nsca.html" title="NSCA">NSCA</a>, <a class="link" href="http://mathias-kettner.de/check_mk.html" target="_top">check_mk</a>, ...</p>
+          <p><a class="link" href="nsca.html" title="NSCA">NSCA</a>, <a class="link" href="nrpe.html" title="NRPE">NRPE</a>, <a class="link" href="http://mathias-kettner.de/check_mk.html" target="_top">check_mk</a>, ...</p>
         </li>
 <li class="listitem">
           <p><a class="link" href="http://www.nsclient.org" target="_top">NSClient++</a>, ...</p>
@@ -116,7 +117,8 @@
   <span class="emphasis"><em>check_by_ssh</em></span>-Plugin erreicht werden, obwohl es auf dem Überwachungsrechner für eine höhere CPU-Belastung
   sorgen kann - besonders dann, wenn Sie hunderte oder tausende von Hosts überwachen.</p>
 
-  <p>Das NRPE-Addon und die Dokumentation finden Sie unter <a class="link" href="http://www.nagios.org/" target="_top">http://www.nagios.org/</a>.</p>
+  <p>Das NRPE-Addon finden Sie unter <a class="link" href="https://git.icinga.org/?p=icinga-nrpe.git" target="_top">https://git.icinga.org/?p=icinga-nrpe.git</a>.
+  Die <a class="link" href="nrpe.html" title="NRPE">Dokumentation</a> finden Sie in nächsten Abschnitt.</p>
 
   <p><a name="addons-nsca"></a><span class="bold"><strong>NSCA</strong></span></p>
 
@@ -126,7 +128,7 @@
   entfernten Linux-/Unix-Hosts an den Icinga-Daemon zu senden, der auf dem Überwachungs-Server läuft. Das ist sehr
   hilfreich in <a class="link" href="distributed.html" title="Verteilte Überwachung">verteilten</a> und <a class="link" href="redundancy.html" title="Redundante und Failover-Netzwerk-Überwachung">redundanten/Failover</a>-Überwachungs-Umgebungen.</p>
 
-  <p>Das NSCA-Addon finden Sie unter <a class="link" href="https://git.icinga.org/?p=icinga-nsca.git" target="_top">https://git.icinga.org/?p=icinga-nsca.git</a>
+  <p>Das NSCA-Addon finden Sie unter <a class="link" href="https://git.icinga.org/?p=icinga-nsca.git" target="_top">https://git.icinga.org/?p=icinga-nsca.git</a>.
   Die <a class="link" href="nsca.html" title="NSCA">Dokumentation</a> finden Sie in nächsten Abschnitt.</p>
 
   <p><a name="addons-idoutils"></a><span class="bold"><strong>IDOUtils</strong></span></p>
@@ -139,47 +141,55 @@
   Icinga dienen. Neben MySQL werden auch Oracle und PostgreSQL unterstützt.</p>
 
   <p>Das IDOUtils-Addon und die Dokumentation finden Sie unter <a class="link" href="http://docs.icinga.org/" target="_top">http://docs.icinga.org/</a>.</p>
-  <a class="indexterm" name="id5664713"></a>
+  <a class="indexterm" name="id5761896"></a>
 
-  <a class="indexterm" name="id5664732"></a>
+  <a class="indexterm" name="id5761910"></a>
 
-  <a class="indexterm" name="id5664745"></a>
+  <a class="indexterm" name="id5761924"></a>
 
-  <a class="indexterm" name="id5664761"></a>
+  <a class="indexterm" name="id5761939"></a>
 
-  <a class="indexterm" name="id5664770"></a>
+  <a class="indexterm" name="id5761947"></a>
 
-  <a class="indexterm" name="id5664785"></a>
+  <a class="indexterm" name="id5761963"></a>
 
-  <a class="indexterm" name="id5664746"></a>
+  <a class="indexterm" name="id5761969"></a>
 
-  <a class="indexterm" name="id5664808"></a>
+  <a class="indexterm" name="id5761985"></a>
 
-  <a class="indexterm" name="id5664817"></a>
+  <a class="indexterm" name="id5761993"></a>
 
-  <a class="indexterm" name="id5664832"></a>
+  <a class="indexterm" name="id5762009"></a>
 
-  <a class="indexterm" name="id5664840"></a>
+  <a class="indexterm" name="id5762017"></a>
 
-  <a class="indexterm" name="id5664856"></a>
+  <a class="indexterm" name="id5762032"></a>
 
-  <a class="indexterm" name="id5664863"></a>
+  <a class="indexterm" name="id5762040"></a>
 
-  <a class="indexterm" name="id5664878"></a>
+  <a class="indexterm" name="id5762056"></a>
 
-  <a class="indexterm" name="id5664879"></a>
+  <a class="indexterm" name="id5762064"></a>
 
-  <a class="indexterm" name="id5664902"></a>
+  <a class="indexterm" name="id5762078"></a>
 
-  <a class="indexterm" name="id5664910"></a>
+  <a class="indexterm" name="id5762087"></a>
 
-  <a class="indexterm" name="id5664926"></a>
+  <a class="indexterm" name="id5762102"></a>
 
-  <a class="indexterm" name="id5664934"></a>
+  <a class="indexterm" name="id5762111"></a>
 
-  <a class="indexterm" name="id5664949"></a>
+  <a class="indexterm" name="id5762125"></a>
 
-  <a class="indexterm" name="id5664957"></a>
+  <a class="indexterm" name="id5762134"></a>
+
+  <a class="indexterm" name="id5762149"></a>
+
+  <a class="indexterm" name="id5762157"></a>
+
+  <a class="indexterm" name="id5762173"></a>
+
+  <a class="indexterm" name="id5762180"></a>
 </div>
 <div class="navfooter">
 <hr>
@@ -188,13 +198,13 @@
 <td width="40%" align="left">
 <a accesskey="p" href="ch10.html">Zurück</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch10.html">Nach oben</a></td>
-<td width="40%" align="right"> <a accesskey="n" href="nsca.html">Weiter</a>
+<td width="40%" align="right"> <a accesskey="n" href="nrpe.html">Weiter</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left" valign="top">Kapitel 10. weitere Software </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Zum Anfang</a></td>
-<td width="40%" align="right" valign="top"> NSCA</td>
+<td width="40%" align="right" valign="top"> NRPE</td>
 </tr>
 </table>
 </div>

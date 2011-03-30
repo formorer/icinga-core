@@ -298,7 +298,7 @@ esac
   each service should be. For example, if you set this value to 300 for one of your services, Icinga will consider the
   service results to be "stale" if they're older than 5 minutes (300 seconds). If you do not specify a value for the
   <span class="emphasis"><em>freshness_threshold</em></span> option, Icinga will automatically calculate a "freshness" threshold by looking
-  at either the <span class="emphasis"><em>normal_check_interval</em></span> or <span class="emphasis"><em>retry_check_interval</em></span> options (depending on what
+  at either the <span class="emphasis"><em>check_interval</em></span> or <span class="emphasis"><em>retry_interval</em></span> options (depending on what
   <a class="link" href="statetypes.html" title="State Types">type of state</a> the service is in). If the service results are found to be "stale",
   Icinga will run the service check command specified by the <span class="emphasis"><em>check_command</em></span> option in the service
   definition, thereby actively checking the service.</p>
@@ -358,7 +358,7 @@ esac
   is used for processing service check results (see documentation above). In order to make sure passive host check results are up
   to date, you'll want to enable <a class="link" href="freshness.html" title="Service and Host Freshness Checks">freshness checking</a> for hosts (similiar to what is described
   above for services).</p>
-  <a class="indexterm" name="id5072041"></a>
+  <a class="indexterm" name="id2945355"></a>
 </div>
 <div class="navfooter">
 <hr>

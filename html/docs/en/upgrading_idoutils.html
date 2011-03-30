@@ -92,6 +92,16 @@
   <code class="literal">module/idoutils/db/&lt;rdbms&gt;/&lt;rdbm&gt;-upgrade-1.3.sql</code> against your current schema (using incremental steps as
   usual, not leaving an upgrade version behind!).</p>
 
+  <p>After you finished the upgrade you should check the database version.</p>
+  <pre class="programlisting"> SQL&gt; SELECT * FROM icinga_dbversion</pre> 
+  <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>The Oracle tablename is "dbversion" (instead of "icinga_dbversion").</p></td></tr>
+</table></div>
+
   <a name="upgrading_idoutils_1.0.3"></a>
 
   <p><span class="bold"><strong>Upgrading IDOUtils to 1.0.3</strong></span></p>
@@ -270,7 +280,7 @@
   <p>If you changed something on the keys before please make sure you'll have the same database scheme applied as in 1.0RC otherwise the
   script will fail.</p>
 
-  <a class="indexterm" name="id4986293"></a>
+  <a class="indexterm" name="id2859627"></a>
 </div>
 <div class="navfooter">
 <hr>

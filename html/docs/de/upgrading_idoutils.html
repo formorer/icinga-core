@@ -89,6 +89,16 @@
   <p>Verwenden Sie das Aktualisierungsskript für die IDOUtils 1.3 unter
   <code class="literal">module/idoutils/db/&lt;rdbms&gt;/&lt;rdbm&gt;-upgrade-1.3.sql</code> gegen Ihr aktuelles Datenbankschema, bitte beachten Sie die inkrementelle Vorgehensweise wie oben beschrieben.</p>
 
+  <p>Nach der Aktualisierung sollten Sie die Datenbank-Version prüfen.</p>
+  <pre class="programlisting"> SQL&gt; SELECT * FROM icinga_dbversion</pre>
+  <div class="note" title="Anmerkung" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Anmerkung]" src="../images/note.png"></td>
+<th align="left">Anmerkung</th>
+</tr>
+<tr><td align="left" valign="top"><p>Der Oracle-Tabellenname lautet "dbversion" (anstatt "icinga_dbversion").</p></td></tr>
+</table></div>
+ 
     <a name="upgrading_idoutils_1.0.3"></a>
 
     <p><span class="bold"><strong>Aktualisieren der IDOUtils auf 1.0.3</strong></span></p>
@@ -283,7 +293,7 @@
     <p>Falls Sie vorher etwas an den Keys verändert haben, dann stellen Sie sicher, dass Sie das gleiche DB-Schema wie in IDOUtils 1.0RC
     benutzen, andernfalls wird das Script fehlschlagen.</p>
 
-    <a class="indexterm" name="id5565187"></a>
+    <a class="indexterm" name="id5662350"></a>
 </div>
 <div class="navfooter">
 <hr>
