@@ -181,6 +181,7 @@ extern int overview_columns;
 extern int max_grid_width;
 extern int group_style_type;
 extern int navbar_search;
+extern int CGI_ID;
 
 
 /*
