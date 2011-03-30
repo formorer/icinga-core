@@ -161,33 +161,35 @@
 <a name="l00133"></a>00133 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#b6c4f648a215c39f1eaee648ae7393c9">ido2db_db_deinit</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
 <a name="l00134"></a>00134 
 <a name="l00135"></a>00135 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#b232ffb7d5783afabc906ebf5060e8c0">ido2db_db_connect</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00136"></a>00136 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#605d0fb6a4e66d10d922f40203feb674">ido2db_db_disconnect</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00137"></a>00137 
-<a name="l00138"></a>00138 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#48e39c7737e3aa01f67162ab6301e242">ido2db_db_hello</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00139"></a>00139 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#25d2d30c393b8d986f1b67492d41401e">ido2db_thread_db_hello</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00140"></a>00140 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fe25eb6eabb0d34650134a50b313d2d7">ido2db_db_goodbye</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00141"></a>00141 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fe1907ee1b160fd5c3e020007110f194">ido2db_db_checkin</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00142"></a>00142 
-<a name="l00143"></a>00143 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#5d534e5aa14d65c329996a18361ee4fc">ido2db_db_escape_string</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
-<a name="l00144"></a>00144 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#8e268377138e69a85bef857a3f706ca6">ido2db_db_timet_to_sql</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,time_t);
-<a name="l00145"></a>00145 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#3a4b913256e82ed837e70d98046bde1a">ido2db_db_sql_to_timet</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
-<a name="l00146"></a>00146 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fd5461f6d89941cd447f8937863d2a56">ido2db_db_query</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
-<a name="l00147"></a>00147 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#31f38dcede9261b3a12a67f35b5a6af1">ido2db_db_free_query</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00148"></a>00148 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#566603b0a10516be5e4a67bb81f63e54">ido2db_handle_db_error</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00149"></a>00149 
-<a name="l00150"></a>00150 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#c43ae6b2f7e9ae6951feb55d4d247b53">ido2db_db_clear_table</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
-<a name="l00151"></a>00151 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#2cf1981fc105db2133c473196cadfdc6">ido2db_db_get_latest_data_time</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *,<span class="keywordtype">char</span> *,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> *);
-<a name="l00152"></a>00152 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fa019329c3965c95fee78823771c4ea4">ido2db_db_perform_maintenance</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
-<a name="l00153"></a>00153 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fdccc2090f5bad36db8520f2e362a9b9">ido2db_db_trim_data_table</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *,<span class="keywordtype">char</span> *,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>);
-<a name="l00154"></a>00154 
-<a name="l00155"></a>00155 <span class="preprocessor">#ifdef USE_ORACLE </span><span class="comment">/* Oracle ocilib specific */</span>
-<a name="l00156"></a>00156 <span class="keywordtype">void</span> ido2db_ocilib_err_handler(OCI_Error *);
-<a name="l00157"></a>00157 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> ido2db_ocilib_insert_id(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *, <span class="keywordtype">char</span> *);
-<a name="l00158"></a>00158 <span class="keywordtype">int</span> ido2db_oci_prepared_statement_bind_null_param(OCI_Statement *, <span class="keywordtype">char</span> *);
-<a name="l00159"></a>00159 <span class="preprocessor">#endif </span><span class="comment">/* Oracle ocilib specific */</span>
-<a name="l00160"></a>00160 
-<a name="l00161"></a>00161 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Feb 12 16:26:53 2011 for icinga-core by&nbsp;
+<a name="l00136"></a>00136 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#46af80e5085fab2a4a74977497b1faed">ido2db_db_is_connected</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00137"></a>00137 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#3db7717d7fb6e106c0dd679bbbad5663">ido2db_db_reconnect</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00138"></a>00138 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#605d0fb6a4e66d10d922f40203feb674">ido2db_db_disconnect</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00139"></a>00139 
+<a name="l00140"></a>00140 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#48e39c7737e3aa01f67162ab6301e242">ido2db_db_hello</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00141"></a>00141 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#25d2d30c393b8d986f1b67492d41401e">ido2db_thread_db_hello</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00142"></a>00142 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fe25eb6eabb0d34650134a50b313d2d7">ido2db_db_goodbye</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00143"></a>00143 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fe1907ee1b160fd5c3e020007110f194">ido2db_db_checkin</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00144"></a>00144 
+<a name="l00145"></a>00145 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#5d534e5aa14d65c329996a18361ee4fc">ido2db_db_escape_string</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
+<a name="l00146"></a>00146 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#8e268377138e69a85bef857a3f706ca6">ido2db_db_timet_to_sql</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,time_t);
+<a name="l00147"></a>00147 <span class="keywordtype">char</span> *<a class="code" href="db_8h.html#3a4b913256e82ed837e70d98046bde1a">ido2db_db_sql_to_timet</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
+<a name="l00148"></a>00148 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fd5461f6d89941cd447f8937863d2a56">ido2db_db_query</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
+<a name="l00149"></a>00149 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#31f38dcede9261b3a12a67f35b5a6af1">ido2db_db_free_query</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00150"></a>00150 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#566603b0a10516be5e4a67bb81f63e54">ido2db_handle_db_error</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00151"></a>00151 
+<a name="l00152"></a>00152 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#c43ae6b2f7e9ae6951feb55d4d247b53">ido2db_db_clear_table</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *);
+<a name="l00153"></a>00153 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#2cf1981fc105db2133c473196cadfdc6">ido2db_db_get_latest_data_time</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *,<span class="keywordtype">char</span> *,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> *);
+<a name="l00154"></a>00154 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fa019329c3965c95fee78823771c4ea4">ido2db_db_perform_maintenance</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *);
+<a name="l00155"></a>00155 <span class="keywordtype">int</span> <a class="code" href="db_8h.html#fdccc2090f5bad36db8520f2e362a9b9">ido2db_db_trim_data_table</a>(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *,<span class="keywordtype">char</span> *,<span class="keywordtype">char</span> *,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>);
+<a name="l00156"></a>00156 
+<a name="l00157"></a>00157 <span class="preprocessor">#ifdef USE_ORACLE </span><span class="comment">/* Oracle ocilib specific */</span>
+<a name="l00158"></a>00158 <span class="keywordtype">void</span> ido2db_ocilib_err_handler(OCI_Error *);
+<a name="l00159"></a>00159 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> ido2db_ocilib_insert_id(<a class="code" href="structido2db__input__data__info__struct.html">ido2db_idi</a> *, <span class="keywordtype">char</span> *);
+<a name="l00160"></a>00160 <span class="keywordtype">int</span> ido2db_oci_prepared_statement_bind_null_param(OCI_Statement *, <span class="keywordtype">char</span> *);
+<a name="l00161"></a>00161 <span class="preprocessor">#endif </span><span class="comment">/* Oracle ocilib specific */</span>
+<a name="l00162"></a>00162 
+<a name="l00163"></a>00163 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Mar 30 17:22:22 2011 for icinga-core by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>
