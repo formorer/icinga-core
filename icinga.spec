@@ -244,7 +244,10 @@ fi
 
 
 %changelog
-* Tue Feb 15 2011 Cheistoph Maser <cmaser@gmx.de> - 1.3.0-2
+* Tue Mar 31 2011 Christoph Maser <cmaser@gmx.de> - 1.3.1-0
+- update for release 1.3.1
+
+* Tue Feb 15 2011 Christoph Maser <cmaser@gmx.de> - 1.3.0-2
 - move cgis to libdir
 - remove suse suppot (packages available at opensuse build system)
 - add doxygen docs
