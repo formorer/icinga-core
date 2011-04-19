@@ -28,7 +28,7 @@ BuildRequires: libpng-devel
 BuildRequires: libjpeg-devel
 BuildRequires: libdbi-devel
 BuildRequires: perl(ExtUtils::Embed)
-Provides: nagios
+Provides: nagios = %{version}
 
 %description
 Icinga is an application, system and network monitoring application.
