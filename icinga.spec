@@ -79,7 +79,7 @@ Documentation for %{name}
 
 
 %prep
-%setup -n %{name}-%{version}
+%setup -qn %{name}-%{version}
 
 # /usr/local/nagios is hardcoded in many places
 %{__perl} -pi.orig -e 's|/usr/local/nagios/var/rw|%{_localstatedir}/nagios/rw|g;' contrib/eventhandlers/submit_check_result
@@ -95,7 +95,7 @@ Documentation for %{name}
     --sysconfdir="%{_sysconfdir}/icinga" \
     --with-cgiurl="/icinga/cgi-bin" \
     --with-command-user="icinga" \
-    --with-command-group="icingacmd" \
+    --with-command-group="icinga-cmd" \
     --with-gd-lib="%{_libdir}" \
     --with-gd-inc="%{_includedir}" \
     --with-htmurl="/icinga" \
@@ -144,14 +144,14 @@ Documentation for %{name}
 mv %{buildroot}%{_sysconfdir}/icinga/ido2db.cfg-sample %{buildroot}%{_sysconfdir}/icinga/ido2db.cfg
 mv %{buildroot}%{_sysconfdir}/icinga/idomod.cfg-sample %{buildroot}%{_sysconfdir}/icinga/idomod.cfg
 
-### copy idutils db-script
+### copy idoutils db-script
 cp -r module/idoutils/db %{buildroot}%{_sysconfdir}/icinga/idoutils
 
 %pre
 # Add icinga user
 /usr/sbin/groupadd icinga 2> /dev/null || :
-/usr/sbin/groupadd icingacmd 2> /dev/null || :
-/usr/sbin/useradd -c "icinga" -s /sbin/nologin -r -d /var/icinga -G icingacmd -g icinga icinga 2> /dev/null || :
+/usr/sbin/groupadd icinga-cmd 2> /dev/null || :
+/usr/sbin/useradd -c "icinga" -s /sbin/nologin -r -d /var/icinga -G icinga-cmd -g icinga icinga 2> /dev/null || :
 
 
 %post
@@ -164,8 +164,8 @@ if [ $1 -eq 0 ]; then
 fi
 
 %pre gui
-# Add apacheuser in the icingacmd group
-  /usr/sbin/usermod -a -G icingacmd %{apacheuser}
+# Add apacheuser in the icinga-cmd group
+  /usr/sbin/usermod -a -G icinga-cmd %{apacheuser}
 
 %post idoutils
 /sbin/chkconfig --add ido2db
@@ -202,7 +202,7 @@ fi
 %{logdir}
 %dir %{_localstatedir}/icinga
 %dir %{_localstatedir}/icinga/checkresults
-%attr(2755,icinga,icingacmd) %{_localstatedir}/icinga/rw/
+%attr(2755,icinga,icinga-cmd) %{_localstatedir}/icinga/rw/
 
 %files doc
 %defattr(-,icinga,icinga,-)
@@ -293,17 +293,17 @@ fi
 
 * Mon Oct 26 2009 Christoph Maser <cmr@financial.com> - 1.0-0.RC1.1
 - Update to 1.0-RC1
-- Correct checkconfig --del in idoutils %preun
+- Correct checkconfig --del in idoutils #preun
 
 * Mon Oct 26 2009 Christoph Maser <cmr@financial.com> - 0.8.4-3
-- Use icingacmd group and add apache user to that group instead
+- Use icinga-cmd group and add apache user to that group instead
   of using apachegroup as icinga command group.
 
 * Wed Oct 07 2009 Christoph Maser <cmr@financial.com> - 0.8.4-2
 - make packages openSUSE compatible
-- add %apachecondir, %apacheuser, %apachegroup depending on vendor
-- configure add --with-httpd-conf=%{apacheconfdir} 
-- configure add --with-init-dir=%{_initrddir}
+- add #apachecondir, #apacheuser, #apachegroup depending on vendor
+- configure add --with-httpd-conf=#{apacheconfdir} 
+- configure add --with-init-dir=#{_initrddir}
 
 * Wed Sep 16 2009 Christoph Maser <cmr@financial.com> - 0.8.4-1
 - Update to version 0.8.4.
