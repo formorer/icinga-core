@@ -13,7 +13,7 @@ Summary: Open Source host, service and network monitoring program
 Name: icinga
 Version: 1.3.1
 Release: 1%{?dist}
-License: GPL
+License: GPLv2+
 Group: Applications/System
 URL: http://www.icinga.org/
 
@@ -244,7 +244,7 @@ fi
 
 
 %changelog
-* Tue Mar 31 2011 Christoph Maser <cmaser@gmx.de> - 1.3.1-0
+* Tue Mar 31 2011 Christoph Maser <cmaser@gmx.de> - 1.3.1-1
 - update for release 1.3.1
 
 * Tue Feb 15 2011 Christoph Maser <cmaser@gmx.de> - 1.3.0-2
