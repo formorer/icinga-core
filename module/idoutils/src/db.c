@@ -2,7 +2,7 @@
  * DB.C - Datatabase routines for IDO2DB daemon
  *
  * Copyright (c) 2005-2007 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  **************************************************************/
 
@@ -19,6 +19,8 @@
 extern int errno;
 
 extern int ido2db_log_debug_info(int , int , const char *, ...);
+
+int dummy;	/* reduce compiler warnings */
 
 /* point to prepared statements after db initialize */
 #ifdef USE_ORACLE
@@ -111,6 +113,9 @@ int ido2db_oci_prepared_statement_downtime_delete(ido2db_idi *idi);
 int ido2db_oci_prepared_statement_instances_delete(ido2db_idi *idi);
 int ido2db_oci_prepared_statement_instances_delete_time(ido2db_idi *idi);
 
+/* db version stuff */
+int ido2db_oci_prepared_statement_dbversion_select(ido2db_idi *idi);
+
 #endif
 
 extern ido2db_dbconfig ido2db_db_settings;
@@ -185,10 +190,11 @@ char *ido2db_db_rawtablenames[IDO2DB_MAX_DBTABLES]={
 	"service_contactgroups",
 	"hostescalation_contactgroups",
 #ifdef USE_ORACLE /* Oracle ocilib specific */
-	"serviceescalationcontactgroups"
+	"serviceescalationcontactgroups",
 #else /* everything else will be libdbi */
-	"serviceescalation_contactgroups"
+	"serviceescalation_contactgroups",
 #endif /* Oracle ocilib specific */
+	"dbversion"
 	};
 
 char *ido2db_db_tablenames[IDO2DB_MAX_DBTABLES];
@@ -235,10 +241,9 @@ int ido2db_db_init(ido2db_idi *idi) {
 		        case IDO2DB_DBSERVER_ORACLE:
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 				/* don't allow user to set table prefix for oracle */
-        		        if ((ido2db_db_tablenames[x] = (char *) malloc(strlen(ido2db_db_rawtablenames[x])))==NULL)
+				if ((ido2db_db_tablenames[x]=strdup(ido2db_db_rawtablenames[x]))==NULL) 
                         		return IDO_ERROR;
 
-				sprintf(ido2db_db_tablenames[x], "%s", ido2db_db_rawtablenames[x]);
 #endif /* Oracle ocilib specific */
 		                break;
 		        case IDO2DB_DBSERVER_SQLITE:
@@ -355,6 +360,47 @@ int ido2db_db_deinit(ido2db_idi *idi) {
 /************************************/
 /* connects to the database server  */
 /************************************/
+
+int ido2db_db_is_connected(ido2db_idi *idi) {
+
+#ifdef USE_LIBDBI
+	if(!dbi_conn_ping(idi->dbinfo.dbi_conn))
+		return IDO_FALSE;
+#endif
+
+#ifdef USE_PGSQL
+	if(PQstatus(idi->dbinfo.pg_conn)!=CONNECTION_OK)
+		return IDO_FALSE;
+#endif
+
+#ifdef USE_ORACLE
+	if(!OCI_IsConnected(idi->dbinfo.oci_connection))
+		return IDO_FALSE;
+#endif
+
+	return IDO_TRUE;
+}
+
+int ido2db_db_reconnect(ido2db_idi *idi) {
+
+	/* check connection */
+	if(ido2db_db_is_connected(idi)==IDO_FALSE)
+		idi->dbinfo.connected=IDO_FALSE;
+
+        /* try to reconnect... */
+        if(idi->dbinfo.connected==IDO_FALSE) {
+                if(ido2db_db_connect(idi)==IDO_ERROR){
+			ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_reconnect(): failed.\n");
+			syslog(LOG_USER | LOG_INFO, "Error: Could not reconnect to database!");
+                        return IDO_ERROR;
+		}
+                ido2db_db_hello(idi);
+        }
+
+	return IDO_OK;
+}
+
+
 int ido2db_db_connect(ido2db_idi *idi) {
 	int result = IDO_OK;
 #ifdef USE_PGSQL /* pgsql */
@@ -368,8 +414,8 @@ int ido2db_db_connect(ido2db_idi *idi) {
 	if (idi == NULL)
 		return IDO_ERROR;
 
-	/* we're already connected... */
-	if (idi->dbinfo.connected == IDO_TRUE){
+	/* we're already connected... (and we don't wanna double check with ido2db_db_is_connected) */
+	if(idi->dbinfo.connected==IDO_TRUE){
 		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "\tido2db_db_connect(): already connected. Dropping out.\n");
 		return IDO_OK;
 	}
@@ -439,6 +485,23 @@ int ido2db_db_connect(ido2db_idi *idi) {
 	dbi_conn_set_option(idi->dbinfo.dbi_conn, "dbname", ido2db_db_settings.dbname);
 	dbi_conn_set_option(idi->dbinfo.dbi_conn, "encoding", "auto");
 
+	if(ido2db_db_settings.dbsocket!=NULL){
+		/* a local db socket was desired, drop db_port settings in case */
+		dbi_conn_clear_option(idi->dbinfo.dbi_conn, "port");
+
+	        switch (idi->dbinfo.server_type) {
+	        case IDO2DB_DBSERVER_MYSQL:
+	                dbi_conn_set_option(idi->dbinfo.dbi_conn, "mysql_unix_socket", ido2db_db_settings.dbsocket);
+			break;
+		case IDO2DB_DBSERVER_PGSQL:
+			/* override the port as stated in libdbi-driver docs */
+	                dbi_conn_set_option(idi->dbinfo.dbi_conn, "port", ido2db_db_settings.dbsocket);
+			break;
+		default:
+			break;
+		}
+	}
+
 	if (dbi_conn_connect(idi->dbinfo.dbi_conn) != 0) {
 		dbi_conn_error(idi->dbinfo.dbi_conn, &dbi_error);
 		syslog(LOG_USER | LOG_INFO, "Error: Could not connect to %s database: %s", ido2db_db_settings.dbserver, dbi_error);
@@ -452,7 +515,7 @@ int ido2db_db_connect(ido2db_idi *idi) {
 
 #ifdef USE_PGSQL /* pgsql */
 
-	asprintf(&temp_port, "%d", ido2db_db_settings.port);
+	dummy=asprintf(&temp_port, "%d", ido2db_db_settings.port);
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_connect() pgsql start\n");
 
         /* check if config matches */
@@ -510,7 +573,7 @@ int ido2db_db_connect(ido2db_idi *idi) {
 	}
 
         /* initialize prepared statements */
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_connet() prepare statements start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_connect() prepare statements start\n");
 
 	/* object inserts */
         if(ido2db_oci_prepared_statement_objects_insert(idi) == IDO_ERROR) {
@@ -999,8 +1062,13 @@ int ido2db_db_connect(ido2db_idi *idi) {
                 return IDO_ERROR;
         }
 
+        /* dbversion */
+        if(ido2db_oci_prepared_statement_dbversion_select(idi) == IDO_ERROR) {
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_dbversion_select() failed\n");
+                return IDO_ERROR;
+        }
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_connet() prepare statements end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_connect() prepare statements end\n");
 
 #endif /* Oracle ocilib specific */
 
@@ -1019,7 +1087,7 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 		return IDO_ERROR;
 
 	/* we're not connected... */
-	if (idi->dbinfo.connected == IDO_FALSE)
+	if(ido2db_db_is_connected(idi)==IDO_FALSE)
 		return IDO_OK;
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
@@ -1043,10 +1111,13 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedevents);
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedevents_queue);
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedeventqueue);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostchecks);
 	OCI_StatementFree(idi->dbinfo.oci_statement_hoststatus);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicechecks);
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicestatus);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_contact_notificationcommands);
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_insert);
 	OCI_StatementFree(idi->dbinfo.oci_statement_logentries_insert);
@@ -1054,42 +1125,64 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 	OCI_StatementFree(idi->dbinfo.oci_statement_systemcommanddata);
 	OCI_StatementFree(idi->dbinfo.oci_statement_eventhandlerdata);
 	OCI_StatementFree(idi->dbinfo.oci_statement_notificationdata);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactnotificationdata);
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactnotificationmethoddata);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_commentdata);
 	OCI_StatementFree(idi->dbinfo.oci_statement_commentdata_history);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_downtimedata_scheduled_downtime);
 	OCI_StatementFree(idi->dbinfo.oci_statement_downtimedata_downtime_history);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactstatusdata);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_configfilevariables);
 	OCI_StatementFree(idi->dbinfo.oci_statement_configfilevariables_insert);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_runtimevariables);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostdefinition_parenthosts);
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostdefinition_contactgroups);
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostdefinition_contacts);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostgroupdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostgroupdefinition_hostgroupmembers);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicedefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicedefinition_contactgroups);
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicedefinition_contacts);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicegroupdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicegroupdefinition_members);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostdependencydefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_servicedependencydefinition_definition);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_hostescalationdefinition_definition);
+	OCI_StatementFree(idi->dbinfo.oci_statement_hostescalationdefinition_contactgroups);
+	OCI_StatementFree(idi->dbinfo.oci_statement_hostescalationdefinition_contacts);
+
+	OCI_StatementFree(idi->dbinfo.oci_statement_serviceescalationdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_serviceescalationdefinition_contactgroups);
 	OCI_StatementFree(idi->dbinfo.oci_statement_serviceescalationdefinition_contacts);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_commanddefinition_definition);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_timeperiodefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_timeperiodefinition_timeranges);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactdefinition_addresses);
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactdefinition_servicenotificationcommands);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_save_custom_variables_customvariables);
 	OCI_StatementFree(idi->dbinfo.oci_statement_save_custom_variables_customvariablestatus);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactgroupdefinition_definition);
 	OCI_StatementFree(idi->dbinfo.oci_statement_contactgroupdefinition_contactgroupmembers);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_process_events);
 	OCI_StatementFree(idi->dbinfo.oci_statement_flappinghistory);
 	OCI_StatementFree(idi->dbinfo.oci_statement_external_commands);
@@ -1097,6 +1190,7 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 	OCI_StatementFree(idi->dbinfo.oci_statement_statehistory);
 	OCI_StatementFree(idi->dbinfo.oci_statement_instances);
 	OCI_StatementFree(idi->dbinfo.oci_statement_conninfo);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_select_name1_name2);
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_select_name1_null_name2);
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_select_name1_name2_null);
@@ -1104,21 +1198,30 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_select_cached);
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_update_inactive);
 	OCI_StatementFree(idi->dbinfo.oci_statement_objects_update_active);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_logentries_select);
+	OCI_StatementFree(idi->dbinfo.oci_statement_programstatus_update);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedevents_update);
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedeventqueue_delete);
 	OCI_StatementFree(idi->dbinfo.oci_statement_timedeventqueue_delete_more);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_comment_history_update);
 	OCI_StatementFree(idi->dbinfo.oci_statement_comments_delete);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_downtimehistory_update_start);
 	OCI_StatementFree(idi->dbinfo.oci_statement_downtimehistory_update_stop);
 	OCI_StatementFree(idi->dbinfo.oci_statement_downtime_delete);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_instances_select);
+
 	OCI_StatementFree(idi->dbinfo.oci_statement_conninfo_update);
 	OCI_StatementFree(idi->dbinfo.oci_statement_conninfo_update_checkin);
 
 	OCI_StatementFree(idi->dbinfo.oci_statement_instances_delete);
 	OCI_StatementFree(idi->dbinfo.oci_statement_instances_delete_time);
+
+	OCI_StatementFree(idi->dbinfo.oci_statement_dbversion_select);
 
 	syslog(LOG_USER | LOG_INFO, "Successfully freed prepared statements");
 
@@ -1137,6 +1240,94 @@ int ido2db_db_disconnect(ido2db_idi *idi) {
 /************************************/
 /* post-connect routines            */
 /************************************/
+
+int ido2db_db_version_check(ido2db_idi *idi) {
+        char *buf=NULL;
+	char *name=NULL;
+#ifdef USE_ORACLE
+	char *dbversion=NULL;
+#endif
+	void *data[1];
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check () start \n");
+
+	name=strdup("idoutils");
+        data[0] = (void *) &name;
+
+#ifdef USE_LIBDBI
+
+        if (asprintf(&buf, "SELECT version FROM %s WHERE name='%s'", ido2db_db_tablenames[IDO2DB_DBTABLE_DBVERSION], name) == -1)
+                buf = NULL;
+
+        if ((ido2db_db_query(idi, buf))==IDO_OK) {
+
+                if (idi->dbinfo.dbi_result!=NULL) {
+                        if (dbi_result_next_row(idi->dbinfo.dbi_result)) {
+                                idi->dbinfo.dbversion = strdup(dbi_result_get_string(idi->dbinfo.dbi_result, "version"));
+                        }
+                }
+        }
+
+	free(buf);
+#endif
+
+#ifdef USE_ORACLE
+
+
+        if(!OCI_BindString(idi->dbinfo.oci_statement_dbversion_select, MT(":X1"), *(char **) data[0], 0)) {
+                return IDO_ERROR;
+        }
+
+        /* execute statement */
+        if(!OCI_Execute(idi->dbinfo.oci_statement_dbversion_select)) {
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check () \n");
+        }
+
+        /* commit statement */
+        OCI_Commit(idi->dbinfo.oci_connection);
+
+        /* do not free statement yet! */
+
+        idi->dbinfo.oci_resultset = OCI_GetResultset(idi->dbinfo.oci_statement_dbversion_select);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check() query ok\n");
+
+        if(OCI_FetchNext(idi->dbinfo.oci_resultset)) {
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check() fetchnext ok\n");
+                idi->dbinfo.dbversion=strdup(OCI_GetString(idi->dbinfo.oci_resultset, 1));
+        	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_hello(version=%s)\n", idi->dbinfo.dbversion);
+        } else {
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check() fetchnext not ok\n");
+        }
+
+
+#endif
+
+#ifdef USE_PGSQL
+
+	//FIXME
+#endif
+
+	free(name);
+
+	/* check dbversion against program version */
+	if(idi->dbinfo.dbversion==NULL){
+		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check() dbversion is NULL\n");
+		syslog(LOG_ERR, "Error: DB Version cannot be retrieved. Please check the upgrade docs and verify the db schema!");
+		return IDO_ERROR;
+	}
+	if(strcmp(idi->dbinfo.dbversion, IDO2DB_SCHEMA_VERSION)!=0){
+		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check() db version %s does not match schema version %s\n", idi->dbinfo.dbversion, IDO2DB_SCHEMA_VERSION);
+		syslog(LOG_ERR, "Error: DB Version %s does not match needed schema version %s. Please check the upgrade docs!", idi->dbinfo.dbversion, IDO2DB_SCHEMA_VERSION);
+		return IDO_ERROR;
+	}
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_version_check () end\n");
+
+	return IDO_OK;
+
+}
+
 int ido2db_db_hello(ido2db_idi *idi) {
 #ifdef USE_LIBDBI
 	char *buf = NULL;
@@ -1157,6 +1348,9 @@ int ido2db_db_hello(ido2db_idi *idi) {
 	if (idi->instance_name == NULL)
 		idi->instance_name = strdup("default");
 
+
+	ido2db_db_version_check(idi);
+
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
 	/* get existing instance */
@@ -1169,7 +1363,8 @@ int ido2db_db_hello(ido2db_idi *idi) {
 
 		if (idi->dbinfo.dbi_result != NULL) {
 			if (dbi_result_next_row(idi->dbinfo.dbi_result)) {
-				idi->dbinfo.instance_id = dbi_result_get_uint(idi->dbinfo.dbi_result, "instance_id");
+				idi->dbinfo.instance_id = dbi_result_get_ulonglong(idi->dbinfo.dbi_result, "instance_id");
+				ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_hello(instance_id=%lu)\n", idi->dbinfo.instance_id);
 				have_instance = IDO_TRUE;
 			}
 		}
@@ -1182,7 +1377,7 @@ int ido2db_db_hello(ido2db_idi *idi) {
 
                 ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_hello() query against existing instance not possible, cleaning up and exiting\n");
 
-		ido2db_kill_threads();
+		ido2db_terminate_threads();
 
 		/* disconnect from database */
 		ido2db_db_disconnect(idi);
@@ -1230,7 +1425,7 @@ int ido2db_db_hello(ido2db_idi *idi) {
 
 	        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_hello() query against existing instance not possible, cleaning up and exiting\n");
 
-		ido2db_kill_threads();
+		ido2db_terminate_threads();
 
                 /* disconnect from database */
                 ido2db_db_disconnect(idi);
@@ -1365,7 +1560,7 @@ int ido2db_db_hello(ido2db_idi *idi) {
 
 	ts = ido2db_db_timet_to_sql(idi, idi->data_start_time);
 
-	if (asprintf(&buf, "INSERT INTO %s (instance_id, connect_time, last_checkin_time, bytes_processed, lines_processed, entries_processed, agent_name, agent_version, disposition, connect_source, connect_type, data_start_time) VALUES ('%lu', NOW(), NOW(), '0', '0', '0', '%s', '%s', '%s', '%s', '%s', NOW())",
+	if (asprintf(&buf, "INSERT INTO %s (instance_id, connect_time, last_checkin_time, bytes_processed, lines_processed, entries_processed, agent_name, agent_version, disposition, connect_source, connect_type, data_start_time) VALUES (%lu, NOW(), NOW(), '0', '0', '0', '%s', '%s', '%s', '%s', '%s', NOW())",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_CONNINFO],
 			idi->dbinfo.instance_id, idi->agent_name, idi->agent_version,
 			idi->disposition, idi->connect_source, idi->connect_type) == -1)
@@ -1588,7 +1783,7 @@ int ido2db_thread_db_hello(ido2db_idi *idi) {
 
                 if (idi->dbinfo.dbi_result != NULL) {
                         if (dbi_result_next_row(idi->dbinfo.dbi_result)) {
-                                idi->dbinfo.instance_id = dbi_result_get_uint(idi->dbinfo.dbi_result, "instance_id");
+                                idi->dbinfo.instance_id = dbi_result_get_ulonglong(idi->dbinfo.dbi_result, "instance_id");
                                 have_instance = IDO_TRUE;
                         }
                 }
@@ -1596,7 +1791,7 @@ int ido2db_thread_db_hello(ido2db_idi *idi) {
         else {
                 ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_db_hello() query against existing instance not possible, cleaning up and exiting\n");
 
-		ido2db_kill_threads();
+		ido2db_terminate_threads();
 
                 /* disconnect from database */
                 ido2db_db_disconnect(idi);
@@ -1637,7 +1832,7 @@ int ido2db_thread_db_hello(ido2db_idi *idi) {
         if(!OCI_Execute(idi->dbinfo.oci_statement_instances_select)) {
                 ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_db_hello() query against existing instance not possible, cleaning up and exiting\n");
 
-		ido2db_kill_threads();
+		ido2db_terminate_threads();
 
                 /* disconnect from database */
                 ido2db_db_disconnect(idi);
@@ -1693,7 +1888,7 @@ int ido2db_thread_db_hello(ido2db_idi *idi) {
 
         ts = ido2db_db_timet_to_sql(idi, idi->data_start_time);
 
-        if (asprintf(&buf, "INSERT INTO %s (instance_id, connect_time, last_checkin_time, bytes_processed, lines_processed, entries_processed, agent_name, agent_version, disposition, connect_source, connect_type, data_start_time) VALUES ('%lu', NOW(), NOW(), '0', '0', '0', '%s', '%s', '%s', '%s', '%s', NOW())",
+        if (asprintf(&buf, "INSERT INTO %s (instance_id, connect_time, last_checkin_time, bytes_processed, lines_processed, entries_processed, agent_name, agent_version, disposition, connect_source, connect_type, data_start_time) VALUES (%lu, NOW(), NOW(), '0', '0', '0', '%s', '%s', '%s', '%s', '%s', NOW())",
                         ido2db_db_tablenames[IDO2DB_DBTABLE_CONNINFO],
                         idi->dbinfo.instance_id, idi->agent_name, idi->agent_version,
                         idi->disposition, idi->connect_source, idi->connect_type) == -1)
@@ -1902,7 +2097,7 @@ int ido2db_db_goodbye(ido2db_idi *idi) {
 	ts = ido2db_db_timet_to_sql(idi, idi->data_end_time);
 
 	/* record last connection information */
-	if (asprintf(&buf, "UPDATE %s SET disconnect_time=NOW(), last_checkin_time=NOW(), data_end_time=%s, bytes_processed='%lu', lines_processed='%lu', entries_processed='%lu' WHERE conninfo_id='%lu'",
+	if (asprintf(&buf, "UPDATE %s SET disconnect_time=NOW(), last_checkin_time=NOW(), data_end_time=%s, bytes_processed=%lu, lines_processed=%lu, entries_processed=%lu WHERE conninfo_id=%lu",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_CONNINFO], ts,
 			idi->bytes_processed, idi->lines_processed, idi->entries_processed,
 			idi->dbinfo.conninfo_id) == -1)
@@ -1979,7 +2174,7 @@ int ido2db_db_checkin(ido2db_idi *idi) {
 
 	/* record last connection information */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "UPDATE %s SET last_checkin_time=NOW(), bytes_processed='%lu', lines_processed='%lu', entries_processed='%lu' WHERE conninfo_id='%lu'",
+	if (asprintf(&buf, "UPDATE %s SET last_checkin_time=NOW(), bytes_processed=%lu, lines_processed=%lu, entries_processed=%lu WHERE conninfo_id=%lu",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_CONNINFO],
 			idi->bytes_processed, idi->lines_processed, idi->entries_processed,
 			idi->dbinfo.conninfo_id) == -1)
@@ -2047,10 +2242,10 @@ char *ido2db_db_escape_string(ido2db_idi *idi, char *buf) {
 	register int x, y, z;
 	char *newbuf = NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_escape_string(%s) start\n", buf);
-
 	if (idi == NULL || buf == NULL)
 		return NULL;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_escape_string(%s) start\n", buf);
 
 	z = strlen(buf);
 
@@ -2070,12 +2265,8 @@ char *ido2db_db_escape_string(ido2db_idi *idi, char *buf) {
                 }
                 else if(idi->dbinfo.server_type==IDO2DB_DBSERVER_PGSQL){
 
-			if (buf[x] == '\'' || buf[x] == '[' || buf[x] == ']' || buf[x] == '(' || buf[x] == ')')
+			if (buf[x] == '\'' || buf[x] == '\\' || buf[x] == '\0')
 				newbuf[y++] = '\\';
-
-                	/* should be fixed with binding values */
-			/* if(buf[x]=='\'' )
-                               newbuf[y++]='\''; */
 		}
 		else {
 
@@ -2150,7 +2341,7 @@ char *ido2db_db_escape_string(ido2db_idi *idi, char *buf) {
 char *ido2db_db_timet_to_sql(ido2db_idi *idi, time_t t) {
 	char *buf = NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_timet_to_sql() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_timet_to_sql(%lu) start\n", (unsigned long)t);
 
 	switch (idi->dbinfo.server_type) {
 		case IDO2DB_DBSERVER_MYSQL:
@@ -2189,7 +2380,7 @@ char *ido2db_db_timet_to_sql(ido2db_idi *idi, time_t t) {
                         break;
 	}
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_timet_to_sql() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_timet_to_sql(%s) end\n", buf);
 
 	return buf;
 }
@@ -2200,7 +2391,7 @@ char *ido2db_db_timet_to_sql(ido2db_idi *idi, time_t t) {
 char *ido2db_db_sql_to_timet(ido2db_idi *idi, char *field) {
 	char *buf = NULL;
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_sql_to_timet() start\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_sql_to_timet(%s) start\n", field);
 
 	switch (idi->dbinfo.server_type) {
 		case IDO2DB_DBSERVER_MYSQL:
@@ -2238,7 +2429,7 @@ char *ido2db_db_sql_to_timet(ido2db_idi *idi, char *field) {
                         break;
         }
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_sql_to_timet() end\n");
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_sql_to_timet(%s) end\n", buf);
 
 	return buf;
 }
@@ -2262,11 +2453,9 @@ int ido2db_db_query(ido2db_idi *idi, char *buf) {
 		return IDO_ERROR;
 
 	/* if we're not connected, try and reconnect... */
-	if (idi->dbinfo.connected == IDO_FALSE) {
-		if (ido2db_db_connect(idi) == IDO_ERROR)
-			return IDO_ERROR;
-		ido2db_db_hello(idi);
-	}
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+                return IDO_ERROR;
+
 
 #ifdef DEBUG_IDO2DB_QUERIES
 	printf("%s\n\n",buf);
@@ -2363,7 +2552,7 @@ int ido2db_handle_db_error(ido2db_idi *idi) {
 		return IDO_ERROR;
 
 	/* we're not currently connected... */
-	if (idi->dbinfo.connected == IDO_FALSE)
+	if(ido2db_db_is_connected(idi)==IDO_TRUE)
 		return IDO_OK;
 
 	ido2db_db_disconnect(idi);
@@ -2392,7 +2581,7 @@ int ido2db_db_clear_table(ido2db_idi *idi, char *table_name) {
 		return IDO_ERROR;
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "DELETE FROM %s WHERE instance_id='%lu'", table_name, idi->dbinfo.instance_id) == -1)
+	if (asprintf(&buf, "DELETE FROM %s WHERE instance_id=%lu", table_name, idi->dbinfo.instance_id) == -1)
 		buf = NULL;
 
 	result = ido2db_db_query(idi, buf);
@@ -2450,7 +2639,7 @@ int ido2db_db_get_latest_data_time(ido2db_idi *idi, char *table_name, char *fiel
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-	if (asprintf(&buf,"SELECT %s AS latest_time FROM %s WHERE instance_id='%lu' ORDER BY %s DESC LIMIT 1 OFFSET 0",
+	if (asprintf(&buf,"SELECT %s AS latest_time FROM %s WHERE instance_id=%lu ORDER BY %s DESC LIMIT 1 OFFSET 0",
 			field_name, table_name, idi->dbinfo.instance_id, field_name) == -1)
 		buf = NULL;
 
@@ -2470,7 +2659,7 @@ int ido2db_db_get_latest_data_time(ido2db_idi *idi, char *table_name, char *fiel
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
-        if( asprintf(&buf,"SELECT ( ( ( SELECT * FROM ( SELECT %s FROM %s WHERE instance_id='%lu' ORDER BY %s DESC) WHERE ROWNUM = 1 ) - to_date( '01-01-1970 00:00:00','dd-mm-yyyy hh24:mi:ss' )) * 86400) AS latest_time FROM DUAL"
+        if( asprintf(&buf,"SELECT ( ( ( SELECT * FROM ( SELECT %s FROM %s WHERE instance_id=%lu ORDER BY %s DESC) WHERE ROWNUM = 1 ) - to_date( '01-01-1970 00:00:00','dd-mm-yyyy hh24:mi:ss' )) * 86400) AS latest_time FROM DUAL"
                     ,(field_name==NULL)?"":field_name
                     ,table_name
                     ,idi->dbinfo.instance_id
@@ -2534,7 +2723,7 @@ int ido2db_db_trim_data_table(ido2db_idi *idi, char *table_name, char *field_nam
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-	if (asprintf(&buf, "DELETE FROM %s WHERE instance_id='%lu' AND %s<%s",
+	if (asprintf(&buf, "DELETE FROM %s WHERE instance_id=%lu AND %s<%s",
 			table_name, idi->dbinfo.instance_id, field_name, ts[0]) == -1)
 		buf = NULL;
 
@@ -2590,7 +2779,7 @@ int ido2db_db_perform_maintenance(ido2db_idi *idi) {
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_perform_maintenance() start\n");
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_perform_maintenance() max_logentries_age=%lu, max_ack_age=%lu\n", idi->dbinfo.max_logentries_age, idi->dbinfo.max_logentries_age);
+	//ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_perform_maintenance() max_logentries_age=%lu, max_ack_age=%lu\n", idi->dbinfo.max_logentries_age, idi->dbinfo.max_logentries_age);
 
 	/* get the current time */
 	time(&current_time);
@@ -2717,12 +2906,17 @@ void ido2db_ocilib_err_handler(OCI_Error *err) {
 		const mtext *sql = OCI_GetSql(OCI_ErrorGetStatement(err));
 
 		if (sql != NULL) {
-			syslog(LOG_USER | LOG_INFO, "ERROR: QUERY '%s'\n", sql);
+			if(ido2db_db_settings.oci_errors_to_syslog==IDO_TRUE) {
+				syslog(LOG_USER | LOG_INFO, "ERROR: QUERY '%s'\n", sql);
+			}
 			ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ERROR: QUERY '%s'\n", sql);
 		}
 	}
 
-	syslog(LOG_USER | LOG_INFO, "ERROR: MSG '%s'\n", OCI_ErrorGetString(err));
+	if(ido2db_db_settings.oci_errors_to_syslog==IDO_TRUE) {
+		syslog(LOG_USER | LOG_INFO, "ERROR: MSG '%s'\n", OCI_ErrorGetString(err));
+	}
+
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ERROR: MSG '%s'\n", OCI_ErrorGetString(err));
 }
 
@@ -2887,6 +3081,42 @@ int ido2db_oci_prepared_statement_instances_select(ido2db_idi *idi) {
         free(buf);
 
         //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_() end\n");
+
+        return IDO_OK;
+}
+
+
+int ido2db_oci_prepared_statement_dbversion_select(ido2db_idi *idi) {
+
+        char *buf = NULL;
+
+        //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_dbversion_select() start\n");
+
+        if(asprintf(&buf, "SELECT version FROM %s WHERE name=:X1",
+                ido2db_db_tablenames[IDO2DB_DBTABLE_DBVERSION]) == -1) {
+                        buf = NULL;
+        }
+
+        //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_dbversion_select() query: %s\n", buf);
+
+        if(idi->dbinfo.oci_connection) {
+
+                idi->dbinfo.oci_statement_dbversion_select = OCI_StatementCreate(idi->dbinfo.oci_connection);
+
+                /* allow rebinding values */
+                OCI_AllowRebinding(idi->dbinfo.oci_statement_dbversion_select, 1);
+
+                if(!OCI_Prepare(idi->dbinfo.oci_statement_dbversion_select, MT(buf))) {
+                        free(buf);
+                        return IDO_ERROR;
+                }
+        } else {
+                free(buf);
+                return IDO_ERROR;
+        }
+        free(buf);
+
+        //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_dbversion_select() end\n");
 
         return IDO_OK;
 }
@@ -3776,7 +4006,7 @@ int ido2db_oci_prepared_statement_hostchecks(ido2db_idi *idi) {
 
         //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_hostchecks() start\n");
 
-        if(asprintf(&buf, "MERGE INTO %s USING DUAL ON (instance_id=:X4 AND host_object_id=:X5 AND start_time=(SELECT unixts2date(:X12) FROM DUAL) AND start_time_usec=:X13) WHEN MATCHED THEN UPDATE SET check_type=:X6, is_raw_check=:X7, current_check_attempt=:X8, max_check_attempts=:X9, state=:X10, state_type=:X11, end_time=(SELECT unixts2date(:X14) FROM DUAL), end_time_usec=:X15, timeout=:X16, early_timeout=:X17, execution_time=:X18, latency=:X19, return_code=:X20, output=:X21, long_output=:X22, perfdata=:X23 WHEN NOT MATCHED THEN INSERT (id, command_object_id, command_args, command_line, instance_id, host_object_id, check_type, is_raw_check, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata) VALUES (seq_hostchecks.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, (SELECT unixts2date(:X12) FROM DUAL), :X13, (SELECT unixts2date(:X14) FROM DUAL), :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22, :X23)",
+        if(asprintf(&buf, "INSERT INTO %s (id, command_object_id, command_args, command_line, instance_id, host_object_id, check_type, is_raw_check, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata) VALUES (seq_hostchecks.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, (SELECT unixts2date(:X12) FROM DUAL), :X13, (SELECT unixts2date(:X14) FROM DUAL), :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22, :X23)",
                 ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCHECKS]) == -1) {
                         buf = NULL;
         }
@@ -3851,7 +4081,7 @@ int ido2db_oci_prepared_statement_servicechecks(ido2db_idi *idi) {
 
         //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_servicechecks() start\n");
 
-        if(asprintf(&buf, "MERGE INTO %s USING DUAL ON (instance_id=:X1 AND service_object_id=:X2 AND start_time=(SELECT unixts2date(:X8) FROM DUAL) AND start_time_usec=:X9) WHEN MATCHED THEN UPDATE SET check_type=:X3, current_check_attempt=:X4, max_check_attempts=:X5, state=:X6, state_type=:X7, end_time=(SELECT unixts2date(:X10) FROM DUAL), end_time_usec=:X11, timeout=:X12, early_timeout=:X13, execution_time=:X14, latency=:X15, return_code=:X16, output=:X17, long_output=:X18, perfdata=:X19 WHEN NOT MATCHED THEN INSERT (id, instance_id, service_object_id, check_type, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata, command_object_id, command_args, command_line) VALUES (seq_servicechecks.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, (SELECT unixts2date(:X8) FROM DUAL), :X9, (SELECT unixts2date(:X10) FROM DUAL), :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22)",
+        if(asprintf(&buf, "INSERT INTO %s (id, instance_id, service_object_id, check_type, current_check_attempt, max_check_attempts, state, state_type, start_time, start_time_usec, end_time, end_time_usec, timeout, early_timeout, execution_time, latency, return_code, output, long_output, perfdata, command_object_id, command_args, command_line) VALUES (seq_servicechecks.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, (SELECT unixts2date(:X8) FROM DUAL), :X9, (SELECT unixts2date(:X10) FROM DUAL), :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22)",
                 ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECHECKS]) == -1) {
                         buf = NULL;
         }
@@ -4601,7 +4831,7 @@ int ido2db_oci_prepared_statement_hostdefinition_definition(ido2db_idi *idi) {
  
         //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_() start\n");
  
-        if(asprintf(&buf, "MERGE INTO %s USING DUAL ON (instance_id=:X1 AND config_type=:X2 AND host_object_id=:X3) WHEN MATCHED THEN UPDATE SET alias=:X4, display_name=:X5, address=:X6, check_command_object_id=:X7, check_command_args=:X8, eventhandler_command_object_id=:X9, eventhandler_command_args=:X10, check_timeperiod_object_id=:X11, notif_timeperiod_object_id=:X12, failure_prediction_options=:X13, check_interval=:X14, retry_interval=:X15, max_check_attempts=:X16, first_notification_delay=:X17, notification_interval=:X18, notify_on_down=:X19, notify_on_unreachable=:X20, notify_on_recovery=:X21, notify_on_flapping=:X22, notify_on_downtime=:X23, stalk_on_up=:X24, stalk_on_down=:X25, stalk_on_unreachable=:X26, flap_detection_enabled=:X27, flap_detection_on_up=:X28, flap_detection_on_down=:X29, flap_detection_on_unreachable=:X30, low_flap_threshold=:X31, high_flap_threshold=:X32, process_performance_data=:X33, freshness_checks_enabled=:X34, freshness_threshold=:X35, passive_checks_enabled=:X36, event_handler_enabled=:X37, active_checks_enabled=:X38, retain_status_information=:X39, retain_nonstatus_information=:X40, notifications_enabled=:X41, obsess_over_host=:X42, failure_prediction_enabled=:X43, notes=:X44, notes_url=:X45, action_url=:X46, icon_image=:X47, icon_image_alt=:X48, vrml_image=:X49, statusmap_image=:X50, have_2d_coords=:X51, x_2d=:X52, y_2d=:X53, have_3d_coords=:X54, x_3d=:X55, y_3d=:X56, z_3d=:X57 WHEN NOT MATCHED THEN INSERT (id, instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notif_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d) VALUES (seq_hosts.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22, :X23, :X24, :X25, :X26, :X27, :X28, :X29, :X30, :X31, :X32, :X33, :X34, :X35, :X36, :X37, :X38, :X39, :X40, :X41, :X42, :X43, :X44, :X45, :X46, :X47, :X48, :X49, :X50, :X51, :X52, :X53, :X54, :X55, :X56, :X57)",
+        if(asprintf(&buf, "MERGE INTO %s USING DUAL ON (instance_id=:X1 AND config_type=:X2 AND host_object_id=:X3) WHEN MATCHED THEN UPDATE SET alias=:X4, display_name=:X5, address=:X6, check_command_object_id=:X7, check_command_args=:X8, eventhandler_command_object_id=:X9, eventhandler_command_args=:X10, check_timeperiod_object_id=:X11, notif_timeperiod_object_id=:X12, failure_prediction_options=:X13, check_interval=:X14, retry_interval=:X15, max_check_attempts=:X16, first_notification_delay=:X17, notification_interval=:X18, notify_on_down=:X19, notify_on_unreachable=:X20, notify_on_recovery=:X21, notify_on_flapping=:X22, notify_on_downtime=:X23, stalk_on_up=:X24, stalk_on_down=:X25, stalk_on_unreachable=:X26, flap_detection_enabled=:X27, flap_detection_on_up=:X28, flap_detection_on_down=:X29, flap_detection_on_unreachable=:X30, low_flap_threshold=:X31, high_flap_threshold=:X32, process_performance_data=:X33, freshness_checks_enabled=:X34, freshness_threshold=:X35, passive_checks_enabled=:X36, event_handler_enabled=:X37, active_checks_enabled=:X38, retain_status_information=:X39, retain_nonstatus_information=:X40, notifications_enabled=:X41, obsess_over_host=:X42, failure_prediction_enabled=:X43, notes=:X44, notes_url=:X45, action_url=:X46, icon_image=:X47, icon_image_alt=:X48, vrml_image=:X49, statusmap_image=:X50, have_2d_coords=:X51, x_2d=:X52, y_2d=:X53, have_3d_coords=:X54, x_3d=:X55, y_3d=:X56, z_3d=:X57, address6=:X58 WHEN NOT MATCHED THEN INSERT (id, instance_id, config_type, host_object_id, alias, display_name, address, check_command_object_id, check_command_args, eventhandler_command_object_id, eventhandler_command_args, check_timeperiod_object_id, notif_timeperiod_object_id, failure_prediction_options, check_interval, retry_interval, max_check_attempts, first_notification_delay, notification_interval, notify_on_down, notify_on_unreachable, notify_on_recovery, notify_on_flapping, notify_on_downtime, stalk_on_up, stalk_on_down, stalk_on_unreachable, flap_detection_enabled, flap_detection_on_up, flap_detection_on_down, flap_detection_on_unreachable, low_flap_threshold, high_flap_threshold, process_performance_data, freshness_checks_enabled, freshness_threshold, passive_checks_enabled, event_handler_enabled, active_checks_enabled, retain_status_information, retain_nonstatus_information, notifications_enabled, obsess_over_host, failure_prediction_enabled, notes, notes_url, action_url, icon_image, icon_image_alt, vrml_image, statusmap_image, have_2d_coords, x_2d, y_2d, have_3d_coords, x_3d, y_3d, z_3d, address6) VALUES (seq_hosts.nextval, :X1, :X2, :X3, :X4, :X5, :X6, :X7, :X8, :X9, :X10, :X11, :X12, :X13, :X14, :X15, :X16, :X17, :X18, :X19, :X20, :X21, :X22, :X23, :X24, :X25, :X26, :X27, :X28, :X29, :X30, :X31, :X32, :X33, :X34, :X35, :X36, :X37, :X38, :X39, :X40, :X41, :X42, :X43, :X44, :X45, :X46, :X47, :X48, :X49, :X50, :X51, :X52, :X53, :X54, :X55, :X56, :X57, :X58)",
                 ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTS]) == -1) {
                         buf = NULL;
         }
@@ -5882,7 +6112,7 @@ int ido2db_oci_prepared_statement_bind_null_param(OCI_Statement *oci_statement_n
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_oci_prepared_statement_bind_null_param() start\n");
 	//syslog(LOG_USER | LOG_INFO, "bind null param %s\n", param_name);
 
-        asprintf(&oci_tmp, "a"); /* just malloc sth that ocilib is happy */
+	dummy=asprintf(&oci_tmp, "a"); /* just malloc sth that ocilib is happy */
 
 	if(param_name==NULL)
 		return IDO_ERROR;

@@ -3,7 +3,8 @@
  * OBJECTS.H - Header file for object addition/search functions
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -51,7 +52,7 @@
 
 /***************** SKIP LISTS ****************/
 
-#define NUM_OBJECT_SKIPLISTS                   12
+#define NUM_OBJECT_SKIPLISTS                   13
 
 #define HOST_SKIPLIST                          0
 #define SERVICE_SKIPLIST                       1
@@ -65,6 +66,7 @@
 #define SERVICEDEPENDENCY_SKIPLIST             9
 #define HOSTESCALATION_SKIPLIST                10
 #define SERVICEESCALATION_SKIPLIST             11
+#define MODULE_SKIPLIST                        12
 
 /****************** DEFINITIONS *******************/
 /*#define VOLATILE_FALSE 0 - uses FALSE*/
@@ -400,6 +402,12 @@ struct host_struct{
 #endif
 	struct  host_struct *next;
 	struct  host_struct *nexthash;
+	/* 2011-02-07 MF: added for keeping the command for NEB callback
+	   PROCESSED state on host|service checks  */
+	char	*processed_command;
+	/* 2011-02-07 MF: added for dualstack IPv6 support as
+	   $HOSTADDRESS6$ macro  */
+	char    *address6;
         };
 
 
@@ -536,6 +544,9 @@ struct service_struct{
 #endif
 	struct service_struct *next;
 	struct service_struct *nexthash;
+	/* 2011-02-07 MF: added for keeping the command for NEB callback
+	   PROCESSED state on host|service checks  */
+	char	*processed_command;
 	};
 
 /* ESCALATION CONDITION STRUCTURE 
@@ -678,6 +689,16 @@ typedef struct hostdependency_struct{
         }hostdependency;
 
 
+/* MODULE structure */
+typedef struct module_struct{
+        char    *name;
+        char    *type;
+        char    *path;
+        char    *args;
+        struct module_struct *next;
+        struct module_struct *nexthash;
+        }module;
+
 
 
 /****************** HASH STRUCTURES ********************/
@@ -702,7 +723,7 @@ contact *add_contact(char *,char *,char *,char *,char **,char *,char *,int,int,i
 commandsmember *add_service_notification_command_to_contact(contact *,char *);				/* adds a service notification command to a contact definition */
 commandsmember *add_host_notification_command_to_contact(contact *,char *);				/* adds a host notification command to a contact definition */
 customvariablesmember *add_custom_variable_to_contact(contact *,char *,char *);                         /* adds a custom variable to a service definition */
-host *add_host(char *,char *,char *,char *,char *,int,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
+host *add_host(char *,char *,char *,char *,char *,char *,int,double,double,int,int,int,int,int,int,double,double,char *,int,char *,int,int,char *,int,int,double,double,int,int,int,int,int,int,int,int,char *,int,int,char *,char *,char *,char *,char *,char *,char *,int,int,int,double,double,double,int,int,int,int,int);	/* adds a host definition */
 hostsmember *add_parent_host_to_host(host *,char *);							/* adds a parent host to a host definition */
 hostsmember *add_child_link_to_host(host *,host *);						        /* adds a child host to a host definition */
 contactgroupsmember *add_contactgroup_to_host(host *,char *);					        /* adds a contactgroup to a host definition */
@@ -750,6 +771,9 @@ servicesmember *add_service_link_to_host(host *,service *);
 escalation_condition *add_serviceescalation_condition(serviceescalation *, escalation_condition *, char *, char *, int, int, int, int, int, int, int); /* add a condition to a service escalation in memory */
 escalation_condition *add_hostescalation_condition(hostescalation *, escalation_condition *, char *, char *, int, int, int, int, int, int, int); /* add a condition to a host escalation in memory */
 
+module *add_module(char *,char *,char *,char *);							/* adds a module definition */
+int add_module_objects_to_neb(void);									/* add modules to neb, backwards compatible */
+
 /*** Object Skiplist Functions ****/
 int init_object_skiplists(void);
 int free_object_skiplists(void);
@@ -766,6 +790,7 @@ int skiplist_compare_hostescalation(void *a, void *b);
 int skiplist_compare_serviceescalation(void *a, void *b);
 int skiplist_compare_hostdependency(void *a, void *b);
 int skiplist_compare_servicedependency(void *a, void *b);
+int skiplist_compare_module(void *a, void *b);
 
 int get_host_count(void);
 int get_service_count(void);
@@ -781,6 +806,7 @@ contact * find_contact(char *);							                /* finds a contact object 
 contactgroup * find_contactgroup(char *);					                /* finds a contactgroup object */
 command * find_command(char *);							                /* finds a command object */
 service * find_service(char *,char *);								/* finds a service object */
+module * find_module(char *);							                /* finds a module object */
 
 
 /**** Object Traversal Functions ****/

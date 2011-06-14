@@ -1,13 +1,13 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>Standard-Makros in Icinga</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.1">
 <meta name="keywords" content="Supervision, Icinga, Nagios, Linux">
-<link rel="home" href="index.html" title="Icinga Version 1.2 Dokumentation">
+<link rel="home" href="index.html" title="Icinga Version 1.4 Dokumentation">
 <link rel="up" href="ch05.html" title="Kapitel 5. Die Grundlagen">
 <link rel="prev" href="macros.html" title="Makros verstehen und wie sie arbeiten">
-<link rel="next" href="hostchecks.html" title="Host-PrÃ¼fungen (Host checks)">
+<link rel="next" href="hostchecks.html" title="Host-Prüfungen (Host checks)">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <CENTER><IMG src="../images/logofullsize.png" border="0" alt="Icinga" title="Icinga"></CENTER>
@@ -16,9 +16,9 @@
 <tr><th colspan="3" align="center">Standard-Makros in Icinga</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="macros.html">ZurÃ¼ck</a>Â </td>
+<a accesskey="p" href="macros.html">Zurück</a> </td>
 <th width="60%" align="center">Kapitel 5. Die Grundlagen</th>
-<td width="20%" align="right">Â <a accesskey="n" href="hostchecks.html">Weiter</a>
+<td width="20%" align="right"> <a accesskey="n" href="hostchecks.html">Weiter</a>
 </td>
 </tr>
 </table>
@@ -29,25 +29,25 @@
 <a name="macrolist"></a>Standard-Makros in Icinga</h2></div></div></div>
   
 
-  <p>In Icinga verfÃ¼gbare Standard-Makros sind hier aufgelistet. On-Demand-Makros und Makros fÃ¼r Benutzervariablen sind
+  <p>In Icinga verfügbare Standard-Makros sind hier aufgelistet. On-Demand-Makros und Makros für Benutzervariablen sind
   <a class="link" href="macros.html" title="Makros verstehen und wie sie arbeiten">hier</a> beschrieben.</p>
 
   <p><span class="bold"><strong>Makro-Geltungsbereich</strong></span></p>
 
-  <p>Obwohl Makros in allen Befehlen benutzt werden kÃ¶nnen, die Sie definieren, sind sie ggf. nicht "gÃ¼ltig" innerhalb eines
-  bestimmten Befehlstyps. Zum Beispiel sind einige Makros vielleicht nur gÃ¼ltig bei Service-Benachrichtigungen, andere vielleicht
-  nur bei Host-PrÃ¼fungen. Es gibt zehn Arten von Befehlen, die Icinga erkennt und unterschiedlich behandelt. Dies
+  <p>Obwohl Makros in allen Befehlen benutzt werden können, die Sie definieren, sind sie ggf. nicht "gültig" innerhalb eines
+  bestimmten Befehlstyps. Zum Beispiel sind einige Makros vielleicht nur gültig bei Service-Benachrichtigungen, andere vielleicht
+  nur bei Host-Prüfungen. Es gibt zehn Arten von Befehlen, die Icinga erkennt und unterschiedlich behandelt. Dies
   sind:</p>
 
   <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-      <p>Service-PrÃ¼fungen</p>
+      <p>Service-Prüfungen</p>
     </li>
 <li class="listitem">
       <p>Service-Benachrichtigungen</p>
     </li>
 <li class="listitem">
-      <p>Host-PrÃ¼fungen</p>
+      <p>Host-Prüfungen</p>
     </li>
 <li class="listitem">
       <p>Host-Benachrichtigungen</p>
@@ -72,12 +72,12 @@
     </li>
 </ol></div>
 
-  <p>Die nachfolgenden Aufstellungen enthalten alle aktuell in Icinga verfÃ¼gbaren Makros zusammen mit einer kurzen
-  Beschreibung und den Befehlstypen, in denen sie gelten. Wenn ein Makro in einem Befehl benutzt wird, in dem es nicht gÃ¼ltig ist,
-  wird es durch eine leere Zeichenkette ersetzt. Es ist zu beachten, dass Makros aus GroÃŸbuchstaben bestehen und in Dollarzeichen
+  <p>Die nachfolgenden Aufstellungen enthalten alle aktuell in Icinga verfügbaren Makros zusammen mit einer kurzen
+  Beschreibung und den Befehlstypen, in denen sie gelten. Wenn ein Makro in einem Befehl benutzt wird, in dem es nicht gültig ist,
+  wird es durch eine leere Zeichenkette ersetzt. Es ist zu beachten, dass Makros aus Großbuchstaben bestehen und in Dollarzeichen
   ($) eingeschlossen werden.</p>
 
-  <p><span class="bold"><strong>MakroverfÃ¼gbarkeits-Aufstellung</strong></span></p>
+  <p><span class="bold"><strong>Makroverfügbarkeits-Aufstellung</strong></span></p>
 
   <p><span class="bold"><strong>Legende:</strong></span></p>
 
@@ -90,11 +90,11 @@
 <tbody>
 <tr>
 <td><p>Nein</p></td>
-<td><p>Das Makro ist nicht verfÃ¼gbar</p></td>
+<td><p>Das Makro ist nicht verfügbar</p></td>
 </tr>
 <tr>
 <td><p>Ja</p></td>
-<td><p>Das Makro ist verfÃ¼gbar</p></td>
+<td><p>Das Makro ist verfügbar</p></td>
 </tr>
 </tbody>
 </table>
@@ -116,9 +116,9 @@
 <tbody>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service-PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service-Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service-Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host-PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host-Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host-Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service-Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host-Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -162,6 +162,17 @@
 </tr>
 <tr>
 <td><p> <a class="link" href="macrolist.html#macrolist-hostaddress">$HOSTADDRESS$</a> </p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+<td><p>Ja</p></td>
+</tr>
+<tr>
+<td><p> <a class="link" href="macrolist.html#macrolist-hostaddress6">$HOSTADDRESS6$</a> </p></td>
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
@@ -615,12 +626,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -688,12 +699,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1132,12 +1143,12 @@
 <td><p>Ja</p></td>
 <td><p>Nein</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1202,12 +1213,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1270,12 +1281,12 @@
 <td><p>Nein</p></td>
 <td><p>Nein</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1306,12 +1317,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1499,12 +1510,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1633,12 +1644,12 @@
 <td><p>Nein</p></td>
 <td><p>Nein</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1725,12 +1736,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1881,12 +1892,12 @@
 <td><p>Ja</p></td>
 <td><p>Ja</p></td>
 </tr>
-<tr><td colspan="9" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="9" align="left" valign="middle"> </td></tr>
 <tr>
 <td><p> <span class="bold"><strong>Makroname</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Service- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Service- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Benachrichtigungen</strong></span> </p></td>
-<td><p> <span class="bold"><strong>Host- PrÃ¼fungen</strong></span> </p></td>
+<td><p> <span class="bold"><strong>Host- Prüfungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Benachrichtigungen</strong></span> </p></td>
 <td><p> <span class="bold"><strong>Service- Eventhandler und <a class="link" href="configmain.html#configmain-ocsp_command">OCSP</a></strong></span> </p></td>
 <td><p> <span class="bold"><strong>Host- Eventhandler und <a class="link" href="configmain.html#configmain-ochp_command">OCHP</a></strong></span> </p></td>
@@ -1977,24 +1988,28 @@
           <sup>3</sup> </a> </p></td></tr>
 <tr>
 <td><p><a name="macrolist-hostname"></a>$HOSTNAME$</p></td>
-<td><p>Kurzname fÃ¼r den Host (z.B. "biglinuxbox"). Dieser Wert wird aus der
+<td><p>Kurzname für den Host (z.B. "biglinuxbox"). Dieser Wert wird aus der
           <span class="emphasis"><em>host_name</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-host">Host-Definition</a>
           genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostdisplayname"></a>$HOSTDISPLAYNAME$</p></td>
-<td><p>Ein alternativer Anzeigename fÃ¼r den Host. Dieser Wert wird aus der
+<td><p>Ein alternativer Anzeigename für den Host. Dieser Wert wird aus der
           <span class="emphasis"><em>display_name</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-host">Host-Definition</a>
           genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostalias"></a>$HOSTALIAS$</p></td>
-<td><p>Langname/Beschreibung fÃ¼r den Host. Dieser Wert wird aus der <span class="emphasis"><em>alias</em></span>-Direktive in der
+<td><p>Langname/Beschreibung für den Host. Dieser Wert wird aus der <span class="emphasis"><em>alias</em></span>-Direktive in der
           <a class="link" href="objectdefinitions.html#objectdefinitions-host">Host-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostaddress"></a>$HOSTADDRESS$</p></td>
 <td><p>Adresse des Hosts. Dieser Wert wird aus der <span class="emphasis"><em>address</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-host">Host-Definition</a> genommen.</p></td>
+</tr>
+<tr>
+<td><p><a name="macrolist-hostaddress6"></a>$HOSTADDRESS6$</p></td>
+<td><p>Zweite/IPv6-Adresse des Hosts. Dieser Wert wird aus der <span class="emphasis"><em>address6</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-host">Host-Definition</a> genommen (verfügbar ab Icinga 1.3).</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hoststate"></a>$HOSTSTATE$</p></td>
@@ -2016,60 +2031,60 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-hoststatetype"></a>$HOSTSTATETYPE$</p></td>
-<td><p>Eine Zeichenkette, die den <a class="link" href="statetypes.html" title="Statustypen">Statustyp</a> der aktuellen Host-PrÃ¼fung angibt
-          ("HARD" oder "SOFT"). Ein Soft-Status tritt auf, wenn eine Host-PrÃ¼fung einen nicht-OK (nicht-UP) Status zurÃ¼ckliefert
-          und noch Wiederholungen anstehen. Ein Hard-Status liegt vor, wenn die Anzahl der Host-PrÃ¼fungs-Wiederholungen einen
+<td><p>Eine Zeichenkette, die den <a class="link" href="statetypes.html" title="Statustypen">Statustyp</a> der aktuellen Host-Prüfung angibt
+          ("HARD" oder "SOFT"). Ein Soft-Status tritt auf, wenn eine Host-Prüfung einen nicht-OK (nicht-UP) Status zurückliefert
+          und noch Wiederholungen anstehen. Ein Hard-Status liegt vor, wenn die Anzahl der Host-Prüfungs-Wiederholungen einen
           maximal definierten Wert erreicht hat.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostattempt"></a>$HOSTATTEMPT$</p></td>
-<td><p>Die Anzahl der aktuellen Host-PrÃ¼fungs-Wiederholungen. Wenn dies beispielsweise das zweite Mal ist, dass
-          der Host erneut geprÃ¼ft wird, dann steht hier die Zahl zwei. Die aktuelle Wiederholungsanzahl ist eigentlich nur dann
-          sinnvoll, wenn man Eventhandler fÃ¼r Soft-ZustÃ¤nde schreibt, die auf einer bestimmten Aktion fÃ¼r diese entsprechende Zahl
+<td><p>Die Anzahl der aktuellen Host-Prüfungs-Wiederholungen. Wenn dies beispielsweise das zweite Mal ist, dass
+          der Host erneut geprüft wird, dann steht hier die Zahl zwei. Die aktuelle Wiederholungsanzahl ist eigentlich nur dann
+          sinnvoll, wenn man Eventhandler für Soft-Zustände schreibt, die auf einer bestimmten Aktion für diese entsprechende Zahl
           basieren.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-maxhostattempts"></a>$MAXHOSTATTEMPTS$</p></td>
-<td><p>Die max. PrÃ¼fversuche, wie sie fÃ¼r den aktuellen Host definiert sind. NÃ¼tzlich, wenn man Host-Eventhandler
-          fÃ¼r "Soft"-ZustÃ¤nde schreibt, die eine bestimmte Aktion ausfÃ¼hren basierend auf der
+<td><p>Die max. Prüfversuche, wie sie für den aktuellen Host definiert sind. Nützlich, wenn man Host-Eventhandler
+          für "Soft"-Zustände schreibt, die eine bestimmte Aktion ausführen basierend auf der
           Host-Wiederholungsanzahl.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hosteventid"></a>$HOSTEVENTID$</p></td>
 <td><p>Eine global eindeutige Zahl verbunden mit dem aktuellen Status des Hosts. Jedes Mal, wenn eine Host- (oder
-          Service-) StatusÃ¤nderung eintritt, wird eine globale Ereignis-ID-Nummer um eins (1) erhÃ¶ht. Falls bei einem Host keine
-          StatusÃ¤nderung eintritt, wird dieses Makro auf Null (0) gesetzt.</p></td>
+          Service-) Statusänderung eintritt, wird eine globale Ereignis-ID-Nummer um eins (1) erhöht. Falls bei einem Host keine
+          Statusänderung eintritt, wird dieses Makro auf Null (0) gesetzt.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lasthosteventid"></a>$LASTHOSTEVENTID$</p></td>
-<td><p>Die vorherige (global eindeutige) Ereigniszahl, die fÃ¼r den Host vergeben wurde.</p></td>
+<td><p>Die vorherige (global eindeutige) Ereigniszahl, die für den Host vergeben wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostproblemid"></a>$HOSTPROBLEMID$</p></td>
 <td><p>Eine global eindeutige Zahl verbunden mit dem aktuellen Problemstatus des Hosts. Jedes Mal, wenn ein Host
           (oder Service) von einem UP- oder OK-Status in einen Problemzustand wechselt, wird eine globale Problem-ID um eins (1)
-          erhÃ¶ht. Dieses Makro wird ungleich Null sein, wenn der Host sich gerade in einem Zustand ungleich UP befindet.
-          Statuswechsel zwischen ZustÃ¤nden ungleich UP (z.B. DOWN oder UNREACHABLE) erhÃ¶hen diese Problem-ID nicht. Wenn sich der
+          erhöht. Dieses Makro wird ungleich Null sein, wenn der Host sich gerade in einem Zustand ungleich UP befindet.
+          Statuswechsel zwischen Zuständen ungleich UP (z.B. DOWN oder UNREACHABLE) erhöhen diese Problem-ID nicht. Wenn sich der
           Host gerade in einem UP-Zustand befindet, wird dieses Makro auf Null (0) gesetzt. In Kombination mit Eventhandlern kann
-          dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu erÃ¶ffnen, wenn Hosts das erste Mal einen
+          dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu eröffnen, wenn Hosts das erste Mal einen
           Problemzustand erreichen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lasthostproblemid"></a>$LASTHOSTPROBLEMID$</p></td>
-<td><p>Die vorherige (global eindeutige) Ereigniszahl, die fÃ¼r den Host vergeben wurde. In Kombination mit
-          Eventhandlern kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu schlieÃŸen, wenn Hosts in einen
-          UP-Status zurÃ¼ckkehren.</p></td>
+<td><p>Die vorherige (global eindeutige) Ereigniszahl, die für den Host vergeben wurde. In Kombination mit
+          Eventhandlern kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu schließen, wenn Hosts in einen
+          UP-Status zurückkehren.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostlatency"></a>$HOSTLATENCY$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die die Anzahl von Sekunden angibt, um die eine <span class="emphasis"><em>geplante</em></span>
-          Host-PrÃ¼fung nach der eigentlichen Planungszeit stattfand. Wenn beispielsweise eine PrÃ¼fung fÃ¼r 03:14:15 geplant war und
-          erst um 03:14:17 ausgefÃ¼hrt wurde, dann betrÃ¤gt die VerzÃ¶gerung 2.0 Sekunden. On-Demand-Host-PrÃ¼fungen haben eine
-          VerzÃ¶gerung von null Sekunden.</p></td>
+<td><p>Eine (Fließkomma-) Zahl, die die Anzahl von Sekunden angibt, um die eine <span class="emphasis"><em>geplante</em></span>
+          Host-Prüfung nach der eigentlichen Planungszeit stattfand. Wenn beispielsweise eine Prüfung für 03:14:15 geplant war und
+          erst um 03:14:17 ausgeführt wurde, dann beträgt die Verzögerung 2.0 Sekunden. On-Demand-Host-Prüfungen haben eine
+          Verzögerung von null Sekunden.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostexecutiontime"></a>$HOSTEXECUTIONTIME$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die die Dauer der AusfÃ¼hrung einer Host-PrÃ¼fung in Sekunden angibt.</p></td>
+<td><p>Eine (Fließkomma-) Zahl, die die Dauer der Ausführung einer Host-Prüfung in Sekunden angibt.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostduration"></a>$HOSTDURATION$</p></td>
@@ -2083,29 +2098,29 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-hostdowntime"></a>$HOSTDOWNTIME$</p></td>
-<td><p>Eine Zahl, die die aktuelle "Downtime-Tiefe" fÃ¼r den Host angibt. Wenn dieser Host sich gerade in einer
-          Phase einer <a class="link" href="downtime.html" title="Geplante Ausfallzeiten">geplanten Downtime</a> befindet, ist dieser Wert grÃ¶ÃŸer als Null. Ist der Host
+<td><p>Eine Zahl, die die aktuelle "Downtime-Tiefe" für den Host angibt. Wenn dieser Host sich gerade in einer
+          Phase einer <a class="link" href="downtime.html" title="Geplante Ausfallzeiten">geplanten Downtime</a> befindet, ist dieser Wert größer als Null. Ist der Host
           nicht gerade in einer Downtime-Phase, ist dieser Wert Null.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostpercentchange"></a>$HOSTPERCENTCHANGE$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die den prozentualen Statuswechsel angibt, dem der Host unterworfen war. Dieser
+<td><p>Eine (Fließkomma-) Zahl, die den prozentualen Statuswechsel angibt, dem der Host unterworfen war. Dieser
           Wert wird vom <a class="link" href="flapping.html" title="Erkennung und Behandlung von Status-Flattern">flap detection</a>-Algorithmus benutzt.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupname"></a>$HOSTGROUPNAME$</p></td>
-<td><p>Der Kurzname der Hostgruppe, zu der dieser Host gehÃ¶rt. Dieser Wert wird aus der
+<td><p>Der Kurzname der Hostgruppe, zu der dieser Host gehört. Dieser Wert wird aus der
           <span class="emphasis"><em>hostgroup_name</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-hostgroup">hostgroup-Definition</a> entnommen. Wenn der Host zu mehreren Hostgruppen
-          gehÃ¶rt, enthÃ¤lt dieses Makro nur einen der Namen.</p></td>
+          gehört, enthält dieses Makro nur einen der Namen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupnames"></a>$HOSTGROUPNAMES$</p></td>
-<td><p>Eine Komma-separierte Liste der Kurznamen aller Hostgruppen, zu denen dieser Host gehÃ¶rt.</p></td>
+<td><p>Eine Komma-separierte Liste der Kurznamen aller Hostgruppen, zu denen dieser Host gehört.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lasthostcheck"></a>$LASTHOSTCHECK$</p></td>
 <td><p>Dieses ist ein Zeitstempel im time_t-Format (Sekunden seit der UNIX-Epoche), der die Zeit angibt, zu der
-          zuletzt eine PrÃ¼fung des Hosts stattfand.</p></td>
+          zuletzt eine Prüfung des Hosts stattfand.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lasthoststatechange"></a>$LASTHOSTSTATECHANGE$</p></td>
@@ -2129,60 +2144,60 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-hostoutput"></a>$HOSTOUTPUT$</p></td>
-<td><p>Die erste Zeile von Textausgaben der letzten Host-PrÃ¼fung (z.B. "Ping OK")</p></td>
+<td><p>Die erste Zeile von Textausgaben der letzten Host-Prüfung (z.B. "Ping OK")</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-longhostoutput"></a>$LONGHOSTOUTPUT$</p></td>
-<td><p>Die vollstÃ¤ndige Textausgabe (auÃŸer der ersten Zeile) der letzten Host-PrÃ¼fung.</p></td>
+<td><p>Die vollständige Textausgabe (außer der ersten Zeile) der letzten Host-Prüfung.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostperfdata"></a>$HOSTPERFDATA$</p></td>
-<td><p>Dieses Makro enthÃ¤lt jegliche <a class="link" href="perfdata.html" title="Performance-Daten">Performance-Daten</a>, die von der letzten
-          Host-PrÃ¼fung geliefert worden sein kÃ¶nnten.</p></td>
+<td><p>Dieses Makro enthält jegliche <a class="link" href="perfdata.html" title="Performance-Daten">Performance-Daten</a>, die von der letzten
+          Host-Prüfung geliefert worden sein könnten.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostcheckcommand"></a>$HOSTCHECKCOMMAND$</p></td>
-<td><p>Dieses Makro enthÃ¤lt den Namen des Befehls (zusammen mit Ã¼bergebenen Argumenten), der zur Host-PrÃ¼fung
+<td><p>Dieses Makro enthält den Namen des Befehls (zusammen mit übergebenen Argumenten), der zur Host-Prüfung
           benutzt wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostackauthor"></a>$HOSTACKAUTHOR$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Namen des Benutzers enthÃ¤lt, der das Host-Problem bestÃ¤tigt hat. Dieses Makro
-          ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf "ACKNOWLEDGEMENT" gesetzt
+<td><p>Eine Zeichenkette, die den Namen des Benutzers enthält, der das Host-Problem bestätigt hat. Dieses Makro
+          ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf "ACKNOWLEDGEMENT" gesetzt
           ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostackauthorname"></a>$HOSTACKAUTHORNAME$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Kurznamen der Kontaktperson (falls zutreffend) enthÃ¤lt, die das Host-Problem
-          bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
+<td><p>Eine Zeichenkette, die den Kurznamen der Kontaktperson (falls zutreffend) enthält, die das Host-Problem
+          bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
           "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostackauthoralias"></a>$HOSTACKAUTHORALIAS$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Alias der Kontaktperson (falls zutreffend) enthÃ¤lt, die das Host-Problem
-          bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
+<td><p>Eine Zeichenkette, die den Alias der Kontaktperson (falls zutreffend) enthält, die das Host-Problem
+          bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
           "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostackcomment"></a>$HOSTACKCOMMENT$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den BestÃ¤tigungskommentar enthÃ¤lt, den der Benutzer eingegeben hat, der das
-          Host-Problem bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$
+<td><p>Eine Zeichenkette, die den Bestätigungskommentar enthält, den der Benutzer eingegeben hat, der das
+          Host-Problem bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$
           auf "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostactionurl"></a>$HOSTACTIONURL$</p></td>
-<td><p>Der Action-URL fÃ¼r den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nÃ¼tzlich sein
-          kann, wenn man den Hostnamen an eine Web-Seite Ã¼bergeben will.</p></td>
+<td><p>Der Action-URL für den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nützlich sein
+          kann, wenn man den Hostnamen an eine Web-Seite übergeben will.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostnotesurl"></a>$HOSTNOTESURL$</p></td>
-<td><p>Der Anmerkungs-URL fÃ¼r den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nÃ¼tzlich
-          sein kann, wenn man den Hostnamen an eine Web-Seite Ã¼bergeben will.</p></td>
+<td><p>Der Anmerkungs-URL für den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nützlich
+          sein kann, wenn man den Hostnamen an eine Web-Seite übergeben will.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostnotes"></a>$HOSTNOTES$</p></td>
-<td><p>Anmerkungen fÃ¼r den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nÃ¼tzlich sein
-          kann, wenn man Hostspezifische Statusinformationen in der Beschreibung haben mÃ¶chte.</p></td>
+<td><p>Anmerkungen für den Host. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$), was nützlich sein
+          kann, wenn man Hostspezifische Statusinformationen in der Beschreibung haben möchte.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalhostservices"></a>$TOTALHOSTSERVICES$</p></td>
@@ -2204,44 +2219,44 @@
 <td><p><a name="macrolist-totalhostservicescritical"></a>$TOTALHOSTSERVICESCRITICAL$</p></td>
 <td><p>Die Gesamtzahl von Services im CRITICAL-Zustand, die mit dem Host verbunden sind.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Hostgroup-Makros: <a class="link" href="macrolist.html#macrolist-note5">
           <sup>5</sup> </a> </p></td></tr>
 <tr>
 <td><p><a name="macrolist-hostgroupalias"></a>$HOSTGROUPALIAS$<a class="link" href="macrolist.html#macrolist-note5"> <sup>5</sup> </a> </p></td>
-<td><p>Der Langname / Alias entweder des 1) Hostgruppennamens, der als On-Demand-Makro-Argument Ã¼bergeben wurde
-          oder 2) der primÃ¤ren Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im Zusammenhang mit einem
+<td><p>Der Langname / Alias entweder des 1) Hostgruppennamens, der als On-Demand-Makro-Argument übergeben wurde
+          oder 2) der primären Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im Zusammenhang mit einem
           On-Demand-Makro benutzt wurde). Dieser Wert wird aus der <span class="emphasis"><em>alias</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-hostgroup">hostgroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupmembers"></a>$HOSTGROUPMEMBERS$<a class="link" href="macrolist.html#macrolist-note5"> <sup>5</sup> </a> </p></td>
-<td><p>Eine Komma-separierte Liste aller Hosts, die entweder 1) zu dem Hostgruppennamen gehÃ¶ren, der als
-          On-Demand-Makro-Argument Ã¼bergeben wurde, oder 2) zu der primÃ¤ren Hostgruppe gehÃ¶ren, die mit dem aktuellen Host
+<td><p>Eine Komma-separierte Liste aller Hosts, die entweder 1) zu dem Hostgruppennamen gehören, der als
+          On-Demand-Makro-Argument übergeben wurde, oder 2) zu der primären Hostgruppe gehören, die mit dem aktuellen Host
           verbunden ist (falls sie nicht im Zusammenhang mit einem On-Demand-Makro benutzt wurde).</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupnotes"></a>$HOSTGROUPNOTES$<a class="link" href="macrolist.html#macrolist-note5"> <sup>5</sup> </a> </p></td>
 <td><p>Die Anmerkungen, die verbunden sind mit entweder 1) dem Hostgroup-Namen, der als On-Demand-Makro-Argument
-          Ã¼bergeben wurde oder 2) der primÃ¤ren Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
+          übergeben wurde oder 2) der primären Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
           Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der <span class="emphasis"><em>notes</em></span>-Direktive in
           der <a class="link" href="objectdefinitions.html#objectdefinitions-hostgroup">hostgroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupnotesurl"></a>$HOSTGROUPNOTESURL$<a class="link" href="macrolist.html#macrolist-note5"> <sup>5</sup> </a> </p></td>
 <td><p>Der Anmerkungs-URL, der verbunden ist mit entweder 1) dem Hostgroup-Namen, der als On-Demand-Makro-Argument
-          Ã¼bergeben wurde oder 2) der primÃ¤ren Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
+          übergeben wurde oder 2) der primären Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
           Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der <span class="emphasis"><em>notes_url</em></span>-Direktive
           in der <a class="link" href="objectdefinitions.html#objectdefinitions-hostgroup">hostgroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostgroupactionurl"></a>$HOSTGROUPACTIONURL$<a class="link" href="macrolist.html#macrolist-note5"> <sup>5</sup> </a> </p></td>
 <td><p>Der Action-URL, der verbunden ist mit entweder 1) dem Hostgroup-Namen, der als On-Demand-Makro-Argument
-          Ã¼bergeben wurde oder 2) der primÃ¤ren Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
+          übergeben wurde oder 2) der primären Hostgruppe, die mit dem aktuellen Host verbunden ist (falls sie nicht im
           Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der
           <span class="emphasis"><em>action_url</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-hostgroup">hostgroup-Definition</a>
           genommen.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Service-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-servicedesc"></a>$SERVICEDESC$</p></td>
@@ -2251,7 +2266,7 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-servicedisplayname"></a>$SERVICEDISPLAYNAME$</p></td>
-<td><p>Ein alternativer Anzeigename fÃ¼r den Service. Dieser Wert wird aus der
+<td><p>Ein alternativer Anzeigename für den Service. Dieser Wert wird aus der
           <span class="emphasis"><em>display_name</em></span>-Direktive der <a class="link" href="objectdefinitions.html#objectdefinitions-service">Service-Definition</a>
           genommen.</p></td>
 </tr>
@@ -2277,22 +2292,22 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-servicestatetype"></a>$SERVICESTATETYPE$</p></td>
-<td><p>Eine Zeichenkette, die den <a class="link" href="statetypes.html" title="Statustypen">Statustyp</a> fÃ¼r die aktuelle Service-PrÃ¼fung
-          anzeigt ("HARD" oder "SOFT"). Ein Soft-Status tritt auf, wenn eine Service-PrÃ¼fung einen nicht-OK Status zurÃ¼ckliefert
-          und noch Wiederholungen anstehen. Ein Hard-Status liegt vor, wenn die Anzahl der Service-PrÃ¼fungswiederholungen einen
+<td><p>Eine Zeichenkette, die den <a class="link" href="statetypes.html" title="Statustypen">Statustyp</a> für die aktuelle Service-Prüfung
+          anzeigt ("HARD" oder "SOFT"). Ein Soft-Status tritt auf, wenn eine Service-Prüfung einen nicht-OK Status zurückliefert
+          und noch Wiederholungen anstehen. Ein Hard-Status liegt vor, wenn die Anzahl der Service-Prüfungswiederholungen einen
           maximal definierten Wert erreicht hat.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceattempt"></a>$SERVICEATTEMPT$</p></td>
-<td><p>Die Anzahl der aktuellen Service-PrÃ¼fungswiederholungen. Wenn dies beispielsweise das zweite Mal ist, dass
-          der Service erneut geprÃ¼ft wird, dann steht hier die Zahl zwei. Die aktuelle Wiederholungsanzahl ist eigentlich nur dann
-          sinnvoll, wenn man Eventhandler fÃ¼r Soft-ZustÃ¤nde schreibt, die auf einer bestimmten Aktion fÃ¼r diese entsprechende Zahl
+<td><p>Die Anzahl der aktuellen Service-Prüfungswiederholungen. Wenn dies beispielsweise das zweite Mal ist, dass
+          der Service erneut geprüft wird, dann steht hier die Zahl zwei. Die aktuelle Wiederholungsanzahl ist eigentlich nur dann
+          sinnvoll, wenn man Eventhandler für Soft-Zustände schreibt, die auf einer bestimmten Aktion für diese entsprechende Zahl
           basieren.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-maxserviceattempts"></a>$MAXSERVICEATTEMPTS$</p></td>
-<td><p>Die max. PrÃ¼fversuche, wie sie fÃ¼r den aktuellen Service definiert sind. NÃ¼tzlich, wenn man
-          Service-Eventhandler fÃ¼r "Soft"-ZustÃ¤nde schreibt, die eine bestimmte Aktion ausfÃ¼hren basierend auf der
+<td><p>Die max. Prüfversuche, wie sie für den aktuellen Service definiert sind. Nützlich, wenn man
+          Service-Eventhandler für "Soft"-Zustände schreibt, die eine bestimmte Aktion ausführen basierend auf der
           Service-Wiederholungsanzahl.</p></td>
 </tr>
 <tr>
@@ -2303,38 +2318,38 @@
 <tr>
 <td><p><a name="macrolist-serviceeventid"></a>$SERVICEEVENTID$</p></td>
 <td><p>Eine global eindeutige Zahl verbunden mit dem aktuellen Status des Service. Jedes Mal, wenn eine Service-
-          (oder Host-) StatusÃ¤nderung eintritt, wird eine globale Ereignis-ID-Nummer um eins (1) erhÃ¶ht. Falls bei einem Service
-          keine StatusÃ¤nderung eintritt, wird dieses Makro auf Null (0) gesetzt.</p></td>
+          (oder Host-) Statusänderung eintritt, wird eine globale Ereignis-ID-Nummer um eins (1) erhöht. Falls bei einem Service
+          keine Statusänderung eintritt, wird dieses Makro auf Null (0) gesetzt.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lastserviceeventid"></a>$LASTSERVICEEVENTID$</p></td>
-<td><p>Die vorherige (global eindeutige) Ereigniszahl, die fÃ¼r den Service vergeben wurde.</p></td>
+<td><p>Die vorherige (global eindeutige) Ereigniszahl, die für den Service vergeben wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceproblemid"></a>$SERVICEPROBLEMID$</p></td>
 <td><p>Eine global eindeutige Zahl verbunden mit dem aktuellen Problemstatus des Service. Jedes Mal, wenn ein
           Service (oder Host) von einem UP- oder OK-Status in einen Problemzustand wechselt, wird eine globale Problem-ID um eins
-          (1) erhÃ¶ht. Dieses Makro wird ungleich Null sein, wenn der Service sich gerade in einem Zustand ungleich OK befindet.
-          Statuswechsel zwischen ZustÃ¤nden ungleich OK (z.B. DOWN oder UNREACHABLE) erhÃ¶hen diese Problem-ID nicht. Wenn sich der
+          (1) erhöht. Dieses Makro wird ungleich Null sein, wenn der Service sich gerade in einem Zustand ungleich OK befindet.
+          Statuswechsel zwischen Zuständen ungleich OK (z.B. DOWN oder UNREACHABLE) erhöhen diese Problem-ID nicht. Wenn sich der
           Service gerade in einem OK-Zustand befindet, wird dieses Makro auf Null (0) gesetzt. In Kombination mit Eventhandlern
-          kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu erÃ¶ffnen, wenn Services das erste Mal einen
+          kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu eröffnen, wenn Services das erste Mal einen
           Problemzustand erreichen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lastserviceproblemid"></a>$LASTSERVICEPROBLEMID$</p></td>
-<td><p>Die vorherige (global eindeutige) Ereigniszahl, die fÃ¼r den Service vergeben wurde. In Kombination mit
-          Eventhandlern kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu schlieÃŸen, wenn Services zu einem
-          Up-Status zurÃ¼ckkehren.</p></td>
+<td><p>Die vorherige (global eindeutige) Ereigniszahl, die für den Service vergeben wurde. In Kombination mit
+          Eventhandlern kann dieses Makro benutzt werden, um automatisch ein Trouble-Ticket zu schließen, wenn Services zu einem
+          Up-Status zurückkehren.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicelatency"></a>$SERVICELATENCY$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die die Anzahl von Sekunden angibt, um die eine <span class="emphasis"><em>geplante</em></span>
-          Service-PrÃ¼fung nach der eigentlichen Planungszeit stattfand. Wenn beispielsweise eine PrÃ¼fung fÃ¼r 03:14:15 geplant war
-          und erst um 03:14:17 ausgefÃ¼hrt wurde, dann betrÃ¤gt die VerzÃ¶gerung 2.0 Sekunden.</p></td>
+<td><p>Eine (Fließkomma-) Zahl, die die Anzahl von Sekunden angibt, um die eine <span class="emphasis"><em>geplante</em></span>
+          Service-Prüfung nach der eigentlichen Planungszeit stattfand. Wenn beispielsweise eine Prüfung für 03:14:15 geplant war
+          und erst um 03:14:17 ausgeführt wurde, dann beträgt die Verzögerung 2.0 Sekunden.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceexecutiontime"></a>$SERVICEEXECUTIONTIME$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die die Dauer der AusfÃ¼hrung einer Service-PrÃ¼fung in Sekunden
+<td><p>Eine (Fließkomma-) Zahl, die die Dauer der Ausführung einer Service-Prüfung in Sekunden
           angibt.</p></td>
 </tr>
 <tr>
@@ -2349,30 +2364,30 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-servicedowntime"></a>$SERVICEDOWNTIME$</p></td>
-<td><p>Eine Zahl, die die aktuelle "Downtime-Tiefe" fÃ¼r den Service angibt. Wenn dieser Service sich gerade in
-          einer Phase einer <a class="link" href="downtime.html" title="Geplante Ausfallzeiten">geplanten Downtime</a> befindet, ist dieser Wert grÃ¶ÃŸer als Null. Ist der
+<td><p>Eine Zahl, die die aktuelle "Downtime-Tiefe" für den Service angibt. Wenn dieser Service sich gerade in
+          einer Phase einer <a class="link" href="downtime.html" title="Geplante Ausfallzeiten">geplanten Downtime</a> befindet, ist dieser Wert größer als Null. Ist der
           Service nicht gerade in einer Downtime-Phase, ist dieser Wert Null.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicepercentchange"></a>$SERVICEPERCENTCHANGE$</p></td>
-<td><p>Eine (FlieÃŸkomma-) Zahl, die den prozentualen Statuswechsel angibt, der der Service unterworfen war. Dieser
+<td><p>Eine (Fließkomma-) Zahl, die den prozentualen Statuswechsel angibt, der der Service unterworfen war. Dieser
           Wert wird vom <a class="link" href="flapping.html" title="Erkennung und Behandlung von Status-Flattern">flap detection</a>-Algorithmus benutzt.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicegroupname"></a>$SERVICEGROUPNAME$</p></td>
-<td><p>Der Kurzname der Servicegruppe, zu der dieser Service gehÃ¶rt. Dieser Wert wird aus der
+<td><p>Der Kurzname der Servicegruppe, zu der dieser Service gehört. Dieser Wert wird aus der
           <span class="emphasis"><em>servicegroup_name</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-servicegroup">servicegroup-Definition</a> entnommen. Wenn der Service zu mehreren
-          Servicegruppen gehÃ¶rt, enthÃ¤lt dieses Makro nur einen der Namen.</p></td>
+          Servicegruppen gehört, enthält dieses Makro nur einen der Namen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicegroupnames"></a>$SERVICEGROUPNAMES$</p></td>
 <td><p>Eine Komma-separierte Liste von Kurznamen aller Servicegruppen, zu denen dieser Service
-          gehÃ¶rt.</p></td>
+          gehört.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lastservicecheck"></a>$LASTSERVICECHECK$</p></td>
 <td><p>Dieses ist ein Zeitstempel im time_t-Format (Sekunden seit der UNIX-Epoche), der die Zeit angibt, zu der
-          zuletzt eine PrÃ¼fung des Service stattfand.</p></td>
+          zuletzt eine Prüfung des Service stattfand.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-lastservicestatechange"></a>$LASTSERVICESTATECHANGE$</p></td>
@@ -2401,84 +2416,84 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceoutput"></a>$SERVICEOUTPUT$</p></td>
-<td><p>Die erste Zeile von Textausgaben der letzten Service-PrÃ¼fung (z.B. "Ping OK")</p></td>
+<td><p>Die erste Zeile von Textausgaben der letzten Service-Prüfung (z.B. "Ping OK")</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-longserviceoutput"></a>$LONGSERVICEOUTPUT$</p></td>
-<td><p>Die vollstÃ¤ndige Textausgabe (auÃŸer der ersten Zeile) der letzten Service-PrÃ¼fung.</p></td>
+<td><p>Die vollständige Textausgabe (außer der ersten Zeile) der letzten Service-Prüfung.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceperfdata"></a>$SERVICEPERFDATA$</p></td>
-<td><p>Dieses Makro enthÃ¤lt jegliche <a class="link" href="perfdata.html" title="Performance-Daten">Performance-Daten</a>, die von der letzten
-          Service-PrÃ¼fung geliefert worden sein kÃ¶nnten.</p></td>
+<td><p>Dieses Makro enthält jegliche <a class="link" href="perfdata.html" title="Performance-Daten">Performance-Daten</a>, die von der letzten
+          Service-Prüfung geliefert worden sein könnten.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicecheckcommand"></a>$SERVICECHECKCOMMAND$</p></td>
-<td><p>Dieses Makro enthÃ¤lt den Namen des Befehls (zusammen mit Ã¼bergebenen Argumenten), der zur Service-PrÃ¼fung
+<td><p>Dieses Makro enthält den Namen des Befehls (zusammen mit übergebenen Argumenten), der zur Service-Prüfung
           benutzt wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceackauthor"></a>$SERVICEACKAUTHOR$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Namen des Benutzers enthÃ¤lt, der das Service-Problem bestÃ¤tigt hat. Dieses Makro
-          ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf "ACKNOWLEDGEMENT" gesetzt
+<td><p>Eine Zeichenkette, die den Namen des Benutzers enthält, der das Service-Problem bestätigt hat. Dieses Makro
+          ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf "ACKNOWLEDGEMENT" gesetzt
           ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceackauthorname"></a>$SERVICEACKAUTHORNAME$<a class="link" href="macrolist.html#macrolist-note8">
           <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Kurznamen der Kontaktperson (falls zutreffend) enthÃ¤lt, die das Service-Problem
-          bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
+<td><p>Eine Zeichenkette, die den Kurznamen der Kontaktperson (falls zutreffend) enthält, die das Service-Problem
+          bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
           "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceackauthoralias"></a>$SERVICEACKAUTHORALIAS$<a class="link" href="macrolist.html#macrolist-note8">
           <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den Alias der Kontaktperson (falls zutreffend) enthÃ¤lt, die das Service-Problem
-          bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
+<td><p>Eine Zeichenkette, die den Alias der Kontaktperson (falls zutreffend) enthält, die das Service-Problem
+          bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro $NOTIFICATIONTYPE$ auf
           "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceackcomment"></a>$SERVICEACKCOMMENT$<a class="link" href="macrolist.html#macrolist-note8"> <sup>8</sup> </a> </p></td>
-<td><p>Eine Zeichenkette, die den BestÃ¤tigungskommentar enthÃ¤lt, den der Benutzer eingegeben hat, der das
-          Service-Problem bestÃ¤tigt hat. Dieses Makro ist nur gÃ¼ltig bei Benachrichtigungen, bei denen das Makro
+<td><p>Eine Zeichenkette, die den Bestätigungskommentar enthält, den der Benutzer eingegeben hat, der das
+          Service-Problem bestätigt hat. Dieses Makro ist nur gültig bei Benachrichtigungen, bei denen das Makro
           $NOTIFICATIONTYPE$ auf "ACKNOWLEDGEMENT" gesetzt ist.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-serviceactionurl"></a>$SERVICEACTIONURL$</p></td>
-<td><p>Der Action-URL fÃ¼r den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
-          $SERVICEDESC$), was nÃ¼tzlich sein kann, wenn man den Servicenamen an eine Web-Seite Ã¼bergeben will.</p></td>
+<td><p>Der Action-URL für den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
+          $SERVICEDESC$), was nützlich sein kann, wenn man den Servicenamen an eine Web-Seite übergeben will.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicenotesurl"></a>$SERVICENOTESURL$</p></td>
-<td><p>Der Anmerkungs-URL fÃ¼r den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
-          $SERVICEDESC$), was nÃ¼tzlich sein kann, wenn man den Servicenamen an eine Web-Seite Ã¼bergeben will.</p></td>
+<td><p>Der Anmerkungs-URL für den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
+          $SERVICEDESC$), was nützlich sein kann, wenn man den Servicenamen an eine Web-Seite übergeben will.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicenotes"></a>$SERVICENOTES$</p></td>
-<td><p>Anmerkungen fÃ¼r den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
-          $SERVICEDESC$), was nÃ¼tzlich sein kann, wenn man Servicespezifische Statusinformationen in der Beschreibung haben
-          mÃ¶chte.</p></td>
+<td><p>Anmerkungen für den Service. Dieses Makro kann andere Makros enthalten (z.B. $HOSTNAME$ oder
+          $SERVICEDESC$), was nützlich sein kann, wenn man Servicespezifische Statusinformationen in der Beschreibung haben
+          möchte.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Servicegroup-Makros: <a class="link" href="macrolist.html#macrolist-note6">
           <sup>6</sup> </a> </p></td></tr>
 <tr>
 <td><p><a name="macrolist-servicegroupalias"></a>$SERVICEGROUPALIAS$<a class="link" href="macrolist.html#macrolist-note6"> <sup>6</sup> </a> </p></td>
-<td><p>Der Langname / Alias entweder des 1) Servicegroup-Namens, der als On-Demand-Makro-Argument Ã¼bergeben wurde
-          oder 2) der primÃ¤ren Servicegruppe, die mit dem aktuellen Service verbunden ist (falls sie nicht im Zusammenhang mit
+<td><p>Der Langname / Alias entweder des 1) Servicegroup-Namens, der als On-Demand-Makro-Argument übergeben wurde
+          oder 2) der primären Servicegruppe, die mit dem aktuellen Service verbunden ist (falls sie nicht im Zusammenhang mit
           einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der <span class="emphasis"><em>alias</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-servicegroup">servicegroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicegroupmembers"></a>$SERVICEGROUPMEMBERS$<a class="link" href="macrolist.html#macrolist-note6">
           <sup>6</sup> </a> </p></td>
-<td><p>Eine Komma-separierte Liste aller Services, die entweder 1) zu dem Servicegruppennamen gehÃ¶ren, der als
-          On-Demand-Makro-Argument Ã¼bergeben wurde, oder 2) zu der primÃ¤ren Servicegruppe gehÃ¶ren, die mit dem aktuellen Service
+<td><p>Eine Komma-separierte Liste aller Services, die entweder 1) zu dem Servicegruppennamen gehören, der als
+          On-Demand-Makro-Argument übergeben wurde, oder 2) zu der primären Servicegruppe gehören, die mit dem aktuellen Service
           verbunden ist (falls sie nicht im Zusammenhang mit einem On-Demand-Makro benutzt wurde).</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicegroupnotes"></a>$SERVICEGROUPNOTES$<a class="link" href="macrolist.html#macrolist-note6"> <sup>6</sup> </a> </p></td>
 <td><p>Die Anmerkungen, die verbunden sind mit entweder 1) dem Servicegroup-Namen, der als
-          On-Demand-Makro-Argument Ã¼bergeben wurde oder 2) der primÃ¤ren Servicegruppe, die mit dem aktuellen Host verbunden ist
+          On-Demand-Makro-Argument übergeben wurde oder 2) der primären Servicegruppe, die mit dem aktuellen Host verbunden ist
           (falls sie nicht im Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der
           <span class="emphasis"><em>notes</em></span>-Direktive in the <a class="link" href="objectdefinitions.html#objectdefinitions-servicegroup">servicegroup-Definition</a> genommen.</p></td>
 </tr>
@@ -2486,7 +2501,7 @@
 <td><p><a name="macrolist-servicegroupnotesurl"></a>$SERVICEGROUPNOTESURL$<a class="link" href="macrolist.html#macrolist-note6">
           <sup>6</sup> </a> </p></td>
 <td><p>Der Anmerkungs-URL, der verbunden sind mit entweder 1) dem Servicegroup-Namen, der als
-          On-Demand-Makro-Argument Ã¼bergeben wurde oder 2) der primÃ¤ren Servicegruppe, die mit dem aktuellen Service verbunden ist
+          On-Demand-Makro-Argument übergeben wurde oder 2) der primären Servicegruppe, die mit dem aktuellen Service verbunden ist
           (falls sie nicht im Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der
           <span class="emphasis"><em>notes_url</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-servicegroup">servicegroup-Definition</a> genommen.</p></td>
 </tr>
@@ -2494,44 +2509,44 @@
 <td><p><a name="macrolist-servicegroupactionurl"></a>$SERVICEGROUPACTIONURL$<a class="link" href="macrolist.html#macrolist-note6">
           <sup>6</sup> </a> </p></td>
 <td><p>Der Action-URL, der verbunden sind mit entweder 1) dem Servicegroup-Namen, der als On-Demand-Makro-Argument
-          Ã¼bergeben wurde oder 2) der primÃ¤ren Servicegruppe, die mit dem aktuellen Service verbunden ist (falls sie nicht im
+          übergeben wurde oder 2) der primären Servicegruppe, die mit dem aktuellen Service verbunden ist (falls sie nicht im
           Zusammenhang mit einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der
           <span class="emphasis"><em>action_url</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-servicegroup">servicegroup-Definition</a> genommen.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Contact-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-contactname"></a>$CONTACTNAME$</p></td>
-<td><p>Kurzname fÃ¼r den Kontakt (z.B. "mmustermann"), der Ã¼ber ein Host- oder Service-Problem informiert wird.
+<td><p>Kurzname für den Kontakt (z.B. "mmustermann"), der über ein Host- oder Service-Problem informiert wird.
           Dieser Wert wird aus der <span class="emphasis"><em>contact_name</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contact">contact-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactalias"></a>$CONTACTALIAS$</p></td>
-<td><p>Langname/Beschreibung fÃ¼r den Kontakt, der informiert wird. Dieser Wert wird aus der
+<td><p>Langname/Beschreibung für den Kontakt, der informiert wird. Dieser Wert wird aus der
           <span class="emphasis"><em>alias</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contact">contact-Definition</a>
           genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactemail"></a>$CONTACTEMAIL$</p></td>
-<td><p>e-Mail-Adresse fÃ¼r den Kontakt, der informiert wird. Dieser Wert wird aus der
+<td><p>e-Mail-Adresse für den Kontakt, der informiert wird. Dieser Wert wird aus der
           <span class="emphasis"><em>email</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contact">contact-Definition</a>
           genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactpager"></a>$CONTACTPAGER$</p></td>
-<td><p>Pager-Nummer/-Adresse fÃ¼r den Kontakt, der informiert wird. Dieser Wert wird aus der
+<td><p>Pager-Nummer/-Adresse für den Kontakt, der informiert wird. Dieser Wert wird aus der
           <span class="emphasis"><em>pager</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contact">contact-Definition</a>
           genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactaddress"></a>$CONTACTADDRESSn$</p></td>
-<td><p>Adresse fÃ¼r den Kontakt, der informiert wird. Jeder Kontakt kann sechs verschiedene Adressen haben
-          (zusÃ¤tzlich zur e-Mail-Adresse und Pager-Nummer). Die Makros fÃ¼r diese Adressen sind $CONTACTADDRESS1$ -
+<td><p>Adresse für den Kontakt, der informiert wird. Jeder Kontakt kann sechs verschiedene Adressen haben
+          (zusätzlich zur e-Mail-Adresse und Pager-Nummer). Die Makros für diese Adressen sind $CONTACTADDRESS1$ -
           $CONTACTADDRESS6$. Dieser Wert wird aus der <span class="emphasis"><em>addressx</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contact">contact-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactgroupname"></a>$CONTACTGROUPNAME$</p></td>
-<td><p>Der Kurzname fÃ¼r die Kontaktgruppe, deren Mitglied der Kontakt ist. Dieser Wert wird aus der
+<td><p>Der Kurzname für die Kontaktgruppe, deren Mitglied der Kontakt ist. Dieser Wert wird aus der
           <span class="emphasis"><em>contact_group</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contactgroup">contactgroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
@@ -2539,23 +2554,23 @@
 <td><p>Eine Komma-separierte Liste der Kurznamen aller Kontaktgruppen, deren Mitglied dieser Kontakt
           ist.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Contactgroup-Makros: <a class="link" href="macrolist.html#macrolist-note5">
           <sup>5</sup> </a> </p></td></tr>
 <tr>
 <td><p><a name="macrolist-contactgroupalias"></a>$CONTACTGROUPALIAS$<a class="link" href="macrolist.html#macrolist-note7"> <sup>7</sup> </a> </p></td>
-<td><p>Der Langname / Alias entweder des 1) Contactgroup-Namens, der als On-Demand-Makro-Argument Ã¼bergeben wurde
-          oder 2) der primÃ¤ren Kontaktgruppe, die mit dem aktuellen Kontakt verbunden ist (falls sie nicht im Zusammenhang mit
+<td><p>Der Langname / Alias entweder des 1) Contactgroup-Namens, der als On-Demand-Makro-Argument übergeben wurde
+          oder 2) der primären Kontaktgruppe, die mit dem aktuellen Kontakt verbunden ist (falls sie nicht im Zusammenhang mit
           einem On-Demand-Makro benutzt wurde). Dieser Wert wird aus der <span class="emphasis"><em>alias</em></span>-Direktive in der <a class="link" href="objectdefinitions.html#objectdefinitions-contactgroup">contactgroup-Definition</a> genommen.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-contactgroupmembers"></a>$CONTACTGROUPMEMBERS$<a class="link" href="macrolist.html#macrolist-note7">
           <sup>7</sup> </a> </p></td>
-<td><p>Eine Komma-separierte Liste aller Kontakte, die entweder 1) zu dem Kontaktgruppennamen gehÃ¶ren, der als
-          On-Demand-Makro-Argument Ã¼bergeben wurde, oder 2) zu der primÃ¤ren Kontaktgruppe gehÃ¶ren, die mit dem aktuellen Kontakt
+<td><p>Eine Komma-separierte Liste aller Kontakte, die entweder 1) zu dem Kontaktgruppennamen gehören, der als
+          On-Demand-Makro-Argument übergeben wurde, oder 2) zu der primären Kontaktgruppe gehören, die mit dem aktuellen Kontakt
           verbunden ist (falls sie nicht im Zusammenhang mit einem On-Demand-Makro benutzt wurde).</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Auswertungs-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-totalhostsup"></a>$TOTALHOSTSUP$</p></td>
@@ -2573,14 +2588,14 @@
 <tr>
 <td><p><a name="macrolist-totalhostsdownunhandled"></a>$TOTALHOSTSDOWNUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Hosts an, die sich in einem DOWN-Status befinden und "unbehandelt"
-          sind. Unbehandelte Host-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten Downtime befinden,
-          und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          sind. Unbehandelte Host-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten Downtime befinden,
+          und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalhostsunreachableunhandled"></a>$TOTALHOSTSUNREACHABLEUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Hosts an, die sich in einem UNREACHABLE-Status befinden und
-          "unbehandelt" sind. Unbehandelte Host-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten
-          Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          "unbehandelt" sind. Unbehandelte Host-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten
+          Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalhostproblems"></a>$TOTALHOSTPROBLEMS$</p></td>
@@ -2590,8 +2605,8 @@
 <tr>
 <td><p><a name="macrolist-totalhostproblemsunhandled"></a>$TOTALHOSTPROBLEMSUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Hosts an, die sich in einem DOWN- oder UNREACHABLE-Status befinden und
-          "unbehandelt" sind. Unbehandelte Host-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten
-          Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          "unbehandelt" sind. Unbehandelte Host-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten
+          Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalservicesok"></a>$TOTALSERVICESOK$</p></td>
@@ -2613,20 +2628,20 @@
 <tr>
 <td><p><a name="macrolist-totalserviceswarningunhandled"></a>$TOTALSERVICESWARNINGUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Services an, die sich in einem WARNING-Status befinden und
-          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten
-          Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten
+          Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalservicescriticalunhandled"></a>$TOTALSERVICESCRITICALUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Services an, die sich in einem CRITICAL-Status befinden und
-          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten
-          Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten
+          Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalservicesunknownunhandled"></a>$TOTALSERVICESUNKNOWNUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Services an, die sich in einem UNKNOWN-Status befinden und
-          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in einer geplanten
-          Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestätigt sind, sich nicht in einer geplanten
+          Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-totalserviceproblems"></a>$TOTALSERVICEPROBLEMS$</p></td>
@@ -2636,10 +2651,10 @@
 <tr>
 <td><p><a name="macrolist-totalserviceproblemsunhandled"></a>$TOTALSERVICEPROBLEMSUNHANDLED$</p></td>
 <td><p>Dieses Makro gibt die Gesamtzahl der Services an, die sich in einem WARNING-, CRITICAL- oder UNKNOWN-Status
-          befinden und "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestÃ¤tigt sind, sich nicht in
-          einer geplanten Downtime befinden, und fÃ¼r die PrÃ¼fungen momentan aktiviert sind.</p></td>
+          befinden und "unbehandelt" sind. Unbehandelte Service-Probleme sind solche, die nicht bestätigt sind, sich nicht in
+          einer geplanten Downtime befinden, und für die Prüfungen momentan aktiviert sind.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Benachrichtigungs-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-notificationtype"></a>$NOTIFICATIONTYPE$</p></td>
@@ -2649,12 +2664,12 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-notificationrecipients"></a>$NOTIFICATIONRECIPIENTS$</p></td>
-<td><p>Eine Komma-separierte Liste der Kurznamen von allen Kontakten, die Ã¼ber den Host oder Service
+<td><p>Eine Komma-separierte Liste der Kurznamen von allen Kontakten, die über den Host oder Service
           benachrichtigt werden.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-notificationisescalated"></a>$NOTIFICATIONISESCALATED$</p></td>
-<td><p>Eine Ganzzahl, die angibt, ob diese Benachrichtigung an normale Kontakte fÃ¼r den Host oder Service versandt
+<td><p>Eine Ganzzahl, die angibt, ob diese Benachrichtigung an normale Kontakte für den Host oder Service versandt
           wurde, oder ob sie eskaliert wurde. 0 = normale (nicht-eskalierte) Benachrichtigung, 1 = eskalierte
           Benachrichtigung</p></td>
 </tr>
@@ -2662,65 +2677,65 @@
 <td><p><a name="macrolist-notificationauthor"></a>$NOTIFICATIONAUTHOR$</p></td>
 <td><p>Eine Zeichenkette, die den Namen des Benutzers angibt, der die Benachrichtigung geschrieben hat. Falls das
           $NOTIFICATIONTYPE$-Makro auf "DOWNTIMESTART" oder "DOWNTIMEEND" gesetzt ist, wird es der Name des Benutzers sein, der
-          die Downtime fÃ¼r den Host oder Service geplant hat. Falls das $NOTIFICATIONTYPE$-Makro auf "ACKNOWLEDGEMENT" gesetzt
-          ist, wird es der Name des Benutzers sein, der das Problem fÃ¼r den Host oder Service bestÃ¤tigt hat. Falls das
+          die Downtime für den Host oder Service geplant hat. Falls das $NOTIFICATIONTYPE$-Makro auf "ACKNOWLEDGEMENT" gesetzt
+          ist, wird es der Name des Benutzers sein, der das Problem für den Host oder Service bestätigt hat. Falls das
           $NOTIFICATIONTYPE$-Makro auf "CUSTOM" gesetzt ist, wird es der Name des Benutzers sein, der die benutzerdefinierte
-          Benachrichtigung fÃ¼r den Host oder Service ausgelÃ¶st hat.</p></td>
+          Benachrichtigung für den Host oder Service ausgelöst hat.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-notificationauthorname"></a>$NOTIFICATIONAUTHORNAME$</p></td>
-<td><p>Eine Zeichenkette, die den Kurznamen des Kontakts (falls zutreffend) enthÃ¤lt, der im Makro
+<td><p>Eine Zeichenkette, die den Kurznamen des Kontakts (falls zutreffend) enthält, der im Makro
           $NOTIFICATIONAUTHOR$ angegeben wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-notificationauthoralias"></a>$NOTIFICATIONAUTHORALIAS$</p></td>
-<td><p>Eine Zeichenkette, die den Alias des Kontakts (falls zutreffend) enthÃ¤lt, der im Makro $NOTIFICATIONAUTHOR$
+<td><p>Eine Zeichenkette, die den Alias des Kontakts (falls zutreffend) enthält, der im Makro $NOTIFICATIONAUTHOR$
           angegeben wurde.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-notificationcomment"></a>$NOTIFICATIONCOMMENT$</p></td>
 <td><p>Eine Zeichenkette, die den Kommentar des Benutzers angibt, der die Benachrichtigung geschrieben hat. Falls
           das $NOTIFICATIONTYPE$-Makro auf "DOWNTIMESTART" oder "DOWNTIMEEND" gesetzt ist, wird es der Kommentar des Benutzers
-          sein, der die Downtime fÃ¼r den Host oder Service geplant hat. Falls das $NOTIFICATIONTYPE$-Makro auf "ACKNOWLEDGEMENT"
-          gesetzt ist, wird es der Kommentar des Benutzers sein, der das Problem fÃ¼r den Host oder Service bestÃ¤tigt hat. Falls
+          sein, der die Downtime für den Host oder Service geplant hat. Falls das $NOTIFICATIONTYPE$-Makro auf "ACKNOWLEDGEMENT"
+          gesetzt ist, wird es der Kommentar des Benutzers sein, der das Problem für den Host oder Service bestätigt hat. Falls
           das $NOTIFICATIONTYPE$-Makro auf "CUSTOM" gesetzt ist, wird es der Kommentar des Benutzers sein, der die
-          benutzerdefinierte Benachrichtigung fÃ¼r den Host oder Service ausgelÃ¶st hat.</p></td>
+          benutzerdefinierte Benachrichtigung für den Host oder Service ausgelöst hat.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostnotificationnumber"></a>$HOSTNOTIFICATIONNUMBER$</p></td>
-<td><p>Die aktuelle Benachrichtigungsnummer fÃ¼r den Host. Die Benachrichtigungsnummer wird jedes Mal um eins (1)
-          erhÃ¶ht, wenn eine neue Benachrichtigung fÃ¼r den Host versandt wird (auÃŸer bei BestÃ¤tigungen). Die
-          Benachrichtigungsnummer wird auf Null (0) zurÃ¼ckgesetzt, wenn der Host wieder im UP-Zustand ist
+<td><p>Die aktuelle Benachrichtigungsnummer für den Host. Die Benachrichtigungsnummer wird jedes Mal um eins (1)
+          erhöht, wenn eine neue Benachrichtigung für den Host versandt wird (außer bei Bestätigungen). Die
+          Benachrichtigungsnummer wird auf Null (0) zurückgesetzt, wenn der Host wieder im UP-Zustand ist
           (<span class="emphasis"><em>nachdem</em></span> die Benachrichtigung versandt wurde). Die Benachrichtungsnummer wird weder durch
-          BestÃ¤tigungen noch durch Benachrichtigungen Ã¼ber "Flap detection" oder geplante Downtimes erhÃ¶ht.</p></td>
+          Bestätigungen noch durch Benachrichtigungen über "Flap detection" oder geplante Downtimes erhöht.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-hostnotificationid"></a>$HOSTNOTIFICATIONID$</p></td>
 <td><p>Eine eindeutige Zahl, die eine Host-Benachrichtigung identifiziert. Benachrichtigungsnummern sind eindeutig
-          sowohl fÃ¼r Host- als auch Service-Benachrichtigungen, so dass Sie diese eindeutige Zahl als primÃ¤ren SchlÃ¼ssel in einer
-          Benachrichtigungs-Datenbank benutzen kÃ¶nnen. Benachrichtigungsnummern sollten Ã¼ber den Restart des Icinga-
-          Prozesses hinweg eindeutig bleiben, solange Sie "state retention" aktiviert haben. Die Benachrichtigungsnummer wird fÃ¼r
-          jede neue Host-Benachrichtigung um eins (1) erhÃ¶ht, unabhÃ¤ngig von der Anzahl der benachrichtigten
+          sowohl für Host- als auch Service-Benachrichtigungen, so dass Sie diese eindeutige Zahl als primären Schlüssel in einer
+          Benachrichtigungs-Datenbank benutzen können. Benachrichtigungsnummern sollten über den Restart des Icinga-
+          Prozesses hinweg eindeutig bleiben, solange Sie "state retention" aktiviert haben. Die Benachrichtigungsnummer wird für
+          jede neue Host-Benachrichtigung um eins (1) erhöht, unabhängig von der Anzahl der benachrichtigten
           Kontakte.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicenotificationnumber"></a>$SERVICENOTIFICATIONNUMBER$</p></td>
-<td><p>Die aktuelle Benachrichtigungsnummer fÃ¼r den Service. Die Benachrichtigungsnummer wird jedes Mal um eins
-          (1) erhÃ¶ht, wenn eine neue Benachrichtigung fÃ¼r den Service versandt wird (auÃŸer bei BestÃ¤tigungen). Die
-          Benachrichtigungsnummer wird auf Null (0) zurÃ¼ckgesetzt, wenn der Service wieder im OK-Zustand ist
+<td><p>Die aktuelle Benachrichtigungsnummer für den Service. Die Benachrichtigungsnummer wird jedes Mal um eins
+          (1) erhöht, wenn eine neue Benachrichtigung für den Service versandt wird (außer bei Bestätigungen). Die
+          Benachrichtigungsnummer wird auf Null (0) zurückgesetzt, wenn der Service wieder im OK-Zustand ist
           (<span class="emphasis"><em>nachdem</em></span> die Benachrichtigung versandt wurde). Die Benachrichtungsnummer wird weder durch
-          BestÃ¤tigungen noch durch Benachrichtigungen Ã¼ber "Flap detection" oder geplante Downtimes erhÃ¶ht.</p></td>
+          Bestätigungen noch durch Benachrichtigungen über "Flap detection" oder geplante Downtimes erhöht.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-servicenotificationid"></a>$SERVICENOTIFICATIONID$</p></td>
 <td><p>Eine eindeutige Zahl, die eine Service-Benachrichtigung identifiziert. Benachrichtigungsnummern sind
-          eindeutig sowohl fÃ¼r Host- als auch Service-Benachrichtigungen, so dass Sie diese eindeutige Zahl als primÃ¤ren SchlÃ¼ssel
-          in einer Benachrichtigungs-Datenbank benutzen kÃ¶nnen. Benachrichtigungsnummern sollten Ã¼ber den Restart des
+          eindeutig sowohl für Host- als auch Service-Benachrichtigungen, so dass Sie diese eindeutige Zahl als primären Schlüssel
+          in einer Benachrichtigungs-Datenbank benutzen können. Benachrichtigungsnummern sollten über den Restart des
           Icinga- Prozesses hinweg eindeutig bleiben, solange Sie "state retention" aktiviert haben. Die
-          Benachrichtigungsnummer wird fÃ¼r jede neue Service-Benachrichtigung um eins (1) erhÃ¶ht, unabhÃ¤ngig von der Anzahl der
+          Benachrichtigungsnummer wird für jede neue Service-Benachrichtigung um eins (1) erhöht, unabhängig von der Anzahl der
           benachrichtigten Kontakte.</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Datum-/Zeit-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-longdatetime"></a>$LONGDATETIME$</p></td>
@@ -2748,16 +2763,16 @@
 <tr>
 <td><p><a name="macrolist-isvalidtime"></a>$ISVALIDTIME:$<a class="link" href="macrolist.html#macrolist-note9"> <sup>9</sup> </a> </p></td>
 <td>
-<p> Dies ist ein spezielles On-Demand-Makro, das 1 oder 0 zurÃ¼ckliefert, abhÃ¤ngig davon, ob eine bestimmte
-          Zeit innerhalb einer angegebenen Zeitperiode gÃ¼ltig ist. Es gibt zwei Arten, dieses Makro zu benutzen:</p>
+<p> Dies ist ein spezielles On-Demand-Makro, das 1 oder 0 zurückliefert, abhängig davon, ob eine bestimmte
+          Zeit innerhalb einer angegebenen Zeitperiode gültig ist. Es gibt zwei Arten, dieses Makro zu benutzen:</p>
           <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
                 <p><span class="bold"><strong>$ISVALIDTIME:24x7$</strong></span> wird auf "1" gesetzt, wenn die aktuelle Zeit innerhalb
-                der "24x7"-Zeitperiode gÃ¼ltig ist. Falls nicht, wird es auf "0" gesetzt.</p>
+                der "24x7"-Zeitperiode gültig ist. Falls nicht, wird es auf "0" gesetzt.</p>
               </li>
 <li class="listitem">
                 <p><span class="bold"><strong>$ISVALIDTIME:24x7:timestamp$</strong></span> wird auf "1" gesetzt, wenn die durch das
-                "timestamp"-Argument angegebene Zeit (die im time_t-Format sein muss) innerhalb der "24x7"-Zeitperiode gÃ¼ltig ist.
+                "timestamp"-Argument angegebene Zeit (die im time_t-Format sein muss) innerhalb der "24x7"-Zeitperiode gültig ist.
                 Falls nicht, wird es auf "0" gesetzt.</p>
               </li>
 </ol></div>
@@ -2766,22 +2781,22 @@
 <tr>
 <td><p><a name="macrolist-nextvalidtime"></a>$NEXTVALIDTIME:$<a class="link" href="macrolist.html#macrolist-note9"> <sup>9</sup> </a> </p></td>
 <td>
-<p> Dies ist ein spezielles On-Demand-Makro, das die nÃ¤chste gÃ¼ltige Zeit (im time_t-Format) fÃ¼r eine angebene
-          Zeitperiode zurÃ¼ckliefert. Es gibt zwei Arten, dieses Makro zu benutzen:</p> <div class="orderedlist"><ol class="orderedlist" type="1">
+<p> Dies ist ein spezielles On-Demand-Makro, das die nächste gültige Zeit (im time_t-Format) für eine angebene
+          Zeitperiode zurückliefert. Es gibt zwei Arten, dieses Makro zu benutzen:</p> <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem">
-                <p><span class="bold"><strong>$NEXTVALIDTIME:24x7$</strong></span> wird die nÃ¤chste gÃ¼ltige Zeit zurÃ¼ckliefern - ab der
+                <p><span class="bold"><strong>$NEXTVALIDTIME:24x7$</strong></span> wird die nächste gültige Zeit zurückliefern - ab der
                 aktuellen Zeit - innerhalb der "24x7"-Zeitperiode.</p>
               </li>
 <li class="listitem">
-                <p><span class="bold"><strong>$NEXTVALIDTIME:24x7:timestamp$</strong></span> wird die nÃ¤chste gÃ¼ltige Zeit zurÃ¼ckliefern
+                <p><span class="bold"><strong>$NEXTVALIDTIME:24x7:timestamp$</strong></span> wird die nächste gültige Zeit zurückliefern
                 - ab der durch das "timestamp"-Argument angegebenen Zeit (die im time_t-Format sein muss) - innerhalb der
                 "24x7"-Zeitperiode.</p>
               </li>
-</ol></div> <p>Falls keine gÃ¼ltige Zeit innerhalb der angegebenen Zeitperiode gefunden werden kann, wird das
+</ol></div> <p>Falls keine gültige Zeit innerhalb der angegebenen Zeitperiode gefunden werden kann, wird das
           Makro auf "0" gesetzt.</p>
 </td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Datei-Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-mainconfigfile"></a>$MAINCONFIGFILE$</p></td>
@@ -2813,7 +2828,7 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-tempfile"></a>$TEMPFILE$</p></td>
-<td><p>Der Standort der <a class="link" href="configmain.html#configmain-temp_file">temporÃ¤ren Datei</a> (temp file).</p></td>
+<td><p>Der Standort der <a class="link" href="configmain.html#configmain-temp_file">temporären Datei</a> (temp file).</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-temppath"></a>$TEMPPATH$</p></td>
@@ -2842,17 +2857,17 @@
 <td><p>Der Standort der Service-Performancedaten-Datei (service performance data file; falls
           definiert).</p></td>
 </tr>
-<tr><td colspan="2" align="left" valign="middle">Â </td></tr>
+<tr><td colspan="2" align="left" valign="middle"> </td></tr>
 <tr><td colspan="2" align="left" valign="middle"><p>Verschiedene Makros:</p></td></tr>
 <tr>
 <td><p><a name="macrolist-processstarttime"></a>$PROCESSSTARTTIME$</p></td>
 <td><p>Zeitstempel im time_t-Format (Sekunden seit der UNIX-Epoche), die angibt, wann der Icinga-Prozess
-          das letzte Mal neu/wieder gestartet wurde. Sie kÃ¶nnen die Laufzeit durch Subtraktion von $PROCESSSTARTTIME$ von <a class="link" href="macrolist.html#macrolist-timet">$TIMET$</a> ermitteln.</p></td>
+          das letzte Mal neu/wieder gestartet wurde. Sie können die Laufzeit durch Subtraktion von $PROCESSSTARTTIME$ von <a class="link" href="macrolist.html#macrolist-timet">$TIMET$</a> ermitteln.</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-eventstarttime"></a>$EVENTSTARTTIME$</p></td>
 <td><p>Zeitstempel im time_t-Format (Sekunden seit der UNIX-Epoche), die angibt, wann der Icinga-Prozess
-          begann, Ereignisse (PrÃ¼fungen, usw.) zu verarbeiten. Sie kÃ¶nnen die Zeit, die Icinga zum Start benÃ¶tigte, durch
+          begann, Ereignisse (Prüfungen, usw.) zu verarbeiten. Sie können die Zeit, die Icinga zum Start benötigte, durch
           Subtraktion von $PROCESSSTARTTIME$ von $EVENTSTARTTIMET$ ermitteln.</p></td>
 </tr>
 <tr>
@@ -2865,12 +2880,12 @@
 </tr>
 <tr>
 <td><p><a name="macrolist-arg"></a>$ARGn$</p></td>
-<td><p>Das <span class="emphasis"><em>n</em></span>-te an den Befehl (Benachrichtigung, Eventhandler, Service-PrÃ¼fungen, usw.)
-          Ã¼bergebene Argument. Icinga unterstÃ¼tzt bis zu 32 Argument-Makros ($ARG1$ bis $ARG32$).</p></td>
+<td><p>Das <span class="emphasis"><em>n</em></span>-te an den Befehl (Benachrichtigung, Eventhandler, Service-Prüfungen, usw.)
+          übergebene Argument. Icinga unterstützt bis zu 32 Argument-Makros ($ARG1$ bis $ARG32$).</p></td>
 </tr>
 <tr>
 <td><p><a name="macrolist-user"></a>$USERn$</p></td>
-<td><p>Das <span class="emphasis"><em>n</em></span>-te benutzerdefinierbare Makro. Benutzermakros kÃ¶nnen in ein oder mehreren <a class="link" href="configmain.html#configmain-resource_file">resource files</a> definiert werden. Icinga unterstÃ¼tzt bis zu 256
+<td><p>Das <span class="emphasis"><em>n</em></span>-te benutzerdefinierbare Makro. Benutzermakros können in ein oder mehreren <a class="link" href="configmain.html#configmain-resource_file">resource files</a> definiert werden. Icinga unterstützt bis zu 256
           User-Makros ($USER1$ bis $USER256$).</p></td>
 </tr>
 </tbody>
@@ -2880,11 +2895,11 @@
   <p><span class="bold"><strong>Anmerkungen</strong></span></p>
 
   <p><a name="macrolist-note1"></a><span class="bold"><strong><sup>1</sup></strong></span> Diese Makros sind nicht
-  gÃ¼ltig fÃ¼r den Host, dem sie zugeordnet sind, wenn der Host gerade geprÃ¼ft wird (denn die Werte konnten noch nicht ermittelt
+  gültig für den Host, dem sie zugeordnet sind, wenn der Host gerade geprüft wird (denn die Werte konnten noch nicht ermittelt
   werden).</p>
 
   <p><a name="macrolist-note2"></a><span class="bold"><strong><sup>2</sup></strong></span> Diese Makros sind nicht
-  gÃ¼ltig fÃ¼r den Service, dem sie zugeordnet sind, wenn der Service gerade geprÃ¼ft wird (denn die Werte konnten noch nicht
+  gültig für den Service, dem sie zugeordnet sind, wenn der Service gerade geprüft wird (denn die Werte konnten noch nicht
   ermittelt werden).</p>
 
   <p><a name="macrolist-note3"></a><span class="bold"><strong><sup>3</sup></strong></span> Wenn Host-Makros in
@@ -2893,365 +2908,366 @@
 
   <p><a name="macrolist-note4"></a><span class="bold"><strong><sup>4</sup></strong></span> Wenn Host- und
   Service-Auswertungsmakros in Benachrichtigungen benutzt werden, werden die Summen gefiltert, um so nur die Hosts und Services zu
-  berÃ¼cksichtigen, fÃ¼r die die Kontaktperson berechtigt ist (z.B. Hosts und Services, fÃ¼r die sie Benachrichtigungen erhalten
+  berücksichtigen, für die die Kontaktperson berechtigt ist (z.B. Hosts und Services, für die sie Benachrichtigungen erhalten
   soll).</p>
 
   <p><a name="macrolist-note5"></a><span class="bold"><strong><sup>5</sup></strong></span> Diese Makros sind
-  normalerweise der ersten/primÃ¤ren Hostgruppe des aktuellen Hosts zugeordnet. Sie kÃ¶nnen deshalb in vielen FÃ¤llen als Host-Makros
-  angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfÃ¼gbar. Statt dessen kÃ¶nnen sie als
-  On-Demand-Hostgroup-Makros benutzt werden, wenn Sie den Namen einer Hostgruppe an das Makro Ã¼bergeben. Beispielsweise wÃ¼rde
+  normalerweise der ersten/primären Hostgruppe des aktuellen Hosts zugeordnet. Sie können deshalb in vielen Fällen als Host-Makros
+  angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfügbar. Statt dessen können sie als
+  On-Demand-Hostgroup-Makros benutzt werden, wenn Sie den Namen einer Hostgruppe an das Makro übergeben. Beispielsweise würde
   $HOSTGROUPMEMBERS:hg1$ eine komma-separierte Liste aller (Host)-Mitglieder der Hostgruppe <span class="emphasis"><em>hg1</em></span>
-  zurÃ¼ckliefern.</p>
+  zurückliefern.</p>
 
   <p><a name="macrolist-note6"></a><span class="bold"><strong><sup>6</sup></strong></span> Diese Makros sind
-  normalerweise der ersten/primÃ¤ren Servicegruppe des aktuellen Service zugeordnet. Sie kÃ¶nnen deshalb in vielen FÃ¤llen als
-  Service-Makros angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfÃ¼gbar. Statt dessen kÃ¶nnen sie als
-  On-Demand-Servicegroup-Makros benutzt werden, wenn Sie den Namen einer Servicegruppe an das Makro Ã¼bergeben. Beispielsweise
-  wÃ¼rde $SERVICEGROUPMEMBERS:sg1$ eine komma-separierte Liste aller (Service)-Mitglieder der Servicegruppe
-  <span class="emphasis"><em>sg1</em></span> zurÃ¼ckliefern.</p>
+  normalerweise der ersten/primären Servicegruppe des aktuellen Service zugeordnet. Sie können deshalb in vielen Fällen als
+  Service-Makros angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfügbar. Statt dessen können sie als
+  On-Demand-Servicegroup-Makros benutzt werden, wenn Sie den Namen einer Servicegruppe an das Makro übergeben. Beispielsweise
+  würde $SERVICEGROUPMEMBERS:sg1$ eine komma-separierte Liste aller (Service)-Mitglieder der Servicegruppe
+  <span class="emphasis"><em>sg1</em></span> zurückliefern.</p>
 
   <p><a name="macrolist-note7"></a><span class="bold"><strong><sup>7</sup></strong></span> Diese Makros sind
-  normalerweise der ersten/primÃ¤ren Kontaktgruppe des aktuellen Kontakts zugeordnet. Sie kÃ¶nnen deshalb in vielen FÃ¤llen als
-  Kontakt-Makros angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfÃ¼gbar. Statt dessen kÃ¶nnen sie als
-  On-Demand-Contaktgroup-Makros benutzt werden, wenn Sie den Namen einer Kontaktgruppe an das Makro Ã¼bergeben. Beispielsweise
-  wÃ¼rde $CONTACTGROUPMEMBERS:cg1$ eine komma-separierte Liste aller (Kontakt)-Mitglieder der Kontaktgruppe
-  <span class="emphasis"><em>cg1</em></span> zurÃ¼ckliefern.</p>
+  normalerweise der ersten/primären Kontaktgruppe des aktuellen Kontakts zugeordnet. Sie können deshalb in vielen Fällen als
+  Kontakt-Makros angesehen werden. Allerdings sind diese Makros nicht als On-Demand-Makros verfügbar. Statt dessen können sie als
+  On-Demand-Contaktgroup-Makros benutzt werden, wenn Sie den Namen einer Kontaktgruppe an das Makro übergeben. Beispielsweise
+  würde $CONTACTGROUPMEMBERS:cg1$ eine komma-separierte Liste aller (Kontakt)-Mitglieder der Kontaktgruppe
+  <span class="emphasis"><em>cg1</em></span> zurückliefern.</p>
 
-  <p><a name="macrolist-note8"></a><span class="bold"><strong><sup>8</sup></strong></span> Diese BestÃ¤tigungsmakros
+  <p><a name="macrolist-note8"></a><span class="bold"><strong><sup>8</sup></strong></span> Diese Bestätigungsmakros
   sind veraltet. Nutzen Sie statt dessen die mehr generischen Makros $NOTIFICATIONAUTHOR$, $NOTIFICATIONAUTHORNAME$,
-  $NOTIFICATIONAUTHORALIAS$ oder $NOTIFICATIONAUTHORCOMMENT$</p>
+  $NOTIFICATIONAUTHORALIAS$ oder $NOTIFICATIONCOMMENT$</p>
 
   <p><a name="macrolist-note9"></a><span class="bold"><strong><sup>9</sup></strong></span> Diese Makros sind nur als
-  On-Demand-Makros verfÃ¼gbar - d.h. Sie mÃ¼ssen ein zusÃ¤tzliches Argument Ã¼bergeben, um sie zu nutzen. Diese Makros sind nicht als
-  Umgebungsvariablen verfÃ¼gbar.</p>
+  On-Demand-Makros verfügbar - d.h. Sie müssen ein zusätzliches Argument übergeben, um sie zu nutzen. Diese Makros sind nicht als
+  Umgebungsvariablen verfügbar.</p>
 
   <p><a name="macrolist-note10"></a><span class="bold"><strong><sup>10</sup></strong></span> Auswertungsmakros sind
-  nicht als Umgebungsvariablen verfÃ¼gbar, wenn die Option <a class="link" href="configmain.html#configmain-use_large_installation_tweaks">use_large_installation_tweaks</a> aktiviert ist, weil sie ziemlich
+  nicht als Umgebungsvariablen verfügbar, wenn die Option <a class="link" href="configmain.html#configmain-use_large_installation_tweaks">use_large_installation_tweaks</a> aktiviert ist, weil sie ziemlich
   CPU-intensiv zu berechnen sind.</p>
-  <a class="indexterm" name="id2569162"></a>
-  <a class="indexterm" name="id2569172"></a>
-  <a class="indexterm" name="id2569180"></a>
-  <a class="indexterm" name="id2569189"></a>
-  <a class="indexterm" name="id2569196"></a>
-  <a class="indexterm" name="id2569206"></a>
-  <a class="indexterm" name="id2569216"></a>
-  <a class="indexterm" name="id2569225"></a>
-  <a class="indexterm" name="id2569234"></a>
-  <a class="indexterm" name="id2569244"></a>
-  <a class="indexterm" name="id2569253"></a>
-  <a class="indexterm" name="id2569263"></a>
-  <a class="indexterm" name="id2569272"></a>
-  <a class="indexterm" name="id2569283"></a>
-  <a class="indexterm" name="id2569274"></a>
-  <a class="indexterm" name="id2569284"></a>
-  <a class="indexterm" name="id2569308"></a>
-  <a class="indexterm" name="id2569318"></a>
-  <a class="indexterm" name="id2569325"></a>
-  <a class="indexterm" name="id2569336"></a>
-  <a class="indexterm" name="id2569327"></a>
-  <a class="indexterm" name="id2569355"></a>
-  <a class="indexterm" name="id2569362"></a>
-  <a class="indexterm" name="id2569371"></a>
-  <a class="indexterm" name="id2569382"></a>
-  <a class="indexterm" name="id2569392"></a>
-  <a class="indexterm" name="id2569402"></a>
-  <a class="indexterm" name="id2569384"></a>
-  <a class="indexterm" name="id2569420"></a>
-  <a class="indexterm" name="id2569428"></a>
-  <a class="indexterm" name="id2569438"></a>
-  <a class="indexterm" name="id2569429"></a>
-  <a class="indexterm" name="id2569457"></a>
-  <a class="indexterm" name="id2569465"></a>
-  <a class="indexterm" name="id2569475"></a>
-  <a class="indexterm" name="id2569485"></a>
-  <a class="indexterm" name="id2569494"></a>
-  <a class="indexterm" name="id2569504"></a>
-  <a class="indexterm" name="id2569514"></a>
-  <a class="indexterm" name="id2569524"></a>
-  <a class="indexterm" name="id2569505"></a>
-  <a class="indexterm" name="id2569544"></a>
-  <a class="indexterm" name="id2569553"></a>
-  <a class="indexterm" name="id2569545"></a>
-  <a class="indexterm" name="id2569571"></a>
-  <a class="indexterm" name="id2569554"></a>
-  <a class="indexterm" name="id2569573"></a>
-  <a class="indexterm" name="id2569590"></a>
-  <a class="indexterm" name="id2569610"></a>
-  <a class="indexterm" name="id2569592"></a>
-  <a class="indexterm" name="id2569593"></a>
-  <a class="indexterm" name="id2569639"></a>
-  <a class="indexterm" name="id2569629"></a>
-  <a class="indexterm" name="id2569659"></a>
-  <a class="indexterm" name="id2569668"></a>
-  <a class="indexterm" name="id2569678"></a>
-  <a class="indexterm" name="id2569686"></a>
-  <a class="indexterm" name="id2569696"></a>
-  <a class="indexterm" name="id2569707"></a>
-  <a class="indexterm" name="id2569718"></a>
-  <a class="indexterm" name="id2569727"></a>
-  <a class="indexterm" name="id2569736"></a>
-  <a class="indexterm" name="id2569747"></a>
-  <a class="indexterm" name="id2569738"></a>
-  <a class="indexterm" name="id2569765"></a>
-  <a class="indexterm" name="id2569774"></a>
-  <a class="indexterm" name="id2569776"></a>
-  <a class="indexterm" name="id2569794"></a>
-  <a class="indexterm" name="id2569766"></a>
-  <a class="indexterm" name="id2569814"></a>
-  <a class="indexterm" name="id2569821"></a>
-  <a class="indexterm" name="id2569832"></a>
-  <a class="indexterm" name="id2569842"></a>
-  <a class="indexterm" name="id2569833"></a>
-  <a class="indexterm" name="id2569844"></a>
-  <a class="indexterm" name="id2569870"></a>
-  <a class="indexterm" name="id2569861"></a>
-  <a class="indexterm" name="id2569872"></a>
-  <a class="indexterm" name="id2569898"></a>
-  <a class="indexterm" name="id2569889"></a>
-  <a class="indexterm" name="id2569919"></a>
-  <a class="indexterm" name="id2569909"></a>
-  <a class="indexterm" name="id2569921"></a>
-  <a class="indexterm" name="id2569948"></a>
-  <a class="indexterm" name="id2569939"></a>
-  <a class="indexterm" name="id2569967"></a>
-  <a class="indexterm" name="id2569975"></a>
-  <a class="indexterm" name="id2569987"></a>
-  <a class="indexterm" name="id2569976"></a>
-  <a class="indexterm" name="id2570003"></a>
-  <a class="indexterm" name="id2570015"></a>
-  <a class="indexterm" name="id2570006"></a>
-  <a class="indexterm" name="id2570033"></a>
-  <a class="indexterm" name="id2570042"></a>
-  <a class="indexterm" name="id2570053"></a>
-  <a class="indexterm" name="id2570062"></a>
-  <a class="indexterm" name="id2570072"></a>
-  <a class="indexterm" name="id2570063"></a>
-  <a class="indexterm" name="id2570091"></a>
-  <a class="indexterm" name="id2570101"></a>
-  <a class="indexterm" name="id2570111"></a>
-  <a class="indexterm" name="id2570120"></a>
-  <a class="indexterm" name="id2570130"></a>
-  <a class="indexterm" name="id2570121"></a>
-  <a class="indexterm" name="id2570148"></a>
-  <a class="indexterm" name="id2570160"></a>
-  <a class="indexterm" name="id2570150"></a>
-  <a class="indexterm" name="id2570169"></a>
-  <a class="indexterm" name="id2570189"></a>
-  <a class="indexterm" name="id2570179"></a>
-  <a class="indexterm" name="id2570208"></a>
-  <a class="indexterm" name="id2570218"></a>
-  <a class="indexterm" name="id2570227"></a>
-  <a class="indexterm" name="id2570209"></a>
-  <a class="indexterm" name="id2570246"></a>
-  <a class="indexterm" name="id2570257"></a>
-  <a class="indexterm" name="id2570248"></a>
-  <a class="indexterm" name="id2570276"></a>
-  <a class="indexterm" name="id2570284"></a>
-  <a class="indexterm" name="id2570295"></a>
-  <a class="indexterm" name="id2570286"></a>
-  <a class="indexterm" name="id2570304"></a>
-  <a class="indexterm" name="id2570323"></a>
-  <a class="indexterm" name="id2570314"></a>
-  <a class="indexterm" name="id2570324"></a>
-  <a class="indexterm" name="id2570352"></a>
-  <a class="indexterm" name="id2570361"></a>
-  <a class="indexterm" name="id2570371"></a>
-  <a class="indexterm" name="id2570382"></a>
-  <a class="indexterm" name="id2570389"></a>
-  <a class="indexterm" name="id2570401"></a>
-  <a class="indexterm" name="id2570391"></a>
-  <a class="indexterm" name="id2570402"></a>
-  <a class="indexterm" name="id2570392"></a>
-  <a class="indexterm" name="id2570420"></a>
-  <a class="indexterm" name="id2570422"></a>
-  <a class="indexterm" name="id2570441"></a>
-  <a class="indexterm" name="id2570442"></a>
-  <a class="indexterm" name="id2570479"></a>
-  <a class="indexterm" name="id2570489"></a>
-  <a class="indexterm" name="id2570461"></a>
-  <a class="indexterm" name="id2570509"></a>
-  <a class="indexterm" name="id2570516"></a>
-  <a class="indexterm" name="id2570491"></a>
-  <a class="indexterm" name="id2570535"></a>
-  <a class="indexterm" name="id2570545"></a>
-  <a class="indexterm" name="id2570556"></a>
-  <a class="indexterm" name="id2570565"></a>
-  <a class="indexterm" name="id2570574"></a>
-  <a class="indexterm" name="id2570585"></a>
-  <a class="indexterm" name="id2570594"></a>
-  <a class="indexterm" name="id2570576"></a>
-  <a class="indexterm" name="id2570614"></a>
-  <a class="indexterm" name="id2570622"></a>
-  <a class="indexterm" name="id2570633"></a>
-  <a class="indexterm" name="id2570642"></a>
-  <a class="indexterm" name="id2570653"></a>
-  <a class="indexterm" name="id2570662"></a>
-  <a class="indexterm" name="id2570644"></a>
-  <a class="indexterm" name="id2570681"></a>
-  <a class="indexterm" name="id2570690"></a>
-  <a class="indexterm" name="id2570700"></a>
-  <a class="indexterm" name="id2570691"></a>
-  <a class="indexterm" name="id2570702"></a>
-  <a class="indexterm" name="id2570728"></a>
-  <a class="indexterm" name="id2570738"></a>
-  <a class="indexterm" name="id2570747"></a>
-  <a class="indexterm" name="id2570758"></a>
-  <a class="indexterm" name="id2570768"></a>
-  <a class="indexterm" name="id2570777"></a>
-  <a class="indexterm" name="id2570787"></a>
-  <a class="indexterm" name="id2570797"></a>
-  <a class="indexterm" name="id2570807"></a>
-  <a class="indexterm" name="id2570798"></a>
-  <a class="indexterm" name="id2570827"></a>
-  <a class="indexterm" name="id2570834"></a>
-  <a class="indexterm" name="id2570778"></a>
-  <a class="indexterm" name="id2570854"></a>
-  <a class="indexterm" name="id2570862"></a>
-  <a class="indexterm" name="id2570873"></a>
-  <a class="indexterm" name="id2570882"></a>
-  <a class="indexterm" name="id2570892"></a>
-  <a class="indexterm" name="id2570903"></a>
-  <a class="indexterm" name="id2570911"></a>
-  <a class="indexterm" name="id2570922"></a>
-  <a class="indexterm" name="id2570929"></a>
-  <a class="indexterm" name="id2570938"></a>
-  <a class="indexterm" name="id2570948"></a>
-  <a class="indexterm" name="id2570939"></a>
-  <a class="indexterm" name="id2570966"></a>
-  <a class="indexterm" name="id2570977"></a>
-  <a class="indexterm" name="id2570987"></a>
-  <a class="indexterm" name="id2570979"></a>
-  <a class="indexterm" name="id2570968"></a>
-  <a class="indexterm" name="id2571016"></a>
-  <a class="indexterm" name="id2571027"></a>
-  <a class="indexterm" name="id2571018"></a>
-  <a class="indexterm" name="id2571044"></a>
-  <a class="indexterm" name="id2571054"></a>
-  <a class="indexterm" name="id2571056"></a>
-  <a class="indexterm" name="id2571074"></a>
-  <a class="indexterm" name="id2571083"></a>
-  <a class="indexterm" name="id2571094"></a>
-  <a class="indexterm" name="id2571085"></a>
-  <a class="indexterm" name="id2571112"></a>
-  <a class="indexterm" name="id2571123"></a>
-  <a class="indexterm" name="id2571133"></a>
-  <a class="indexterm" name="id2571142"></a>
-  <a class="indexterm" name="id2571152"></a>
-  <a class="indexterm" name="id2571162"></a>
-  <a class="indexterm" name="id2571153"></a>
-  <a class="indexterm" name="id2571180"></a>
-  <a class="indexterm" name="id2571189"></a>
-  <a class="indexterm" name="id2571191"></a>
-  <a class="indexterm" name="id2571209"></a>
-  <a class="indexterm" name="id2571219"></a>
-  <a class="indexterm" name="id2571230"></a>
-  <a class="indexterm" name="id2571221"></a>
-  <a class="indexterm" name="id2571246"></a>
-  <a class="indexterm" name="id2571256"></a>
-  <a class="indexterm" name="id2571266"></a>
-  <a class="indexterm" name="id2571257"></a>
-  <a class="indexterm" name="id2571268"></a>
-  <a class="indexterm" name="id2571295"></a>
-  <a class="indexterm" name="id2571304"></a>
-  <a class="indexterm" name="id2571314"></a>
-  <a class="indexterm" name="id2571305"></a>
-  <a class="indexterm" name="id2571316"></a>
-  <a class="indexterm" name="id2571342"></a>
-  <a class="indexterm" name="id2571353"></a>
-  <a class="indexterm" name="id2571362"></a>
-  <a class="indexterm" name="id2571373"></a>
-  <a class="indexterm" name="id2571382"></a>
-  <a class="indexterm" name="id2571393"></a>
-  <a class="indexterm" name="id2571402"></a>
-  <a class="indexterm" name="id2571409"></a>
-  <a class="indexterm" name="id2571419"></a>
-  <a class="indexterm" name="id2571429"></a>
-  <a class="indexterm" name="id2571421"></a>
-  <a class="indexterm" name="id2571431"></a>
-  <a class="indexterm" name="id2571458"></a>
-  <a class="indexterm" name="id2571449"></a>
-  <a class="indexterm" name="id2571477"></a>
-  <a class="indexterm" name="id2571487"></a>
-  <a class="indexterm" name="id2571496"></a>
-  <a class="indexterm" name="id2571478"></a>
-  <a class="indexterm" name="id2571514"></a>
-  <a class="indexterm" name="id2571526"></a>
-  <a class="indexterm" name="id2571535"></a>
-  <a class="indexterm" name="id2571544"></a>
-  <a class="indexterm" name="id2571554"></a>
-  <a class="indexterm" name="id2571517"></a>
-  <a class="indexterm" name="id2571573"></a>
-  <a class="indexterm" name="id2571582"></a>
-  <a class="indexterm" name="id2571592"></a>
-  <a class="indexterm" name="id2571603"></a>
-  <a class="indexterm" name="id2571612"></a>
-  <a class="indexterm" name="id2571620"></a>
-  <a class="indexterm" name="id2571631"></a>
-  <a class="indexterm" name="id2571621"></a>
-  <a class="indexterm" name="id2571650"></a>
-  <a class="indexterm" name="id2571659"></a>
-  <a class="indexterm" name="id2571669"></a>
-  <a class="indexterm" name="id2571679"></a>
-  <a class="indexterm" name="id2571688"></a>
-  <a class="indexterm" name="id2571698"></a>
-  <a class="indexterm" name="id2571689"></a>
-  <a class="indexterm" name="id2571716"></a>
-  <a class="indexterm" name="id2571728"></a>
-  <a class="indexterm" name="id2571718"></a>
-  <a class="indexterm" name="id2571748"></a>
-  <a class="indexterm" name="id2571755"></a>
-  <a class="indexterm" name="id2571767"></a>
-  <a class="indexterm" name="id2571757"></a>
-  <a class="indexterm" name="id2571787"></a>
-  <a class="indexterm" name="id2571795"></a>
-  <a class="indexterm" name="id2571788"></a>
-  <a class="indexterm" name="id2571797"></a>
-  <a class="indexterm" name="id2571824"></a>
-  <a class="indexterm" name="id2571834"></a>
-  <a class="indexterm" name="id2571842"></a>
-  <a class="indexterm" name="id2571853"></a>
-  <a class="indexterm" name="id2571843"></a>
-  <a class="indexterm" name="id2571855"></a>
-  <a class="indexterm" name="id2571844"></a>
-  <a class="indexterm" name="id2571873"></a>
-  <a class="indexterm" name="id2571874"></a>
-  <a class="indexterm" name="id2571893"></a>
-  <a class="indexterm" name="id2571923"></a>
-  <a class="indexterm" name="id2571932"></a>
-  <a class="indexterm" name="id2571942"></a>
-  <a class="indexterm" name="id2571933"></a>
-  <a class="indexterm" name="id2571960"></a>
-  <a class="indexterm" name="id2571969"></a>
-  <a class="indexterm" name="id2571980"></a>
-  <a class="indexterm" name="id2571972"></a>
-  <a class="indexterm" name="id2571999"></a>
-  <a class="indexterm" name="id2572009"></a>
-  <a class="indexterm" name="id2572018"></a>
-  <a class="indexterm" name="id2572028"></a>
-  <a class="indexterm" name="id2572036"></a>
-  <a class="indexterm" name="id2572047"></a>
-  <a class="indexterm" name="id2572056"></a>
-  <a class="indexterm" name="id2572066"></a>
-  <a class="indexterm" name="id2572076"></a>
-  <a class="indexterm" name="id2572067"></a>
+  <a class="indexterm" name="id2868340"></a>
+  <a class="indexterm" name="id2868351"></a>
+  <a class="indexterm" name="id2868358"></a>
+  <a class="indexterm" name="id2868368"></a>
+  <a class="indexterm" name="id2868377"></a>
+  <a class="indexterm" name="id2868386"></a>
+  <a class="indexterm" name="id2868396"></a>
+  <a class="indexterm" name="id2868405"></a>
+  <a class="indexterm" name="id2868415"></a>
+  <a class="indexterm" name="id2868424"></a>
+  <a class="indexterm" name="id2868434"></a>
+  <a class="indexterm" name="id2868443"></a>
+  <a class="indexterm" name="id2868451"></a>
+  <a class="indexterm" name="id2868461"></a>
+  <a class="indexterm" name="id2868470"></a>
+  <a class="indexterm" name="id2868480"></a>
+  <a class="indexterm" name="id2868489"></a>
+  <a class="indexterm" name="id2868497"></a>
+  <a class="indexterm" name="id2868506"></a>
+  <a class="indexterm" name="id2868516"></a>
+  <a class="indexterm" name="id2868526"></a>
+  <a class="indexterm" name="id2868536"></a>
+  <a class="indexterm" name="id2868545"></a>
+  <a class="indexterm" name="id2868555"></a>
+  <a class="indexterm" name="id2868565"></a>
+  <a class="indexterm" name="id2868573"></a>
+  <a class="indexterm" name="id2868584"></a>
+  <a class="indexterm" name="id2868593"></a>
+  <a class="indexterm" name="id2868575"></a>
+  <a class="indexterm" name="id2868612"></a>
+  <a class="indexterm" name="id2868620"></a>
+  <a class="indexterm" name="id2868630"></a>
+  <a class="indexterm" name="id2868640"></a>
+  <a class="indexterm" name="id2868650"></a>
+  <a class="indexterm" name="id2868642"></a>
+  <a class="indexterm" name="id2868670"></a>
+  <a class="indexterm" name="id2868678"></a>
+  <a class="indexterm" name="id2868688"></a>
+  <a class="indexterm" name="id2868698"></a>
+  <a class="indexterm" name="id2868708"></a>
+  <a class="indexterm" name="id2868680"></a>
+  <a class="indexterm" name="id2868727"></a>
+  <a class="indexterm" name="id2868736"></a>
+  <a class="indexterm" name="id2868746"></a>
+  <a class="indexterm" name="id2868737"></a>
+  <a class="indexterm" name="id2868765"></a>
+  <a class="indexterm" name="id2868776"></a>
+  <a class="indexterm" name="id2868767"></a>
+  <a class="indexterm" name="id2868794"></a>
+  <a class="indexterm" name="id2868786"></a>
+  <a class="indexterm" name="id2868813"></a>
+  <a class="indexterm" name="id2868823"></a>
+  <a class="indexterm" name="id2868833"></a>
+  <a class="indexterm" name="id2868843"></a>
+  <a class="indexterm" name="id2868834"></a>
+  <a class="indexterm" name="id2868845"></a>
+  <a class="indexterm" name="id2868873"></a>
+  <a class="indexterm" name="id2868862"></a>
+  <a class="indexterm" name="id2868891"></a>
+  <a class="indexterm" name="id2868902"></a>
+  <a class="indexterm" name="id2868893"></a>
+  <a class="indexterm" name="id2868920"></a>
+  <a class="indexterm" name="id2868930"></a>
+  <a class="indexterm" name="id2868938"></a>
+  <a class="indexterm" name="id2868950"></a>
+  <a class="indexterm" name="id2868959"></a>
+  <a class="indexterm" name="id2868968"></a>
+  <a class="indexterm" name="id2868977"></a>
+  <a class="indexterm" name="id2868987"></a>
+  <a class="indexterm" name="id2868995"></a>
+  <a class="indexterm" name="id2869007"></a>
+  <a class="indexterm" name="id2869016"></a>
+  <a class="indexterm" name="id2869026"></a>
+  <a class="indexterm" name="id2869035"></a>
+  <a class="indexterm" name="id2869045"></a>
+  <a class="indexterm" name="id2869053"></a>
+  <a class="indexterm" name="id2869064"></a>
+  <a class="indexterm" name="id2869027"></a>
+  <a class="indexterm" name="id2869084"></a>
+  <a class="indexterm" name="id2869091"></a>
+  <a class="indexterm" name="id2869103"></a>
+  <a class="indexterm" name="id2869093"></a>
+  <a class="indexterm" name="id2869121"></a>
+  <a class="indexterm" name="id2869131"></a>
+  <a class="indexterm" name="id2869142"></a>
+  <a class="indexterm" name="id2869150"></a>
+  <a class="indexterm" name="id2869160"></a>
+  <a class="indexterm" name="id2869151"></a>
+  <a class="indexterm" name="id2869178"></a>
+  <a class="indexterm" name="id2869189"></a>
+  <a class="indexterm" name="id2869180"></a>
+  <a class="indexterm" name="id2869208"></a>
+  <a class="indexterm" name="id2869218"></a>
+  <a class="indexterm" name="id2869228"></a>
+  <a class="indexterm" name="id2869238"></a>
+  <a class="indexterm" name="id2869210"></a>
+  <a class="indexterm" name="id2869257"></a>
+  <a class="indexterm" name="id2869265"></a>
+  <a class="indexterm" name="id2869275"></a>
+  <a class="indexterm" name="id2869285"></a>
+  <a class="indexterm" name="id2869295"></a>
+  <a class="indexterm" name="id2869305"></a>
+  <a class="indexterm" name="id2869314"></a>
+  <a class="indexterm" name="id2869325"></a>
+  <a class="indexterm" name="id2869334"></a>
+  <a class="indexterm" name="id2869344"></a>
+  <a class="indexterm" name="id2869316"></a>
+  <a class="indexterm" name="id2869362"></a>
+  <a class="indexterm" name="id2869370"></a>
+  <a class="indexterm" name="id2869381"></a>
+  <a class="indexterm" name="id2869391"></a>
+  <a class="indexterm" name="id2869401"></a>
+  <a class="indexterm" name="id2869382"></a>
+  <a class="indexterm" name="id2869420"></a>
+  <a class="indexterm" name="id2869429"></a>
+  <a class="indexterm" name="id2869439"></a>
+  <a class="indexterm" name="id2869431"></a>
+  <a class="indexterm" name="id2869457"></a>
+  <a class="indexterm" name="id2869469"></a>
+  <a class="indexterm" name="id2869459"></a>
+  <a class="indexterm" name="id2869487"></a>
+  <a class="indexterm" name="id2869497"></a>
+  <a class="indexterm" name="id2869488"></a>
+  <a class="indexterm" name="id2869515"></a>
+  <a class="indexterm" name="id2869526"></a>
+  <a class="indexterm" name="id2869536"></a>
+  <a class="indexterm" name="id2869545"></a>
+  <a class="indexterm" name="id2869556"></a>
+  <a class="indexterm" name="id2869565"></a>
+  <a class="indexterm" name="id2869527"></a>
+  <a class="indexterm" name="id2869583"></a>
+  <a class="indexterm" name="id2869547"></a>
+  <a class="indexterm" name="id2869603"></a>
+  <a class="indexterm" name="id2869614"></a>
+  <a class="indexterm" name="id2869623"></a>
+  <a class="indexterm" name="id2869605"></a>
+  <a class="indexterm" name="id2869642"></a>
+  <a class="indexterm" name="id2869652"></a>
+  <a class="indexterm" name="id2869644"></a>
+  <a class="indexterm" name="id2869672"></a>
+  <a class="indexterm" name="id2869654"></a>
+  <a class="indexterm" name="id2869692"></a>
+  <a class="indexterm" name="id2869701"></a>
+  <a class="indexterm" name="id2869710"></a>
+  <a class="indexterm" name="id2869702"></a>
+  <a class="indexterm" name="id2869703"></a>
+  <a class="indexterm" name="id2869740"></a>
+  <a class="indexterm" name="id2869729"></a>
+  <a class="indexterm" name="id2869758"></a>
+  <a class="indexterm" name="id2869769"></a>
+  <a class="indexterm" name="id2869778"></a>
+  <a class="indexterm" name="id2869789"></a>
+  <a class="indexterm" name="id2869798"></a>
+  <a class="indexterm" name="id2869808"></a>
+  <a class="indexterm" name="id2869818"></a>
+  <a class="indexterm" name="id2869828"></a>
+  <a class="indexterm" name="id2869837"></a>
+  <a class="indexterm" name="id2869848"></a>
+  <a class="indexterm" name="id2869857"></a>
+  <a class="indexterm" name="id2869867"></a>
+  <a class="indexterm" name="id2869858"></a>
+  <a class="indexterm" name="id2869839"></a>
+  <a class="indexterm" name="id2869893"></a>
+  <a class="indexterm" name="id2869903"></a>
+  <a class="indexterm" name="id2869912"></a>
+  <a class="indexterm" name="id2869895"></a>
+  <a class="indexterm" name="id2869932"></a>
+  <a class="indexterm" name="id2869914"></a>
+  <a class="indexterm" name="id2869951"></a>
+  <a class="indexterm" name="id2869941"></a>
+  <a class="indexterm" name="id2869971"></a>
+  <a class="indexterm" name="id2869980"></a>
+  <a class="indexterm" name="id2869991"></a>
+  <a class="indexterm" name="id2869981"></a>
+  <a class="indexterm" name="id2870009"></a>
+  <a class="indexterm" name="id2870017"></a>
+  <a class="indexterm" name="id2870028"></a>
+  <a class="indexterm" name="id2870038"></a>
+  <a class="indexterm" name="id2870019"></a>
+  <a class="indexterm" name="id2870058"></a>
+  <a class="indexterm" name="id2870047"></a>
+  <a class="indexterm" name="id2870076"></a>
+  <a class="indexterm" name="id2870049"></a>
+  <a class="indexterm" name="id2870096"></a>
+  <a class="indexterm" name="id2870105"></a>
+  <a class="indexterm" name="id2870115"></a>
+  <a class="indexterm" name="id2870124"></a>
+  <a class="indexterm" name="id2870135"></a>
+  <a class="indexterm" name="id2870142"></a>
+  <a class="indexterm" name="id2870153"></a>
+  <a class="indexterm" name="id2870162"></a>
+  <a class="indexterm" name="id2870171"></a>
+  <a class="indexterm" name="id2870180"></a>
+  <a class="indexterm" name="id2870172"></a>
+  <a class="indexterm" name="id2870182"></a>
+  <a class="indexterm" name="id2870125"></a>
+  <a class="indexterm" name="id2870201"></a>
+  <a class="indexterm" name="id2870230"></a>
+  <a class="indexterm" name="id2870240"></a>
+  <a class="indexterm" name="id2870219"></a>
+  <a class="indexterm" name="id2870242"></a>
+  <a class="indexterm" name="id2870266"></a>
+  <a class="indexterm" name="id2870276"></a>
+  <a class="indexterm" name="id2870286"></a>
+  <a class="indexterm" name="id2870296"></a>
+  <a class="indexterm" name="id2870288"></a>
+  <a class="indexterm" name="id2870298"></a>
+  <a class="indexterm" name="id2870326"></a>
+  <a class="indexterm" name="id2870315"></a>
+  <a class="indexterm" name="id2870344"></a>
+  <a class="indexterm" name="id2870355"></a>
+  <a class="indexterm" name="id2870346"></a>
+  <a class="indexterm" name="id2870374"></a>
+  <a class="indexterm" name="id2870383"></a>
+  <a class="indexterm" name="id2870375"></a>
+  <a class="indexterm" name="id2870401"></a>
+  <a class="indexterm" name="id2870411"></a>
+  <a class="indexterm" name="id2870421"></a>
+  <a class="indexterm" name="id2870430"></a>
+  <a class="indexterm" name="id2870440"></a>
+  <a class="indexterm" name="id2870448"></a>
+  <a class="indexterm" name="id2870460"></a>
+  <a class="indexterm" name="id2870450"></a>
+  <a class="indexterm" name="id2870478"></a>
+  <a class="indexterm" name="id2870486"></a>
+  <a class="indexterm" name="id2870498"></a>
+  <a class="indexterm" name="id2870488"></a>
+  <a class="indexterm" name="id2870499"></a>
+  <a class="indexterm" name="id2870527"></a>
+  <a class="indexterm" name="id2870518"></a>
+  <a class="indexterm" name="id2870546"></a>
+  <a class="indexterm" name="id2870556"></a>
+  <a class="indexterm" name="id2870549"></a>
+  <a class="indexterm" name="id2870574"></a>
+  <a class="indexterm" name="id2870567"></a>
+  <a class="indexterm" name="id2870593"></a>
+  <a class="indexterm" name="id2870604"></a>
+  <a class="indexterm" name="id2870613"></a>
+  <a class="indexterm" name="id2870623"></a>
+  <a class="indexterm" name="id2870631"></a>
+  <a class="indexterm" name="id2870643"></a>
+  <a class="indexterm" name="id2870575"></a>
+  <a class="indexterm" name="id2870661"></a>
+  <a class="indexterm" name="id2870633"></a>
+  <a class="indexterm" name="id2870662"></a>
+  <a class="indexterm" name="id2870689"></a>
+  <a class="indexterm" name="id2870699"></a>
+  <a class="indexterm" name="id2870710"></a>
+  <a class="indexterm" name="id2870719"></a>
+  <a class="indexterm" name="id2870729"></a>
+  <a class="indexterm" name="id2870739"></a>
+  <a class="indexterm" name="id2870749"></a>
+  <a class="indexterm" name="id2870758"></a>
+  <a class="indexterm" name="id2870769"></a>
+  <a class="indexterm" name="id2870778"></a>
+  <a class="indexterm" name="id2870786"></a>
+  <a class="indexterm" name="id2870797"></a>
+  <a class="indexterm" name="id2870806"></a>
+  <a class="indexterm" name="id2870788"></a>
+  <a class="indexterm" name="id2870825"></a>
+  <a class="indexterm" name="id2870834"></a>
+  <a class="indexterm" name="id2870826"></a>
+  <a class="indexterm" name="id2870836"></a>
+  <a class="indexterm" name="id2870863"></a>
+  <a class="indexterm" name="id2870854"></a>
+  <a class="indexterm" name="id2870865"></a>
+  <a class="indexterm" name="id2870893"></a>
+  <a class="indexterm" name="id2870883"></a>
+  <a class="indexterm" name="id2870912"></a>
+  <a class="indexterm" name="id2870922"></a>
+  <a class="indexterm" name="id2870932"></a>
+  <a class="indexterm" name="id2870913"></a>
+  <a class="indexterm" name="id2870951"></a>
+  <a class="indexterm" name="id2870959"></a>
+  <a class="indexterm" name="id2870970"></a>
+  <a class="indexterm" name="id2870980"></a>
+  <a class="indexterm" name="id2870988"></a>
+  <a class="indexterm" name="id2870998"></a>
+  <a class="indexterm" name="id2871008"></a>
+  <a class="indexterm" name="id2871017"></a>
+  <a class="indexterm" name="id2871028"></a>
+  <a class="indexterm" name="id2871019"></a>
+  <a class="indexterm" name="id2871044"></a>
+  <a class="indexterm" name="id2871037"></a>
+  <a class="indexterm" name="id2871067"></a>
+  <a class="indexterm" name="id2871058"></a>
+  <a class="indexterm" name="id2871069"></a>
+  <a class="indexterm" name="id2871086"></a>
+  <a class="indexterm" name="id2871107"></a>
+  <a class="indexterm" name="id2871116"></a>
+  <a class="indexterm" name="id2871108"></a>
+  <a class="indexterm" name="id2871136"></a>
+  <a class="indexterm" name="id2871145"></a>
+  <a class="indexterm" name="id2871155"></a>
+  <a class="indexterm" name="id2871163"></a>
+  <a class="indexterm" name="id2871174"></a>
+  <a class="indexterm" name="id2871184"></a>
+  <a class="indexterm" name="id2871165"></a>
+  <a class="indexterm" name="id2871202"></a>
+  <a class="indexterm" name="id2871213"></a>
+  <a class="indexterm" name="id2871223"></a>
+  <a class="indexterm" name="id2871232"></a>
+  <a class="indexterm" name="id2871240"></a>
+  <a class="indexterm" name="id2871252"></a>
+  <a class="indexterm" name="id2871262"></a>
+  <a class="indexterm" name="id2871270"></a>
+  <a class="indexterm" name="id2871280"></a>
 </div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="macros.html">ZurÃ¼ck</a>Â </td>
+<a accesskey="p" href="macros.html">Zurück</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch05.html">Nach oben</a></td>
-<td width="40%" align="right">Â <a accesskey="n" href="hostchecks.html">Weiter</a>
+<td width="40%" align="right"> <a accesskey="n" href="hostchecks.html">Weiter</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Makros verstehen und wie sie arbeitenÂ </td>
+<td width="40%" align="left" valign="top">Makros verstehen und wie sie arbeiten </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Zum Anfang</a></td>
-<td width="40%" align="right" valign="top">Â Host-PrÃ¼fungen (Host checks)</td>
+<td width="40%" align="right" valign="top"> Host-Prüfungen (Host checks)</td>
 </tr>
 </table>
 </div>
-<P class="copyright">Â© 2009-2010 Icinga Development Team, http://www.icinga.org</P>
+<P class="copyright">© 2009-2011 Icinga Development Team, http://www.icinga.org</P>
 </body>
 </html>

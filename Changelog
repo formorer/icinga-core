@@ -1,6 +1,87 @@
 #######################
-Icinga 1.3.x Change Log
+Icinga 1.5.x Change Log
 #######################
+
+1.5.0 - ??/08/2011
+
+ENHANCEMENTS
+* idoutils: add update-version-schema for updating the idoutils db schema versions automagically, independant of update-version #1616
+
+* classic ui: Added option to suppress coloring of hosts/services in maintenance (Matthew Brooks) #992
+* classic ui: Added option to show partial hostgroups (Matthew Brooks) #1013
+
+FIXES
+* core: remove duplicated unlinks for check result files with multiple results #1615
+* core: fix retain status file over an init script reload #1579
+
+* classic ui: fix cross site scripting vulnerability in config.cgi on config expander arguments #1605
+* classic ui: remove sidebar.html inclusion in index.html causing troubles on reload #1632
+
+* install: fix event handlers cmd file location in contrib #1501
+
+
+1.4.0 - 11/05/2011
+
+ENHANCEMENTS
+* core: re-allow perfdata with empty results being put on perfdata channel, disable via opt-in cfg option #1413
+* core: add downtime delete commands made "distributable" by deleting by host group name, host name or start time/comment (Opsview team) #1344
+* core: add 'module' as object config, allowing cfg_dir usage loading multiple modules without touching broker_module in icinga.cfg #162
+
+* classic ui: merged reading of logfiles into one function. It's easier now to add enhancements. #972
+* classic ui: Adding some more icons to showlog.cgi #1239
+* classic ui: adding entry time of comments in tooltip's in status.cgi #1244
+* classic ui: Searching in the Icinga Logfile #516
+* classic ui: changed print_generic_error() function to support csv output #1270
+* classic ui: Added parameter to get_log_entries() function to use beginning and end timestamp #1271
+* classic ui: Show downtime in host detail and service detail view #1141
+* classic ui: Store cmd.cgi submissions in log #1161
+* classic ui: enforce a need for comment for action taken in cmd.cgi #610
+* classic ui: Add config option to set start of week (sunday/monday) #1269
+* classic ui: Allow display of Network Outages for authorized hosts #1320 (thx mjbrooks)
+* classic ui: remove useless memory allocation when reading logfiles reverse (lifo) #1387
+* classic ui: speed up data processing in summary.cgi #1392
+* classic ui: Add an alternative CGI driven view for the top frame (Matthew Brooks) #1406
+	** hosts/services counts with active unack, passiv unack, acked, totals (title tooltip)
+	** performance information on the right
+	** added urls and appropriate url filters
+* classic ui: Added json output "&jsonoutput" to nearly all pages in classic ui #1217
+* classic ui: allow searching for host display_name normal and via regexp #1393
+* classic ui: display host/service dependencies in host/service details in extinfo.cgi #1300
+* classic ui: add module object definition for viewing with config.cgi including csv+json output #162
+
+* idoutils: add db socket as config option in ido2db.cfg for mysql and postgresql #1107
+* idoutils: reduce housekeeping cycle to every 3600s, set housekeeping thread startup delay to 300s #1157
+* idoutils: introduce schema version and check against that instead of program version #1368
+* idoutils: install sample (commented) config in modules/idoutils.cfg using new 'module' object config #162
+* idoutils: add configure flag to set ido instance_name other than 'default' in idomod.cfg #1167
+
+* config: increase default debug file size to 100M #1316
+
+* install: add --with-ext-cmd-file-dir= to configure, allowing icinga.cmd dir to be altered #1268
+* install: add make option to install doxygen development docu "install-dev-docu" #1309
+
+
+FIXES
+* core: fix flexible downtime on service hard state change doesn't get triggered/activated #1128
+* core: fix timeperiods daylight saving time problem (Luca Di Stefano) #1370
+
+* classic ui: Fixing tooltip's in status.cgi, not showing messages with carriage return #1244
+* classic ui: fixed csv export link to make it XSS save (IE) #1275
+* classic ui: cmd.cgi: acknowledgement multiline comment -> command not being processed #1257
+* classic ui: statusmap.cgi: fixed XSS vulnerability #1281
+* classic ui: fix display_name survive reconfiguration and is use instead of host_name in classic ui #1282
+* classic ui: don't show pause/continue urls on non-refreshable pages
+* classic ui: fix segfaults if no default_user_name= given in cgi.cfg #1289
+* classic ui: Prevent statusmap.cgi markup from drawing when host should not be drawn (Matthew Brooks) #1383
+
+* idoutils: update oracle hints in ido2db.cfg with tnsnames.ora and port cfg #1283
+* idoutils: idomod: larger buffer size (by Opsview) #1286
+* idoutils: fix rdbms deconnect after connection error #1313
+* idoutils: fix race condition when issueing multiple reloads results in hanging IDO2DB processes #1410
+* idoutils: fix postgresql: integer not big enough for bytes_processed (Stig Sandbeck) #1401
+
+* install: use *.so instead of *.o for solaris, patch in contrib/solaris/ #524
+
 
 1.3.0 - 16/02/2011
 
@@ -16,17 +97,51 @@ ENHANCEMENTS
 * classic ui: adding "Attempt" column to host status detail list
 * classic ui: change default url target frame to main #1014
 * classic ui: add url_stylesheet_path to cgi.cfg to allow custom css path #898
+* classic ui: change color of unknown/unreachable state to more warm signalling purple #1029
+* classic ui: move "add service/host comment" to the command box on extinfo.cgi, abandon remove all in favor of multiple comment delete #837
+* classic ui: add trend timeperiod feature to locate the next problem (Carsten Emde) #1074
+* classic ui: add configurable http charset support (default utf-8) within the cgis #1002
+* classic ui: add csv export to config.cgi #1052
+* classic ui: beautify and modularize error msg #1198
 
 * core: add support for same host service dependencies with servicegroups (Mathieu Gagné) #928
 * core: allow eventbroker modules to override sending notifications (Matthieu Kermagoret) #1057
 * core: allow empty hostgroup aissgments for services as opt-in config option (Max Schubert) #949
+* core: do not copy broker modules (OMD patch) #896
+* core: fix host alias saved in resention data survived reconfiguration #935
+* core: add basic dualstacked IPv6 support (core/cgi patch by Julius Kriukas, slight changes on Icinga, own IDOUtils backend code) #674
+	** address6 as host definition attribute (to be used dual stacked, address stays default!)
+	** host macro $HOSTADDRESS6$ for e.g. check-host-alive
+	** if not set, host name is set as default (same behaviour as address)
+	** shown in classic ui only if set (not matching host name)
+	** idoutils mysql/postgresql/oracle hosts config table gets new column 'address6' populated
+	** note: as of this release, idoutils depends hard on include/objects.h of icinga core. internal idomod api changed, new datatype added.
 
 * install: add sysconfig source to init script #1015
 * install: set -Wall gcc flags based on os/compiler #959
+* install: create doxygen templates and add to html/doxygen #446
 
 * idoutils: add index to table icinga_statehistory for usage in reporting module #957
+* idoutils: add check for configuration file availability for idomod and ido2db (idea from Ricardo Maraschini) #1087
+* idoutils: add cfg option to enable/disable oci errors to syslog through error handler #1060
+* idoutils: add dbversion upgrade scripts for 1.3 #633
+* idoutils: add dbversion check in ido2db and print error to syslog in case of non-matching #633
+* idoutils: do not clear host|service|scheduleddowntime status tables on core restart/reload (inspired by Opsview) #1106 #1176
+* idoutils: only insert service and host checks when they are finally processed, increase performance by replacing insert/update with single insert (idea by Opsview/Opsera Ltd with mysql and servicechecks) #1100
+	** servicechecks table is heavily used next to hostchecks
+	**- if the core does a host|service check, there are 3 situations the event broker will get data: INITIATE, ASYNC_PRECHECK, PROCESSED
+	** idomod/ido2db process INITIATE (insert) and PROCESSED (update) til now
+	** now, ido2db takes only PROCESSED with a full insert, mysql and postgres use sql standard insert, oracle a prepared statement with insert
+	** reduced number of check events sent to IDOUtils by 66%
+	** reduced number of fired SQL statements by 50%
+	** changed 1 SQL statement for each rdbms, making it smaller and saving index lookup (and virtual table by merge in oracle)
+	** index savings, and dropped unique keys - check upgrade sql scripts for mysql/postgresql/oracle
+* idoutils: add indexes for logentries, preventing heavy load #1055
+* idoutils: enable max_logentries_age & max_acknowledgements_age with 31 days for cleaning by default in ido2db.cfg #1155
+* idoutils: add multi valued inserts for host|service_contacts instead of single insert/update loops (thx Opsview) #1108
 
 * contrib: bring daemonchk.cgi building into shape (Elan Ruusamäe) #1051
+
 
 FIXES
 * core: base/utils: Refactor my_fcopy() (Andreas Ericsson) #427
@@ -41,6 +156,15 @@ FIXES
 * core: children should no longer hang on mutex locks held in parent for localtime() (and similar) calls (Andreas Ericsson) #1039
 * core: debug logging is now properly serialized, using soft-locking with a timeout of 150 milliseconds to avoid multiple threads competing for the privilege to write debug info (Andreas Ericsson) #1035
 * core: fix parsing of long plugin output for async host checks (Jochen Bern) #1046
+* core: log error reason when failing to open the status file (Andreas Ericsson) #1078
+* core: fix allocate memory once for *GROUPMEMBERS macros (Stephane Lapie) #1076
+* core: protect against poorly behaving thread-libraries (Andreas Ericsson) #1080
+* core: fix extraneous alerts for services when host is down (Ton Voon) #1097
+* core: reduce duplication of code for is_contact_member_of_contactgroup (Stephen Gran) #1126
+* core: fix bug with passive host checks being incorrectly sent to event brokers as active checks (Ethan Galstad) #1133
+* core: fix bug where passive host check status updates were not being propagated to event brokers (Ethan Galstad) #1134
+* core: fix first_notification_delay logic (GalaxyMaster) #1145
+* core: fix race condition on flexible downtime commands when duration not set or zero #1061
 
 * classic ui: change servicestatus letter color to default black, not grey #946
 * classic ui: fix waste of cpu in status summary (TomTom) #933
@@ -54,12 +178,24 @@ FIXES
 * classic ui: fix status totals - incoherence between displayed list and values #993
 * classic ui: fix deleting host comments won't work #994
 * classic ui: changed naming of cgi config options for showlog_current_state(s) and showlog_current_state(s) #899
+* classic ui: fix form/table DOM confusion in cgis (Sven-Göran Bergh) #1081
+* classic ui: fix tac.cgi with incorrect links to filtered host details (Yannick Charton) #1065
+* classic ui: fix missing html label/text for searchbox () #John Giacalone #1114
+* classic ui: fix authorized_for_read_only can execute command over the status.cgi #1154
 
 * install: fix LD_LIBRARY_PATH export on non bash in idoutils init script (Alexander Skwar) #936
 * install: add log2ido for adding archived logs onto socket/rdbms #926
 * install: add hint to configure that libpq is not yet fully working #622
 
 * idoutils: fix unescape display name (Matthieu Kermagoret) #1027
+* idoutils: fix solaris <= lacks asprintf (Julian Wiesner) #1048
+* idoutils: fix unfreed oci handles in prepared statements #1093
+* idoutils: increase debugoutput for conversion functions #1094
+* idoutils: fix libdbi 0.8.3 deprecated functions dbi_result_get_(u)long #559
+* idoutils: fix after core restart/reload on oracle db ORA-01403: no data found #1059
+* idoutils: fix string escaping for backslashes in postgresql #1121
+* idoutils: fix check for empty command args in host|service|notification definitions #1047
+
 
 1.2.1 - 25/10/2010
 

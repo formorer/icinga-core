@@ -3,7 +3,7 @@
  * TRENDS.C -  Icinga State Trends CGI
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -27,6 +27,7 @@
 #include "../include/objects.h"
 #include "../include/comments.h"
 #include "../include/statusdata.h"
+#include "../include/readlogs.h"
 
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
@@ -50,6 +51,7 @@ extern int     log_rotation_method;
 
 extern host *host_list;
 extern service *service_list;
+extern logentry *entry_list;
 
 #include "../include/skiplist.h"
 extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
@@ -81,22 +83,6 @@ extern skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 #define GET_INPUT_HOST_TARGET   2
 #define GET_INPUT_SERVICE_TARGET 3
 #define GET_INPUT_OPTIONS       4
-
-/* standard report times */
-#define TIMEPERIOD_CUSTOM	0
-#define TIMEPERIOD_TODAY	1
-#define TIMEPERIOD_YESTERDAY	2
-#define TIMEPERIOD_THISWEEK	3
-#define TIMEPERIOD_LASTWEEK	4
-#define TIMEPERIOD_THISMONTH	5
-#define TIMEPERIOD_LASTMONTH	6
-#define TIMEPERIOD_THISQUARTER	7
-#define TIMEPERIOD_LASTQUARTER	8
-#define TIMEPERIOD_THISYEAR	9
-#define TIMEPERIOD_LASTYEAR	10
-#define TIMEPERIOD_LAST24HOURS	11
-#define TIMEPERIOD_LAST7DAYS	12
-#define TIMEPERIOD_LAST31DAYS   13
 
 #define MIN_TIMESTAMP_SPACING	10
 
@@ -150,6 +136,7 @@ int assume_initial_states=TRUE;
 int assume_state_retention=TRUE;
 int assume_states_during_notrunning=TRUE;
 int include_soft_states=FALSE;
+int ignore_daemon_restart=FALSE;
 
 
 void graph_all_trend_data(void);
@@ -166,7 +153,7 @@ void add_archived_state(int,int,time_t,char *);
 void free_archived_state_list(void);
 void read_archived_state_data(void);
 void scan_log_file_for_archived_state_data(char *);
-void convert_timeperiod_to_times(int);
+void scan_log_file_for_archived_state_data_old(char *);
 void compute_report_times(void);
 void get_time_breakdown_string(unsigned long,unsigned long,char *,char *buffer,int);
 
@@ -183,7 +170,7 @@ int color_yellow=0;
 int color_orange=0;
 FILE *image_file=NULL;
 
-int image_width=600;
+int image_width=900;
 int image_height=300;
 
 #define HOST_DRAWING_WIDTH	498
@@ -233,6 +220,8 @@ unsigned long time_warning=0L;
 unsigned long time_unknown=0L;
 unsigned long time_critical=0L;
 
+int problem_found;
+
 int display_type=DISPLAY_NO_TRENDS;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -266,17 +255,22 @@ int main(int argc, char **argv){
 	time_t t3;
 	time_t current_time;
 	struct tm *t;
-
+	time_t old_t1;
+	time_t old_t2;
+	archived_state *temp_as;
+	time_t problem_t1=0;
+	time_t problem_t2=0;
+	time_t margin;
 
 	/* reset internal CGI variables */
 	reset_cgi_vars();
-	
+
 	/* read the CGI configuration file */
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			cgi_config_file_error(get_cgi_config_location());
+			print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -287,7 +281,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			main_config_file_error(main_config_file);
+			print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -328,7 +322,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			object_data_error();
+			print_error(NULL, ERROR_CGI_OBJECT_DATA);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -339,7 +333,7 @@ int main(int argc, char **argv){
 	if(result==ERROR && daemon_check==TRUE){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			status_data_error();
+			print_error(NULL, ERROR_CGI_STATUS_DATA);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -363,8 +357,11 @@ int main(int argc, char **argv){
 		if(t1>t2)
 			t1=t2-(60*60*24);
 	        }
-			
+
 	if(content_type==HTML_CONTENT && display_header==TRUE){
+
+		old_t1=t1;
+		old_t2=t2;
 
 		/* begin top table */
 		printf("<table border=0 width=100%% cellspacing=0 cellpadding=0>\n");
@@ -381,6 +378,69 @@ int main(int argc, char **argv){
 			snprintf(temp_buffer,sizeof(temp_buffer)-1,"Host and Service State Trends");
 		temp_buffer[sizeof(temp_buffer)-1]='\x0';
 		display_info_table(temp_buffer,FALSE,&current_authdata, daemon_check);
+
+		if (timeperiod_type==TIMEPERIOD_NEXTPROBLEM) {
+			problem_t1=0;
+			problem_t2=0;
+
+			t1=t2;
+			t2=current_time;
+			read_archived_state_data();
+			problem_found=FALSE;
+
+			if(display_type==DISPLAY_HOST_TRENDS){
+				for(temp_as=as_list;temp_as!=NULL;temp_as=temp_as->next){
+					if((temp_as->entry_type==HOST_DOWN || temp_as->entry_type==HOST_UNREACHABLE) && temp_as->time_stamp>t1){
+						problem_t1=temp_as->time_stamp;
+						problem_found=TRUE;
+						break;
+					}
+				}
+
+				if(problem_found==TRUE){
+					for(;temp_as!=NULL;temp_as=temp_as->next){
+						if(temp_as->entry_type==AS_HOST_UP && temp_as->time_stamp>problem_t1){
+							problem_t2=temp_as->time_stamp;
+							break;
+						}
+					}
+				}
+			} else{
+				for(temp_as=as_list;temp_as!=NULL;temp_as=temp_as->next){
+					if((temp_as->entry_type==AS_SVC_UNKNOWN || temp_as->entry_type==AS_SVC_CRITICAL || temp_as->entry_type==AS_SVC_WARNING) && temp_as->time_stamp>t1){
+						problem_t1=temp_as->time_stamp;
+						problem_found=TRUE;
+						break;
+					}
+				}
+
+				if(problem_found==TRUE){
+					for(;temp_as!=NULL;temp_as=temp_as->next){
+						if(temp_as->entry_type==AS_SVC_OK && temp_as->time_stamp>problem_t1){
+							problem_t2=temp_as->time_stamp;
+							break;
+						}
+					}
+				}
+			}
+
+			if(problem_found==TRUE) {
+				if (problem_t2==0){
+					margin=12*60*60;
+					problem_t2=problem_t1;
+				} else {
+					margin=(problem_t2-problem_t1)/2;
+				}
+
+				t1=problem_t1-margin;
+				t2=problem_t2+margin;
+			}
+		}
+
+		if (timeperiod_type==TIMEPERIOD_NEXTPROBLEM && problem_found==FALSE){
+			t1=old_t1;
+			t2=old_t2;
+		}
 
 		if(display_type!=DISPLAY_NO_TRENDS && input_type==GET_INPUT_NONE){
 
@@ -452,15 +512,20 @@ int main(int argc, char **argv){
 		/* right hand column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
+		printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 
 		if(display_type!=DISPLAY_NO_TRENDS && input_type==GET_INPUT_NONE){
 
-			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
+			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
+			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
+
 			if(display_popups==FALSE)
 				printf("<input type='hidden' name='nopopups' value=''>\n");
 			if(use_map==FALSE)
 				printf("<input type='hidden' name='nomap' value=''>\n");
+			if(ignore_daemon_restart==TRUE)
+				printf("<input type='hidden' name='ignorerestart' value=''>\n");
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
 			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
@@ -472,8 +537,6 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='includesoftstates' value='%s'>\n",(include_soft_states==TRUE)?"yes":"no");
 
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>First assumed %s state:</td><td CLASS='optBoxItem' valign=top align=left>Backtracked archives:</td></tr>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>");
 			if(display_type==DISPLAY_HOST_TRENDS){
 				printf("<input type='hidden' name='initialassumedservicestate' value='%d'>",initial_assumed_service_state);
 				printf("<select name='initialassumedhoststate'>\n");
@@ -513,6 +576,10 @@ int main(int argc, char **argv){
 			printf("<option value=lastmonth %s>Last Month\n",(timeperiod_type==TIMEPERIOD_LASTMONTH)?"SELECTED":"");
 			printf("<option value=thisyear %s>This Year\n",(timeperiod_type==TIMEPERIOD_THISYEAR)?"SELECTED":"");
 			printf("<option value=lastyear %s>Last Year\n",(timeperiod_type==TIMEPERIOD_LASTYEAR)?"SELECTED":"");
+			if(display_type==DISPLAY_HOST_TRENDS)
+				printf("<option value=nextproblem %s>Next Host Problem\n",(timeperiod_type==TIMEPERIOD_NEXTPROBLEM)?"SELECTED":"");
+			else
+				printf("<option value=nextproblem %s>Next Service Problem\n",(timeperiod_type==TIMEPERIOD_NEXTPROBLEM)?"SELECTED":"");
 			printf("</select>\n");
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='zoom'>\n");
@@ -530,8 +597,6 @@ int main(int argc, char **argv){
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td></tr>\n");
-
-			printf("</form>\n");
 		        }
 
 		/* display context-sensitive help */
@@ -557,6 +622,7 @@ int main(int argc, char **argv){
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 
@@ -581,8 +647,12 @@ int main(int argc, char **argv){
 	        }
 	if(is_authorized==FALSE){
 
-		if(content_type==HTML_CONTENT)
-			printf("<P><DIV ALIGN=CENTER CLASS='errorMessage'>It appears as though you are not authorized to view information for the specified %s...</DIV></P>\n",(display_type==DISPLAY_HOST_TRENDS)?"host":"service");
+		if(content_type==HTML_CONTENT) {
+			if (display_type==DISPLAY_HOST_TRENDS)
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified host...",NULL,0);
+			else
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified service...",NULL,0);
+		}
 
 		document_footer(CGI_ID);
 		free_memory();
@@ -590,6 +660,13 @@ int main(int argc, char **argv){
 	        }
 #endif
 
+	if(timeperiod_type==TIMEPERIOD_NEXTPROBLEM && problem_found==FALSE) {
+		print_generic_error_message("No problem found between end of display and end of recording.",NULL,0);
+
+		document_footer(CGI_ID);
+		free_memory();
+		return ERROR;
+	}
 
 	/* set drawing parameters, etc */
 
@@ -599,7 +676,7 @@ int main(int argc, char **argv){
 	        }
 	else{
 		image_height=300;
-		image_width=600;
+		image_width=900;
 	        }
 
 	if(display_type==DISPLAY_HOST_TRENDS){
@@ -761,7 +838,7 @@ int main(int argc, char **argv){
 			if(backtrack_archives>0)
 				printf("&backtrack=%d",backtrack_archives);
 			printf("&zoom=%d",zoom_factor);
-			printf("' BORDER=0 name='trendsimage' useMap='#trendsmap' width=900>\n");
+			printf("' BORDER=0 name='trendsimage' useMap='#trendsmap' width=%d>\n", image_width);
 			printf("</DIV>\n");
 		        }
 
@@ -814,10 +891,10 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 cellspacing=0 cellpadding=10>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 
+			printf("<TABLE BORDER=0 cellspacing=0 cellpadding=10>\n");
 			printf("<tr><td class='reportSelectSubTitle' valign=center>Host:</td>\n");
 			printf("<td class='reportSelectItem' valign=center>\n");
 			printf("<select name='host'>\n");
@@ -834,8 +911,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 3'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -870,11 +947,11 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 			
-			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\" name=\"serviceform\">\n",TRENDS_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 			printf("<input type='hidden' name='host' value='%s'>\n",(first_service==NULL)?"unknown":(char *)escape_string(first_service));
 
+			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<tr><td class='reportSelectSubTitle'>Service:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
@@ -892,8 +969,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 3'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -915,12 +992,12 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 CELLPADDING=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
 			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 			if(display_type==DISPLAY_SERVICE_TRENDS)
 				printf("<input type='hidden' name='service' value='%s'>\n",escape_string(service_desc));
 
+			printf("<TABLE BORDER=0 CELLPADDING=5>\n");
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='timeperiod'>\n");
@@ -1055,10 +1132,12 @@ int main(int argc, char **argv){
 			printf("<tr><td class='reportSelectSubTitle' align=right>Suppress image map:</td><td class='reportSelectItem'><input type='checkbox' name='nomap'></td></tr>");
 			printf("<tr><td class='reportSelectSubTitle' align=right>Suppress popups:</td><td class='reportSelectItem'><input type='checkbox' name='nopopups'></td></tr>\n");
 
+			printf("<tr><td class='reportSelectSubTitle' align=right>Ignore daemon starts/restarts:</td><td class='reportSelectItem'><input type='checkbox' name='ignorerestart'></td></tr>\n");
+
 			printf("<tr><td></td><td class='reportSelectItem'><input type='submit' value='Create Report'></td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 
@@ -1077,8 +1156,8 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",TRENDS_CGI);
+			printf("<TABLE BORDER=0 cellpadding=5>\n");
 
 			printf("<tr><td class='reportSelectSubTitle' align=right>Type:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
@@ -1092,8 +1171,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 2'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -1319,6 +1398,8 @@ int process_cgivars(void){
 				timeperiod_type=TIMEPERIOD_THISYEAR;
 			else if(!strcmp(variables[x],"lastyear"))
 				timeperiod_type=TIMEPERIOD_LASTYEAR;
+			else if(!strcmp(variables[x],"nextproblem"))
+				timeperiod_type=TIMEPERIOD_NEXTPROBLEM;
 			else if(!strcmp(variables[x],"last24hours"))
 				timeperiod_type=TIMEPERIOD_LAST24HOURS;
 			else if(!strcmp(variables[x],"last7days"))
@@ -1330,7 +1411,7 @@ int process_cgivars(void){
 			else
 				continue;
 
-			convert_timeperiod_to_times(timeperiod_type);
+			convert_timeperiod_to_times(timeperiod_type,&t1,&t2);
 		        }
 
 		/* we found time argument */
@@ -1569,6 +1650,9 @@ int process_cgivars(void){
 		/* we found the nodaemoncheck option */
 		else if(!strcmp(variables[x],"nodaemoncheck"))
 			daemon_check=FALSE;
+
+		else if(!strcmp(variables[x],"ignorerestart"))
+			ignore_daemon_restart=TRUE;
 
 	        }
 
@@ -2265,7 +2349,7 @@ void add_archived_state(int entry_type, int state_type, time_t time_stamp, char 
 	        }
 
 	return;
-        }
+}
 
 
 /* frees memory allocated to the archived state list */
@@ -2314,6 +2398,30 @@ void read_archived_state_data(void){
 	printf("Newest archive: %d\n",newest_archive);
 #endif
 
+	/* Service filter */
+	add_log_filter(LOGENTRY_SERVICE_OK,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_WARNING,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_CRITICAL,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_UNKNOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_RECOVERY,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_INITIAL_STATE,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_CURRENT_STATE,LOGFILTER_INCLUDE);
+
+	/* Host filter */
+	add_log_filter(LOGENTRY_HOST_UP,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_DOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_UNREACHABLE,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_RECOVERY,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_INITIAL_STATE,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_CURRENT_STATE,LOGFILTER_INCLUDE);
+
+	if (ignore_daemon_restart==FALSE) {
+		add_log_filter(LOGENTRY_STARTUP,LOGFILTER_INCLUDE);
+		add_log_filter(LOGENTRY_RESTART,LOGFILTER_INCLUDE);
+		add_log_filter(LOGENTRY_SHUTDOWN,LOGFILTER_INCLUDE);
+		add_log_filter(LOGENTRY_BAILOUT,LOGFILTER_INCLUDE);
+	}
+
 	/* read in all the necessary archived logs */
 	for(current_archive=newest_archive;current_archive<=oldest_archive;current_archive++){
 
@@ -2326,179 +2434,174 @@ void read_archived_state_data(void){
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_state_data(filename);
-	        }
+	}
+
+	free_log_filters();
 
 	return;
-        }
-
+}
 
 
 /* grabs archives state data from a log file */
 void scan_log_file_for_archived_state_data(char *filename){
-	char *input=NULL;
-	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_service_desc[MAX_INPUT_BUFFER];
 	char *plugin_output=NULL;
 	char *temp_buffer=NULL;
-	time_t time_stamp;
-	mmapfile *thefile=NULL;
-	int state_type=0;
+	logentry *temp_entry=NULL;
+	int state_type=0,status;
 
 	/* print something so browser doesn't time out */
 	if(content_type==HTML_CONTENT){
 		printf(" ");
 		fflush(NULL);
-	        }
+	}
 
-	if((thefile=mmap_fopen(filename))==NULL){
+	status = get_log_entries(filename,NULL,FALSE,t1-(60*60*24*backtrack_archives),t2);
+
+	if (status!=READLOG_OK) {
 #ifdef DEBUG
 		printf("Could not open file '%s' for reading.\n",filename);
 #endif
+		free_log_entries();
 		return;
-	        }
+	}else{
 
 #ifdef DEBUG
-	printf("Scanning log file '%s' for archived state data...\n",filename);
+		printf("Scanning log file '%s' for archived state data...\n",filename);
 #endif
 
-	while(1){
 
-		/* free memory */
-		free(input);
-		free(input2);
-		input=NULL;
-		input2=NULL;
+		for(temp_entry=entry_list;temp_entry!=NULL;temp_entry=temp_entry->next) {
+			
+			if (ignore_daemon_restart==FALSE) {
+				/* program starts/restarts */
+				if(temp_entry->type==LOGENTRY_STARTUP)
+					add_archived_state(AS_PROGRAM_START,AS_NO_DATA,temp_entry->timestamp,"Program start");
+				if(temp_entry->type==LOGENTRY_RESTART)
+					add_archived_state(AS_PROGRAM_START,AS_NO_DATA,temp_entry->timestamp,"Program restart");
 
-		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
+				/* program stops */
+				if(temp_entry->type==LOGENTRY_SHUTDOWN)
+					add_archived_state(AS_PROGRAM_END,AS_NO_DATA,temp_entry->timestamp,"Normal program termination");
+				if(temp_entry->type==LOGENTRY_BAILOUT)
+					add_archived_state(AS_PROGRAM_END,AS_NO_DATA,temp_entry->timestamp,"Abnormal program termination");
+			}
 
-		strip(input);
+			if(display_type==DISPLAY_HOST_TRENDS){
 
-		if((input2=strdup(input))==NULL)
-			continue;
+				switch(temp_entry->type){
 
-		temp_buffer=my_strtok(input2,"]");
-		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
+					/* normal host alerts and initial/current states */
+					case LOGENTRY_HOST_DOWN:
+					case LOGENTRY_HOST_UNREACHABLE:
+					case LOGENTRY_HOST_RECOVERY:
+					case LOGENTRY_HOST_UP:
+					case LOGENTRY_HOST_INITIAL_STATE:
+					case LOGENTRY_HOST_CURRENT_STATE:
 
-		/* program starts/restarts */
-		if(strstr(input," starting..."))
-			add_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program start");
-		if(strstr(input," restarting..."))
-			add_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program restart");
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-		/* program stops */
-		if(strstr(input," shutting down..."))
-			add_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Normal program termination");
-		if(strstr(input,"Bailing out"))
-			add_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Abnormal program termination");
+						if(strcmp(host_name,entry_host_name))
+							break;
 
-		if(display_type==DISPLAY_HOST_TRENDS){
-			if(strstr(input,"HOST ALERT:") || strstr(input,"INITIAL HOST STATE:") || strstr(input,"CURRENT HOST STATE:")){
+						/* state types */
+						if(strstr(temp_entry->entry_text,";SOFT;")){
+							if(include_soft_states==FALSE)
+								break;
+							state_type=AS_SOFT_STATE;
+						        }
+						if(strstr(temp_entry->entry_text,";HARD;"))
+							state_type=AS_HARD_STATE;
 
-				free(input2);
-				if((input2=strdup(input))==NULL)
-					continue;
+						/* get the plugin output */
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						plugin_output=my_strtok(NULL,"\n");
 
-				/* get host name */
-				temp_buffer=my_strtok(input2,"]");
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						if(strstr(temp_entry->entry_text,";DOWN;"))
+							add_archived_state(AS_HOST_DOWN,state_type,temp_entry->timestamp,plugin_output);
+						else if(strstr(temp_entry->entry_text,";UNREACHABLE;"))
+							add_archived_state(AS_HOST_UNREACHABLE,state_type,temp_entry->timestamp,plugin_output);
+						else if(strstr(temp_entry->entry_text,";RECOVERY;") || strstr(temp_entry->entry_text,";UP;"))
+							add_archived_state(AS_HOST_UP,state_type,temp_entry->timestamp,plugin_output);
+						else
+							add_archived_state(AS_NO_DATA,AS_NO_DATA,temp_entry->timestamp,plugin_output);
 
-				if(strcmp(host_name,entry_host_name))
-					continue;
+						break;
+				}
+			}
 
-				/* state types */
-				if(strstr(input,";SOFT;")){
-					if(include_soft_states==FALSE)
-						continue;
-					state_type=AS_SOFT_STATE;
-				        }
-				if(strstr(input,";HARD;"))
-					state_type=AS_HARD_STATE;
-				
-				/* get the plugin output */
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				plugin_output=my_strtok(NULL,"\n");
+			if(display_type==DISPLAY_SERVICE_TRENDS){
 
-				if(strstr(input,";DOWN;"))
-					add_archived_state(AS_HOST_DOWN,state_type,time_stamp,plugin_output);
-				else if(strstr(input,";UNREACHABLE;"))
-					add_archived_state(AS_HOST_UNREACHABLE,state_type,time_stamp,plugin_output);
-				else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
-					add_archived_state(AS_HOST_UP,state_type,time_stamp,plugin_output);
-				else
-					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output);
-			        }
-		        }
-		if(display_type==DISPLAY_SERVICE_TRENDS){
-			if(strstr(input,"SERVICE ALERT:") || strstr(input,"INITIAL SERVICE STATE:") || strstr(input,"CURRENT SERVICE STATE:")){
+				switch(temp_entry->type){
 
-				free(input2);
-				if((input2=strdup(input))==NULL)
-					continue;
+					/* normal service alerts and initial/current states */
+					case LOGENTRY_SERVICE_CRITICAL:
+					case LOGENTRY_SERVICE_WARNING:
+					case LOGENTRY_SERVICE_UNKNOWN:
+					case LOGENTRY_SERVICE_RECOVERY:
+					case LOGENTRY_SERVICE_OK:
+					case LOGENTRY_SERVICE_INITIAL_STATE:
+					case LOGENTRY_SERVICE_CURRENT_STATE:
+					
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-				/* get host name */
-				temp_buffer=my_strtok(input2,"]");
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						if(strcmp(host_name,entry_host_name))
+							break;
 
-				if(strcmp(host_name,entry_host_name))
-					continue;
-				
-				/* get service description */
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-				entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+						/* get service description */
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
+						entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
 
-				if(strcmp(service_desc,entry_service_desc))
-					continue;
+						if(strcmp(service_desc,entry_service_desc))
+							break;
 
-				/* state types */
-				if(strstr(input,";SOFT;")){
-					if(include_soft_states==FALSE)
-						continue;
-					state_type=AS_SOFT_STATE;
-				        }
-				if(strstr(input,";HARD;"))
-					state_type=AS_HARD_STATE;
-				
-				/* get the plugin output */
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				plugin_output=my_strtok(NULL,"\n");
+						/* state types */
+						if(strstr(temp_entry->entry_text,";SOFT;")){
+							if(include_soft_states==FALSE)
+								break;
+							state_type=AS_SOFT_STATE;
+						}
+						if(strstr(temp_entry->entry_text,";HARD;"))
+							state_type=AS_HARD_STATE;
+						
+						/* get the plugin output */
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						plugin_output=my_strtok(NULL,"\n");
+						
+						if(strstr(temp_entry->entry_text,";CRITICAL;"))
+							add_archived_state(AS_SVC_CRITICAL,state_type,temp_entry->timestamp,plugin_output);
+						else if(strstr(temp_entry->entry_text,";WARNING;"))
+							add_archived_state(AS_SVC_WARNING,state_type,temp_entry->timestamp,plugin_output);
+						else if(strstr(temp_entry->entry_text,";UNKNOWN;"))
+							add_archived_state(AS_SVC_UNKNOWN,state_type,temp_entry->timestamp,plugin_output);
+						else if(strstr(temp_entry->entry_text,";RECOVERY;") || strstr(temp_entry->entry_text,";OK;"))
+							add_archived_state(AS_SVC_OK,state_type,temp_entry->timestamp,plugin_output);
+						else
+							add_archived_state(AS_NO_DATA,AS_NO_DATA,temp_entry->timestamp,plugin_output);
 
-				if(strstr(input,";CRITICAL;"))
-					add_archived_state(AS_SVC_CRITICAL,state_type,time_stamp,plugin_output);
-				else if(strstr(input,";WARNING;"))
-					add_archived_state(AS_SVC_WARNING,state_type,time_stamp,plugin_output);
-				else if(strstr(input,";UNKNOWN;"))
-					add_archived_state(AS_SVC_UNKNOWN,state_type,time_stamp,plugin_output);
-				else if(strstr(input,";RECOVERY;") || strstr(input,";OK;"))
-					add_archived_state(AS_SVC_OK,state_type,time_stamp,plugin_output);
-				else
-					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output);
-
-			        }
-		        }
-		
-	        }
-
-	/* free memory and close the file */
-	free(input);
-	free(input2);
-	mmap_fclose(thefile);
-	
+						break;
+				}
+			}
+		}
+		free_log_entries();
+	}
 	return;
-        }
+}
+
 
 /* write timestamps */
 void draw_timestamps(void){
@@ -2647,90 +2750,6 @@ void get_time_breakdown_string(unsigned long total_time, unsigned long state_tim
 		percent_time=((double)state_time/total_time)*100.0;
 	snprintf(buffer,buffer_length-1,"%-13s: (%.3f%%) %dd %dh %dm %ds",state_string,percent_time,days,hours,minutes,seconds);
 	buffer[buffer_length-1]='\x0';
-
-	return;
-        }
-
-
-void convert_timeperiod_to_times(int type){
-	time_t current_time;
-	struct tm *t;
-
-	/* get the current time */
-	time(&current_time);
-
-	t=localtime(&current_time);
-
-	t->tm_sec=0;
-	t->tm_min=0;
-	t->tm_hour=0;
-        t->tm_isdst=-1;
-
-	switch(type){
-	case TIMEPERIOD_LAST24HOURS:
-		t1=current_time-(60*60*24);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_TODAY:
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_YESTERDAY:
-		t1=(time_t)(mktime(t)-(60*60*24));
-		t2=(time_t)mktime(t);
-		break;
-	case TIMEPERIOD_THISWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday)-(60*60*24*7));
-		t2=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		break;
-	case TIMEPERIOD_THISMONTH:
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTMONTH:
-		t->tm_mday=1;
-		t2=mktime(t);
-		if(t->tm_mon==0){
-			t->tm_mon=11;
-			t->tm_year--;
-		        }
-		else
-			t->tm_mon--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_THISQUARTER:
-		break;
-	case TIMEPERIOD_LASTQUARTER:
-		break;
-	case TIMEPERIOD_THISYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t2=mktime(t);
-		t->tm_year--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_LAST7DAYS:
-		t2=current_time;
-		t1=current_time-(7*24*60*60);
-		break;
-	case TIMEPERIOD_LAST31DAYS:
-		t2=current_time;
-		t1=current_time-(31*24*60*60);
-		break;
-	default:
-		break;
-	        }
 
 	return;
         }

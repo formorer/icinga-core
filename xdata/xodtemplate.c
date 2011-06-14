@@ -3,8 +3,8 @@
  * XODTEMPLATE.C - Template-based object configuration data input routines
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Nagios Core Development Team and Community Contributors
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * Description:
  *
@@ -92,6 +92,7 @@ xodtemplate_hostdependency *xodtemplate_hostdependency_list=NULL;
 xodtemplate_hostescalation *xodtemplate_hostescalation_list=NULL;
 xodtemplate_hostextinfo *xodtemplate_hostextinfo_list=NULL;
 xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list=NULL;
+xodtemplate_module *xodtemplate_module_list=NULL;
 
 xodtemplate_timeperiod *xodtemplate_timeperiod_list_tail=NULL;
 xodtemplate_command *xodtemplate_command_list_tail=NULL;
@@ -107,6 +108,7 @@ xodtemplate_hostdependency *xodtemplate_hostdependency_list_tail=NULL;
 xodtemplate_hostescalation *xodtemplate_hostescalation_list_tail=NULL;
 xodtemplate_hostextinfo *xodtemplate_hostextinfo_list_tail=NULL;
 xodtemplate_serviceextinfo *xodtemplate_serviceextinfo_list_tail=NULL;
+xodtemplate_module *xodtemplate_module_list_tail=NULL;
 
 
 skiplist *xobject_template_skiplists[NUM_XOBJECT_SKIPLISTS];
@@ -166,6 +168,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	struct timeval tv[14];
 	double runtime[14];
 	mmapfile *thefile=NULL;
+	int dummy; /* reduce compiler warnings */
 #endif
 	int result=OK;
 
@@ -195,6 +198,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 	xodtemplate_hostescalation_list=NULL;
 	xodtemplate_hostextinfo_list=NULL;
 	xodtemplate_serviceextinfo_list=NULL;
+	xodtemplate_module_list=NULL;
 
 	/* initialize skiplists */
 	xodtemplate_init_xobject_skiplists();
@@ -279,7 +283,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 
 				temp_buffer=(char *)strdup(val);
 				if(config_base_dir!=NULL && val[0]!='/')
-					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+					dummy=asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
 				else
 					config_file=temp_buffer;
 
@@ -298,7 +302,7 @@ int xodtemplate_read_config_data(char *main_config_file, int options, int cache,
 				
 				temp_buffer=(char *)strdup(val);
 				if(config_base_dir!=NULL && val[0]!='/')
-					asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
+					dummy=asprintf(&config_file,"%s/%s",config_base_dir,temp_buffer);
 				else
 					config_file=temp_buffer;
 
@@ -736,7 +740,7 @@ int xodtemplate_process_config_file(char *filename, int options){
 			        }
 
 			/* check validity of object type */
-			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"servicegroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo")){
+			if(strcmp(input,"timeperiod") && strcmp(input,"command") && strcmp(input,"contact") && strcmp(input,"contactgroup") && strcmp(input,"host") && strcmp(input,"hostgroup") && strcmp(input,"servicegroup") && strcmp(input,"service") && strcmp(input,"servicedependency") && strcmp(input,"serviceescalation") && strcmp(input,"hostgroupescalation") && strcmp(input,"hostdependency") && strcmp(input,"hostescalation") && strcmp(input,"hostextinfo") && strcmp(input,"serviceextinfo") && strcmp(input,"module")){
 				logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid object definition type '%s' in file '%s' on line %d.\n",input,filename,current_line);
 				result=ERROR;
 				break;
@@ -907,6 +911,7 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 	xodtemplate_hostescalation *new_hostescalation=NULL;
 	xodtemplate_hostextinfo *new_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *new_serviceextinfo=NULL;
+	xodtemplate_module *new_module=NULL;
 
 
 	if(!strcmp(input,"service"))
@@ -937,6 +942,8 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xodtemplate_current_object_type=XODTEMPLATE_HOSTEXTINFO;
 	else if(!strcmp(input,"serviceextinfo"))
 		xodtemplate_current_object_type=XODTEMPLATE_SERVICEEXTINFO;
+	else if(!strcmp(input,"module"))
+		xodtemplate_current_object_type=XODTEMPLATE_MODULE;
 	else
 		return ERROR;
 
@@ -997,6 +1004,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		break;
 	case XODTEMPLATE_SERVICEEXTINFO:
 		if(!(options & READ_SERVICEEXTINFO))
+			return OK;
+		break;
+	case XODTEMPLATE_MODULE:
+		if(!(options & READ_MODULES))
 			return OK;
 		break;
 	default:
@@ -1134,6 +1145,10 @@ int xodtemplate_begin_object_definition(char *input, int options, int config_fil
 		xod_begin_def(serviceextinfo);
 		break;
 
+	case XODTEMPLATE_MODULE:
+		xod_begin_def(module);
+		break;
+
 	default:
 		return ERROR;
 		break;
@@ -1166,6 +1181,7 @@ int xodtemplate_add_object_property(char *input, int options){
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
+	xodtemplate_module *temp_module=NULL;
 	register int x=0;
 	register int y=0;
 	int force_skiplists=FALSE;
@@ -1235,6 +1251,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		break;
 	case XODTEMPLATE_SERVICEEXTINFO:
 		if(!(options & READ_SERVICEEXTINFO))
+			return OK;
+		break;
+	case XODTEMPLATE_MODULE:
+		if(!(options & READ_MODULES))
 			return OK;
 		break;
 	default:
@@ -2434,6 +2454,10 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 		else if(!strcmp(variable,"address")){
 			if((temp_host->address=(char *)strdup(value))==NULL)
+				result=ERROR;
+		        }
+		else if(!strcmp(variable,"address6")){
+			if((temp_host->address6=(char *)strdup(value))==NULL)
 				result=ERROR;
 		        }
 		else if(!strcmp(variable,"parents")){
@@ -3761,6 +3785,81 @@ int xodtemplate_add_object_property(char *input, int options){
 		        }
 
 		break;
+
+
+        case XODTEMPLATE_MODULE:
+
+                temp_module=(xodtemplate_module *)xodtemplate_current_object;
+
+		
+                if(!strcmp(variable,"use")){
+                        if((temp_command->template=(char *)strdup(value))==NULL)
+                                result=ERROR;
+                        }
+                else if(!strcmp(variable,"name")){
+
+                        if((temp_module->name=(char *)strdup(value))==NULL)
+                                result=ERROR;
+
+                        if(result==OK){
+                                /* add module to template skiplist for fast searches */
+                                result=skiplist_insert(xobject_template_skiplists[X_MODULE_SKIPLIST],(void *)temp_module);
+                                switch(result){
+                                case SKIPLIST_ERROR_DUPLICATE:
+                                        logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for module '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_module->_config_file),temp_module->_start_line);
+                                        result=ERROR;
+                                        break;
+                                case SKIPLIST_OK:
+                                        result=OK;
+                                        break;
+                                default:
+                                        result=ERROR;
+                                        break;
+                                        }
+                                }
+                        }
+                else if(!strcmp(variable,"module_name")){
+                        if((temp_module->module_name=(char *)strdup(value))==NULL)
+                                result=ERROR;
+
+                        if(result==OK){
+                                /* add module to template skiplist for fast searches */
+                                result=skiplist_insert(xobject_skiplists[X_MODULE_SKIPLIST],(void *)temp_module);
+                                switch(result){
+                                case SKIPLIST_ERROR_DUPLICATE:
+                                        logit(NSLOG_CONFIG_WARNING,TRUE,"Warning: Duplicate definition found for module '%s' (config file '%s', starting on line %d)\n",value,xodtemplate_config_file_name(temp_module->_config_file),temp_module->_start_line);
+                                        result=ERROR;
+                                        break;
+                                case SKIPLIST_OK:
+                                        result=OK;
+                                        break;
+                                default:
+                                        result=ERROR;
+                                        break;
+                                        }
+                                }
+                        }
+                else if(!strcmp(variable,"module_type")){
+                        if((temp_module->module_type=(char *)strdup(value))==NULL)
+                                result=ERROR;
+                        }
+                else if(!strcmp(variable,"path")){
+                        if((temp_module->path=(char *)strdup(value))==NULL)
+                                result=ERROR;
+                        }
+                else if(!strcmp(variable,"args")){
+                        if((temp_module->args=(char *)strdup(value))==NULL)
+                                result=ERROR;
+                        }
+                else if(!strcmp(variable,"register"))
+                        temp_module->register_object=(atoi(value)>0)?TRUE:FALSE;
+                else{
+                        logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Invalid module object directive '%s'.\n",variable);
+                        return ERROR;
+                        }
+
+                break;
+
 
 	default:
 		return ERROR;
@@ -6264,6 +6363,7 @@ int xodtemplate_resolve_objects(void){
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 	xodtemplate_hostextinfo *temp_hostextinfo=NULL;
 	xodtemplate_serviceextinfo *temp_serviceextinfo=NULL;
+	xodtemplate_module *temp_module=NULL;
 
 	/* resolve all timeperiod objects */
 	for(temp_timeperiod=xodtemplate_timeperiod_list;temp_timeperiod!=NULL;temp_timeperiod=temp_timeperiod->next){
@@ -6348,6 +6448,13 @@ int xodtemplate_resolve_objects(void){
 		if(xodtemplate_resolve_serviceextinfo(temp_serviceextinfo)==ERROR)
 			return ERROR;
 	        }
+
+        /* resolve all module objects */
+        for(temp_module=xodtemplate_module_list;temp_module!=NULL;temp_module=temp_module->next){
+                if(xodtemplate_resolve_module(temp_module)==ERROR)
+                        return ERROR;
+                }
+
 
 	return OK;
         }
@@ -7058,6 +7165,8 @@ int xodtemplate_resolve_host(xodtemplate_host *this_host){
 			this_host->alias=(char *)strdup(template_host->alias);
 		if(this_host->address==NULL && template_host->address!=NULL)
 			this_host->address=(char *)strdup(template_host->address);
+		if(this_host->address6==NULL && template_host->address6!=NULL)
+			this_host->address6=(char *)strdup(template_host->address6);
 
 		xodtemplate_get_inherited_string(&template_host->have_parents,&template_host->parents,&this_host->have_parents,&this_host->parents);
 		xodtemplate_get_inherited_string(&template_host->have_host_groups,&template_host->host_groups,&this_host->have_host_groups,&this_host->host_groups);
@@ -7849,6 +7958,59 @@ int xodtemplate_resolve_serviceextinfo(xodtemplate_serviceextinfo *this_servicee
 
 	return OK;
         }
+
+
+/* resolves a module object */
+int xodtemplate_resolve_module(xodtemplate_module *this_module){
+        char *temp_ptr=NULL;
+        char *template_names=NULL;
+        char *template_name_ptr=NULL;
+        xodtemplate_module *template_module=NULL;
+
+        /* return if this command has already been resolved */
+        if(this_module->has_been_resolved==TRUE)
+                return OK;
+
+        /* set the resolved flag */
+        this_module->has_been_resolved=TRUE;
+
+        /* return if we have no template */
+        if(this_module->template==NULL)
+                return OK;
+
+        if((template_names=(char *)strdup(this_module->template))==NULL)
+                return ERROR;
+
+        /* apply all templates */
+        template_name_ptr=template_names;
+        for(temp_ptr=my_strsep(&template_name_ptr,",");temp_ptr!=NULL;temp_ptr=my_strsep(&template_name_ptr,",")){
+
+                template_module=xodtemplate_find_module(temp_ptr);
+                if(template_module==NULL){
+                        logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Template '%s' specified in module definition could not be not found (config file '%s', starting on line %d)\n",temp_ptr,xodtemplate_config_file_name(this_module->_config_file),this_module->_start_line);
+                        my_free(template_names);
+                        return ERROR;
+                        }
+
+                /* resolve the template module... */
+                xodtemplate_resolve_module(template_module);
+
+                /* apply missing properties from template module... */
+                if(this_module->module_name==NULL && template_module->module_name!=NULL)
+                        this_module->module_name=(char *)strdup(template_module->module_name);
+                if(this_module->module_type==NULL && template_module->module_type!=NULL)
+                        this_module->module_type=(char *)strdup(template_module->module_type);
+                if(this_module->path==NULL && template_module->path!=NULL)
+                        this_module->path=(char *)strdup(template_module->path);
+                if(this_module->args==NULL && template_module->args!=NULL)
+                        this_module->args=(char *)strdup(template_module->args);
+                }
+
+        my_free(template_names);
+
+        return OK;
+        }
+
 
 #endif
 
@@ -8723,6 +8885,19 @@ xodtemplate_service *xodtemplate_find_service(char *name){
         }
 
 
+/* finds a specific module object */
+xodtemplate_module *xodtemplate_find_module(char *name){
+        xodtemplate_module temp_module;
+
+        if(name==NULL)
+                return NULL;
+
+        temp_module.name=name;
+
+        return skiplist_find_first(xobject_template_skiplists[X_MODULE_SKIPLIST],&temp_module,NULL);
+        }
+
+
 /* finds a specific service object by its REAL name, not its TEMPLATE name */
 xodtemplate_service *xodtemplate_find_real_service(char *host_name, char *service_description){
 	xodtemplate_service temp_service;
@@ -8759,6 +8934,7 @@ int xodtemplate_register_objects(void){
 	xodtemplate_serviceescalation *temp_serviceescalation=NULL;
 	xodtemplate_hostdependency *temp_hostdependency=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
+	xodtemplate_module *temp_module=NULL;
 	void *ptr=NULL;
 
 	/* register timeperiods */
@@ -8857,6 +9033,15 @@ int xodtemplate_register_objects(void){
 		if((result=xodtemplate_register_hostescalation(temp_hostescalation))==ERROR)
 			return ERROR;
 	        }
+
+        /* register modules */
+        /*for(temp_module=xodtemplate_module_list;temp_module!=NULL;temp_module=temp_module->next){*/
+        ptr=NULL;
+        for(temp_module=(xodtemplate_module *)skiplist_get_first(xobject_skiplists[X_MODULE_SKIPLIST],&ptr);temp_module!=NULL;temp_module=(xodtemplate_module *)skiplist_get_next(&ptr)){
+                if((result=xodtemplate_register_module(temp_module))==ERROR)
+                        return ERROR;
+                }
+
 
 	return OK;
         }
@@ -9377,9 +9562,11 @@ int xodtemplate_register_host(xodtemplate_host *this_host){
 		this_host->alias=(char *)strdup(this_host->host_name);
 	if(this_host->address==NULL && this_host->host_name!=NULL)
 		this_host->address=(char *)strdup(this_host->host_name);
+	if(this_host->address6==NULL && this_host->host_name!=NULL)
+		this_host->address6=(char *)strdup(this_host->host_name);
 
 	/* add the host definition */
-	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,this_host->check_period,this_host->initial_state,this_host->check_interval,this_host->retry_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notify_on_downtime,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
+	new_host=add_host(this_host->host_name,this_host->display_name,this_host->alias,(this_host->address==NULL)?this_host->host_name:this_host->address,(this_host->address6==NULL)?this_host->host_name:this_host->address6,this_host->check_period,this_host->initial_state,this_host->check_interval,this_host->retry_interval,this_host->max_check_attempts,this_host->notify_on_recovery,this_host->notify_on_down,this_host->notify_on_unreachable,this_host->notify_on_flapping,this_host->notify_on_downtime,this_host->notification_interval,this_host->first_notification_delay,this_host->notification_period,this_host->notifications_enabled,this_host->check_command,this_host->active_checks_enabled,this_host->passive_checks_enabled,this_host->event_handler,this_host->event_handler_enabled,this_host->flap_detection_enabled,this_host->low_flap_threshold,this_host->high_flap_threshold,this_host->flap_detection_on_up,this_host->flap_detection_on_down,this_host->flap_detection_on_unreachable,this_host->stalk_on_up,this_host->stalk_on_down,this_host->stalk_on_unreachable,this_host->process_perf_data,this_host->failure_prediction_enabled,this_host->failure_prediction_options,this_host->check_freshness,this_host->freshness_threshold,this_host->notes,this_host->notes_url,this_host->action_url,this_host->icon_image,this_host->icon_image_alt,this_host->vrml_image,this_host->statusmap_image,this_host->x_2d,this_host->y_2d,this_host->have_2d_coords,this_host->x_3d,this_host->y_3d,this_host->z_3d,this_host->have_3d_coords,TRUE,this_host->retain_status_information,this_host->retain_nonstatus_information,this_host->obsess_over_host);
 
 
 	/* return with an error if we couldn't add the host */
@@ -9635,6 +9822,25 @@ int xodtemplate_register_hostescalation(xodtemplate_hostescalation *this_hostesc
         }
 
 
+/* registers a module definition */
+int xodtemplate_register_module(xodtemplate_module *this_module){
+        module *new_module=NULL;
+
+        /* bail out if we shouldn't register this object */
+        if(this_module->register_object==FALSE)
+                return OK;
+
+        /* add the module */
+        new_module=add_module(this_module->module_name,this_module->module_type,this_module->path,this_module->args);
+
+        /* return with an error if we couldn't add the module */
+        if(new_module==NULL){
+                logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not register module (config file '%s', starting on line %d)\n",xodtemplate_config_file_name(this_module->_config_file),this_module->_start_line);
+                return ERROR;
+                }
+
+        return OK;
+        }
 
 
 /******************************************************************/
@@ -9696,6 +9902,10 @@ int xodtemplate_sort_objects(void){
 	/* sort hostescalations */
 	if(xodtemplate_sort_hostescalations()==ERROR)
 		return ERROR;
+
+        /* sort modules */
+        if(xodtemplate_sort_modules()==ERROR)
+                return ERROR;
 
 	/* sort host extended info */
 	/* NOT NEEDED */
@@ -10396,6 +10606,56 @@ int xodtemplate_sort_hostdependencies(){
 	return OK;
 	}
 
+
+/* sort modules by name */
+int xodtemplate_sort_modules(){
+        xodtemplate_module *new_module_list=NULL;
+        xodtemplate_module *temp_module=NULL;
+        xodtemplate_module *last_module=NULL;
+        xodtemplate_module *temp_module_orig=NULL;
+        xodtemplate_module *next_module_orig=NULL;
+
+        /* sort all existing modules */
+        for(temp_module_orig=xodtemplate_module_list;temp_module_orig!=NULL;temp_module_orig=next_module_orig){
+
+                next_module_orig=temp_module_orig->next;
+
+                /* add module to new list, sorted by module name */
+                last_module=new_module_list;
+                for(temp_module=new_module_list;temp_module!=NULL;temp_module=temp_module->next){
+
+                        if(xodtemplate_compare_strings1(temp_module_orig->module_name,temp_module->module_name)<=0)
+                                break;
+                        else
+                                last_module=temp_module;
+                        }
+
+                /* first item added to new sorted list */
+                if(new_module_list==NULL){
+                        temp_module_orig->next=NULL;
+                        new_module_list=temp_module_orig;
+                        }
+
+                /* item goes at head of new sorted list */
+                else if(temp_module==new_module_list){
+                        temp_module_orig->next=new_module_list;
+                        new_module_list=temp_module_orig;
+                        }
+
+                /* item goes in middle or at end of new sorted list */
+                else{
+                        temp_module_orig->next=temp_module;
+                        last_module->next=temp_module_orig;
+                        }
+                }
+
+        /* list is now sorted */
+        xodtemplate_module_list=new_module_list;
+
+        return OK;
+        }
+
+
 #endif
 
 
@@ -10535,6 +10795,7 @@ int xodtemplate_cache_objects(char *cache_file){
 	xodtemplate_hostdependency *temp_hostdependency=NULL;
 	xodtemplate_hostescalation *temp_hostescalation=NULL;
 	xodtemplate_customvariablesmember *temp_customvariablesmember=NULL;
+	xodtemplate_module *temp_module=NULL;
 	time_t current_time=0L;
 	void *ptr=NULL;
 
@@ -10801,6 +11062,8 @@ int xodtemplate_cache_objects(char *cache_file){
 			fprintf(fp,"\talias\t%s\n",temp_host->alias);
 		if(temp_host->address)
 			fprintf(fp,"\taddress\t%s\n",temp_host->address);
+		if(temp_host->address6)
+			fprintf(fp,"\taddress6\t%s\n",temp_host->address6);
 		if(temp_host->parents)
 			fprintf(fp,"\tparents\t%s\n",temp_host->parents);
 		if(temp_host->check_period)
@@ -11217,6 +11480,25 @@ int xodtemplate_cache_objects(char *cache_file){
 		fprintf(fp,"\t}\n\n");
 	        }
 
+        /* cache modules */
+        /*for(temp_module=xodtemplate_module_list;temp_module!=NULL;temp_module=temp_module->next){*/
+        ptr=NULL;
+        for(temp_module=(xodtemplate_module *)skiplist_get_first(xobject_skiplists[X_MODULE_SKIPLIST],&ptr);temp_module!=NULL;temp_module=(xodtemplate_module *)skiplist_get_next(&ptr)){
+                if(temp_module->register_object==FALSE)
+                        continue;
+                fprintf(fp,"define module {\n");
+                if(temp_module->module_name)
+                        fprintf(fp,"\tmodule_name\t%s\n",temp_module->module_name);
+                if(temp_module->module_type)
+                        fprintf(fp,"\tmodule_type\t%s\n",temp_module->module_type);
+                if(temp_module->path)
+                        fprintf(fp,"\tpath\t%s\n",temp_module->path);
+                if(temp_module->args)
+                        fprintf(fp,"\targs\t%s\n",temp_module->args);
+                fprintf(fp,"\t}\n\n");
+                }
+
+
 	fclose(fp);
 
 	return OK;
@@ -11250,6 +11532,7 @@ int xodtemplate_init_xobject_skiplists(void){
 	xobject_template_skiplists[X_SERVICEESCALATION_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_serviceescalation_template);
 	xobject_template_skiplists[X_HOSTEXTINFO_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_hostextinfo_template);
 	xobject_template_skiplists[X_SERVICEEXTINFO_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_serviceextinfo_template);
+	xobject_template_skiplists[X_MODULE_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_module_template);
 
 	xobject_skiplists[X_HOST_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_host);
 	xobject_skiplists[X_SERVICE_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_service);
@@ -11259,6 +11542,7 @@ int xodtemplate_init_xobject_skiplists(void){
 	xobject_skiplists[X_CONTACTGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_contactgroup);
 	xobject_skiplists[X_HOSTGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_hostgroup);
 	xobject_skiplists[X_SERVICEGROUP_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_servicegroup);
+	xobject_skiplists[X_MODULE_SKIPLIST]=skiplist_new(16,0.5,FALSE,FALSE,xodtemplate_skiplist_compare_module);
 	/* allow dups in the following lists... */
 	xobject_skiplists[X_HOSTDEPENDENCY_SKIPLIST]=skiplist_new(16,0.5,TRUE,FALSE,xodtemplate_skiplist_compare_hostdependency);
 	xobject_skiplists[X_SERVICEDEPENDENCY_SKIPLIST]=skiplist_new(16,0.5,TRUE,FALSE,xodtemplate_skiplist_compare_servicedependency);
@@ -11806,6 +12090,41 @@ int xodtemplate_skiplist_compare_serviceextinfo_template(void *a, void *b){
 	}
 
 
+int xodtemplate_skiplist_compare_module(void *a, void *b){
+        xodtemplate_module *oa=NULL;
+        xodtemplate_module *ob=NULL;
+
+        oa=(xodtemplate_module *)a;
+        ob=(xodtemplate_module *)b;
+
+        if(oa==NULL && ob==NULL)
+                return 0;
+        if(oa==NULL)
+                return 1;
+        if(ob==NULL)
+                return -1;
+
+        return skiplist_compare_text(oa->module_name,NULL,ob->module_name,NULL);
+        }
+
+
+int xodtemplate_skiplist_compare_module_template(void *a, void *b){
+        xodtemplate_module *oa=NULL;
+        xodtemplate_module *ob=NULL;
+
+        oa=(xodtemplate_module *)a;
+        ob=(xodtemplate_module *)b;
+
+        if(oa==NULL && ob==NULL)
+                return 0;
+        if(oa==NULL)
+                return 1;
+        if(ob==NULL)
+                return -1;
+
+        return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+        }
+
 
 
 /******************************************************************/
@@ -11848,6 +12167,8 @@ int xodtemplate_free_memory(void){
 	xodtemplate_customvariablesmember *next_customvariablesmember=NULL;
         xodtemplate_escalation_condition *this_escalation_condition=NULL;
         xodtemplate_escalation_condition *next_escalation_condition=NULL;
+	xodtemplate_module *this_module=NULL;
+	xodtemplate_module *next_module=NULL;
 	register int x=0;
 
 
@@ -12026,6 +12347,7 @@ int xodtemplate_free_memory(void){
 		my_free(this_host->host_name);
 		my_free(this_host->alias);
 		my_free(this_host->address);
+		my_free(this_host->address6);
 		my_free(this_host->parents);
 		my_free(this_host->host_groups);
 		my_free(this_host->check_command);
@@ -12162,6 +12484,21 @@ int xodtemplate_free_memory(void){
 		my_free(xodtemplate_config_files[x]);
 	my_free(xodtemplate_config_files);
 	xodtemplate_current_config_file=0;
+
+        /* free memory allocated to module list */
+        for(this_module=xodtemplate_module_list;this_module!=NULL;this_module=next_module){
+                next_module=this_module->next;
+                my_free(this_module->template);
+                my_free(this_module->name);
+                my_free(this_module->module_name);
+                my_free(this_module->module_type);
+                my_free(this_module->path);
+                my_free(this_module->args);
+                my_free(this_module);
+                }
+        xodtemplate_module_list=NULL;
+        xodtemplate_module_list_tail=NULL;
+
 
 	/* free skiplists */
 	xodtemplate_free_xobject_skiplists();

@@ -3,7 +3,7 @@
  * SUMMARY.C -  Icinga Alert Summary CGI
  *
  * Copyright (c) 2002-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -42,6 +42,7 @@ extern host *host_list;
 extern hostgroup *hostgroup_list;
 extern service *service_list;
 extern servicegroup *servicegroup_list;
+extern logentry *entry_list;
 
 extern int       log_rotation_method;
 
@@ -63,22 +64,6 @@ extern int       log_rotation_method;
 #define SREPORT_RECENT_SERVICE_ALERTS		3
 #define SREPORT_TOP_HOST_ALERTS			4
 #define SREPORT_TOP_SERVICE_ALERTS		5
-
-/* standard report times */
-#define TIMEPERIOD_CUSTOM	0
-#define TIMEPERIOD_TODAY	1
-#define TIMEPERIOD_YESTERDAY	2
-#define TIMEPERIOD_THISWEEK	3
-#define TIMEPERIOD_LASTWEEK	4
-#define TIMEPERIOD_THISMONTH	5
-#define TIMEPERIOD_LASTMONTH	6
-#define TIMEPERIOD_THISQUARTER	7
-#define TIMEPERIOD_LASTQUARTER	8
-#define TIMEPERIOD_THISYEAR	9
-#define TIMEPERIOD_LASTYEAR	10
-#define TIMEPERIOD_LAST24HOURS	11
-#define TIMEPERIOD_LAST7DAYS	12
-#define TIMEPERIOD_LAST31DAYS	13
 
 #define AE_SOFT_STATE		1
 #define AE_HARD_STATE		2
@@ -119,7 +104,6 @@ typedef struct alert_producer_struct{
 
 void read_archived_event_data(void);
 void scan_log_file_for_archived_event_data(char *);
-void convert_timeperiod_to_times(int);
 void compute_report_times(void);
 void determine_standard_report_options(void);
 void add_archived_event(int,time_t,int,int,char *,char *,char *);
@@ -127,6 +111,8 @@ alert_producer *find_producer(int,char *,char *);
 alert_producer *add_producer(int,char *,char *);
 void free_event_list(void);
 void free_producer_list(void);
+
+void sort_archive_states(void);
 
 void display_report(void);
 void display_recent_alerts(void);
@@ -184,6 +170,8 @@ extern int content_type;
 extern char *csv_delimiter;
 extern char *csv_data_enclosure;
 
+int json_list_start=TRUE;
+
 int display_type=REPORT_RECENT_ALERTS;
 int show_all_hosts=TRUE;
 int show_all_hostgroups=TRUE;
@@ -222,7 +210,7 @@ int main(int argc, char **argv){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -231,7 +219,7 @@ int main(int argc, char **argv){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -240,7 +228,7 @@ int main(int argc, char **argv){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -674,7 +662,7 @@ int main(int argc, char **argv){
 	free_producer_list();
 
 	return OK;
-        }
+}
 
 int process_cgivars(void){
 	char **variables;
@@ -756,7 +744,7 @@ int process_cgivars(void){
 			else
 				continue;
 
-			convert_timeperiod_to_times(timeperiod_type);
+			convert_timeperiod_to_times(timeperiod_type,&t1,&t2);
 			compute_time_from_parts=FALSE;
 		        }
 
@@ -764,7 +752,13 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"csvoutput")){
 			display_header=FALSE;
 			content_type=CSV_CONTENT;
-			}
+		}
+
+		/* we found the JSON output option */
+		else if(!strcmp(variables[x],"jsonoutput")){
+			display_header=FALSE;
+			content_type=JSON_CONTENT;
+		}
 
 		/* we found the embed option */
 		else if(!strcmp(variables[x],"embedded"))
@@ -1125,7 +1119,7 @@ int process_cgivars(void){
 	free_cgivars(variables);
 
 	return error;
-        }
+}
 
 /* reads log files for archived event data */
 void read_archived_event_data(void){
@@ -1143,6 +1137,19 @@ void read_archived_event_data(void){
 	if(oldest_archive<newest_archive)
 		oldest_archive=newest_archive;
 
+	/* add host filter */
+	add_log_filter(LOGENTRY_HOST_UP,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_DOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_UNREACHABLE,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_RECOVERY,LOGFILTER_INCLUDE);
+
+	/* add service filter */
+	add_log_filter(LOGENTRY_SERVICE_OK,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_WARNING,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_CRITICAL,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_UNKNOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_RECOVERY,LOGFILTER_INCLUDE);
+
 	/* read in all the necessary archived logs (from most recent to earliest) */
 	for(current_archive=newest_archive;current_archive<=oldest_archive;current_archive++){
 
@@ -1151,219 +1158,131 @@ void read_archived_event_data(void){
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_event_data(filename);
-	        }
+	}
+
+	free_log_filters();
 
 	return;
-        }
+}
 
 /* grabs archived event data from a log file */
 void scan_log_file_for_archived_event_data(char *filename){
-	char *input=NULL;
-	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_svc_description[MAX_INPUT_BUFFER];
-	int state;
-	int state_type;
 	char *temp_buffer;
 	char *plugin_output;
-	time_t time_stamp;
-	mmapfile *thefile;
+	int state;
+	int state_type;
+	int status;
+	logentry *temp_entry=NULL;
 
+	/* read log entries */
+	status=get_log_entries(filename,NULL,FALSE,t1,t2);
 
-	if((thefile=mmap_fopen(filename))==NULL)
-		return;
+	if (status==READLOG_OK) {
 
-	while(1){
+		for(temp_entry=entry_list;temp_entry!=NULL;temp_entry=temp_entry->next) {
 
-		/* free memory */
-		free(input);
-		free(input2);
-		input=NULL;
-		input2=NULL;
-
-		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
-
-		strip(input);
-
-		if((input2=strdup(input))==NULL)
-			continue;
-
-		/* get the timestamp */
-		temp_buffer=my_strtok(input2,"]");
-		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
-		if(time_stamp<t1 || time_stamp>t2)
-			continue;
-		
-		/* host alerts */
-		if(strstr(input,"HOST ALERT:")){
-
-			/* get host name */
-			temp_buffer=my_strtok(NULL,":");
-			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
-
-			/* state type */
-			if(strstr(input,";SOFT;"))
-				state_type=AE_SOFT_STATE;
-			else
-				state_type=AE_HARD_STATE;
-				
-			/* get the plugin output */
-			temp_buffer=my_strtok(NULL,";");
-			temp_buffer=my_strtok(NULL,";");
-			temp_buffer=my_strtok(NULL,";");
-			plugin_output=my_strtok(NULL,"\n");
-
-			/* state */
-			if(strstr(input,";DOWN;"))
-				state=AE_HOST_DOWN;
-			else if(strstr(input,";UNREACHABLE;"))
-				state=AE_HOST_UNREACHABLE;
-			else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
-				state=AE_HOST_UP;
-			else
+			/* get the timestamp */
+			if(temp_entry->timestamp<t1 || temp_entry->timestamp>t2)
 				continue;
 
-			add_archived_event(AE_HOST_ALERT,time_stamp,state,state_type,entry_host_name,NULL,plugin_output);
+			switch(temp_entry->type){
+
+				/* host alerts */
+				case LOGENTRY_HOST_DOWN:
+				case LOGENTRY_HOST_UNREACHABLE:
+				case LOGENTRY_HOST_RECOVERY:
+				case LOGENTRY_HOST_UP:
+
+					/* get host name */
+					temp_buffer=my_strtok(temp_entry->entry_text,":");
+					temp_buffer=my_strtok(NULL,";");
+					strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+					entry_host_name[sizeof(entry_host_name)-1]='\x0';
+
+					/* state type */
+					if(strstr(temp_entry->entry_text,";SOFT;"))
+						state_type=AE_SOFT_STATE;
+					else
+						state_type=AE_HARD_STATE;
+
+					/* get the plugin output */
+					temp_buffer=my_strtok(NULL,";");
+					temp_buffer=my_strtok(NULL,";");
+					temp_buffer=my_strtok(NULL,";");
+					plugin_output=my_strtok(NULL,"\n");
+
+					/* state */
+					if(temp_entry->type==LOGENTRY_HOST_DOWN)
+						state=AE_HOST_DOWN;
+					else if(temp_entry->type==LOGENTRY_HOST_UNREACHABLE)
+						state=AE_HOST_UNREACHABLE;
+					else if(temp_entry->type==LOGENTRY_HOST_RECOVERY || temp_entry->type==LOGENTRY_HOST_UP)
+						state=AE_HOST_UP;
+					else
+						break;
+
+					add_archived_event(AE_HOST_ALERT,temp_entry->timestamp,state,state_type,entry_host_name,NULL,plugin_output);
+
+					break;
+
+
+				/* service alerts */
+				case LOGENTRY_SERVICE_CRITICAL:
+				case LOGENTRY_SERVICE_WARNING:
+				case LOGENTRY_SERVICE_UNKNOWN:
+				case LOGENTRY_SERVICE_RECOVERY:
+				case LOGENTRY_SERVICE_OK:
+
+					/* get host name */
+					temp_buffer=my_strtok(temp_entry->entry_text,":");
+					temp_buffer=my_strtok(NULL,";");
+					strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+					entry_host_name[sizeof(entry_host_name)-1]='\x0';
+
+					/* get service description */
+					temp_buffer=my_strtok(NULL,";");
+					strncpy(entry_svc_description,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_svc_description));
+					entry_svc_description[sizeof(entry_svc_description)-1]='\x0';
+
+					/* state type */
+					if(strstr(temp_entry->entry_text,";SOFT;"))
+						state_type=AE_SOFT_STATE;
+					else
+						state_type=AE_HARD_STATE;
+
+					/* get the plugin output */
+					temp_buffer=my_strtok(NULL,";");
+					temp_buffer=my_strtok(NULL,";");
+					temp_buffer=my_strtok(NULL,";");
+					plugin_output=my_strtok(NULL,"\n");
+
+					/* state */
+					if(temp_entry->type==LOGENTRY_SERVICE_CRITICAL)
+						state=AE_SERVICE_CRITICAL;
+					else if(temp_entry->type==LOGENTRY_SERVICE_WARNING)
+						state=AE_SERVICE_UNKNOWN;
+					else if(temp_entry->type==LOGENTRY_SERVICE_UNKNOWN)
+						state=AE_SERVICE_WARNING;
+					else if(temp_entry->type==LOGENTRY_SERVICE_RECOVERY || temp_entry->type==LOGENTRY_SERVICE_OK)
+						state=AE_SERVICE_OK;
+					else
+						break;
+
+					add_archived_event(AE_SERVICE_ALERT,temp_entry->timestamp,state,state_type,entry_host_name,entry_svc_description,plugin_output);
+
+					break;
 		        }
 
-		/* service alerts */
-		if(strstr(input,"SERVICE ALERT:")){
-
-			/* get host name */
-			temp_buffer=my_strtok(NULL,":");
-			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-			entry_host_name[sizeof(entry_host_name)-1]='\x0';
-
-			/* get service description */
-			temp_buffer=my_strtok(NULL,";");
-			strncpy(entry_svc_description,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_svc_description));
-			entry_svc_description[sizeof(entry_svc_description)-1]='\x0';
-
-			/* state type */
-			if(strstr(input,";SOFT;"))
-				state_type=AE_SOFT_STATE;
-			else
-				state_type=AE_HARD_STATE;
-
-			/* get the plugin output */
-			temp_buffer=my_strtok(NULL,";");
-			temp_buffer=my_strtok(NULL,";");
-			temp_buffer=my_strtok(NULL,";");
-			plugin_output=my_strtok(NULL,"\n");
-
-			/* state */
-			if(strstr(input,";WARNING;"))
-				state=AE_SERVICE_WARNING;
-			else if(strstr(input,";UNKNOWN;"))
-				state=AE_SERVICE_UNKNOWN;
-			else if(strstr(input,";CRITICAL;"))
-				state=AE_SERVICE_CRITICAL;
-			else if(strstr(input,";RECOVERY") || strstr(input,";OK;"))
-				state=AE_SERVICE_OK;
-			else
-				continue;
-
-			add_archived_event(AE_SERVICE_ALERT,time_stamp,state,state_type,entry_host_name,entry_svc_description,plugin_output);
-		        }
 	        }
+	}
 
-	/* free memory and close the file */
-	free(input);
-	free(input2);
-	mmap_fclose(thefile);
-	
-	return;
-        }
-
-void convert_timeperiod_to_times(int type){
-	time_t current_time;
-	struct tm *t;
-
-	/* get the current time */
-	time(&current_time);
-
-	t=localtime(&current_time);
-
-	t->tm_sec=0;
-	t->tm_min=0;
-	t->tm_hour=0;
-        t->tm_isdst=-1;
-
-	switch(type){
-	case TIMEPERIOD_LAST24HOURS:
-		t1=current_time-(60*60*24);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_TODAY:
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_YESTERDAY:
-		t1=(time_t)(mktime(t)-(60*60*24));
-		t2=(time_t)mktime(t);
-		break;
-	case TIMEPERIOD_THISWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday)-(60*60*24*7));
-		t2=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		break;
-	case TIMEPERIOD_THISMONTH:
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTMONTH:
-		t->tm_mday=1;
-		t2=mktime(t);
-		if(t->tm_mon==0){
-			t->tm_mon=11;
-			t->tm_year--;
-		        }
-		else
-			t->tm_mon--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_THISQUARTER:
-		/* not implemented */
-		break;
-	case TIMEPERIOD_LASTQUARTER:
-		/* not implemented */
-		break;
-	case TIMEPERIOD_THISYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t2=mktime(t);
-		t->tm_year--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_LAST7DAYS:
-		t2=current_time;
-		t1=current_time-(7*24*60*60);
-		break;
-	case TIMEPERIOD_LAST31DAYS:
-		t2=current_time;
-		t1=current_time-(31*24*60*60);
-		break;
-	default:
-		break;
-	        }
+	/* free memory */
+	free_log_entries();
 
 	return;
-        }
+}
 
 void compute_report_times(void){
 	time_t current_time;
@@ -1396,7 +1315,7 @@ void compute_report_times(void){
 	et->tm_isdst=-1;
 
 	t2=mktime(et);
-        }
+}
 
 void free_event_list(void){
 	archived_event *this_event=NULL;
@@ -1412,17 +1331,15 @@ void free_event_list(void){
 			free(this_event->event_info);
 		free(this_event);
 		this_event=next_event;
-	        }
+	}
 
 	event_list=NULL;
 
 	return;
-        }
+}
 
 /* adds an archived event entry to the list in memory */
 void add_archived_event(int event_type, time_t time_stamp, int entry_type, int state_type, char *host_name, char *svc_description, char *event_info){
-	archived_event *last_event=NULL;
-	archived_event *temp_event=NULL;
 	archived_event *new_event=NULL;
 	service *temp_service=NULL;
 	host *temp_host;
@@ -1444,11 +1361,10 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 	if(event_type==AE_HOST_ALERT){
 		if(!(host_states & entry_type))
 			return;
-	        }
-	else{
+	}else{
 		if(!(service_states & entry_type))
 			return;
-	        }
+	}
 		
 	/* find the host this entry is associated with */
 	temp_host=find_host(host_name);
@@ -1463,28 +1379,26 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 			return;
 		if(strcmp(target_host->name,temp_host->name))
 			return;
-	        }
+	}
 
 	/* check servicegroup math (valid filter for all reports) */
 	if(event_type==AE_SERVICE_ALERT){
 		temp_service=find_service(host_name,svc_description);
 		if(show_all_servicegroups==FALSE && is_service_member_of_servicegroup(target_servicegroup,temp_service)==FALSE)
 			return;
-	         }
-	else{
+	}else{
 		if(show_all_servicegroups==FALSE && is_host_member_of_servicegroup(target_servicegroup,temp_host)==FALSE)
 			return;
-	         }
+	}
 
 	/* check authorization */
 	if(event_type==AE_SERVICE_ALERT){
 		if(is_authorized_for_service(temp_service,&current_authdata)==FALSE)
 			return;
-	        }
-	else{
+	}else{
 		if(is_authorized_for_host(temp_host,&current_authdata)==FALSE)
 			return;
-	        }
+	}
 
 #ifdef DEBUG
 	if(event_type==AE_HOST_ALERT)
@@ -1503,8 +1417,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->host_name=(char *)malloc(strlen(host_name)+1);
 		if(new_event->host_name!=NULL)
 			strcpy(new_event->host_name,host_name);
-	        }
-	else
+	}else
 		new_event->host_name=NULL;
 
 	/* allocate memory for the service description */
@@ -1512,8 +1425,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->service_description=(char *)malloc(strlen(svc_description)+1);
 		if(new_event->service_description!=NULL)
 			strcpy(new_event->service_description,svc_description);
-	        }
-	else
+	}else
 		new_event->service_description=NULL;
 
 	/* allocate memory for the event info */
@@ -1521,8 +1433,7 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 		new_event->event_info=(char *)malloc(strlen(event_info)+1);
 		if(new_event->event_info!=NULL)
 			strcpy(new_event->event_info,event_info);
-	        }
-	else
+	}else
 		new_event->event_info=NULL;
 
 	new_event->event_type=event_type;
@@ -1531,39 +1442,62 @@ void add_archived_event(int event_type, time_t time_stamp, int entry_type, int s
 	new_event->state_type=state_type;
 
 
-	/* add the new entry to the list in memory, sorted by time */
-	last_event=event_list;
-	for(temp_event=event_list;temp_event!=NULL;temp_event=temp_event->next){
-		if(new_event->time_stamp>=temp_event->time_stamp){
-			new_event->next=temp_event;
-			if(temp_event==event_list)
-				event_list=new_event;
-			else
-				last_event->next=new_event;
-			break;
-		        }
-		else
-			last_event=temp_event;
-	        }
-	if(event_list==NULL){
-		new_event->next=NULL;
-		event_list=new_event;
-	        }
-	else if(temp_event==NULL){
-		new_event->next=NULL;
-		last_event->next=new_event;
-	        }
+	/* add the new entry to the list in memory */
+	new_event->next=NULL;
+	new_event->next=event_list;
+	event_list=new_event;
 
 	total_items++;
 
 	return;
-        }
+}
+
+void sort_archive_states(void) {
+	archived_event *temp_list=NULL;
+	archived_event *new_event=NULL;
+	archived_event *last_event=NULL;
+	archived_event *next_event=NULL;
+	archived_event *temp_event=NULL;
+
+	temp_list=NULL;
+	for(new_event=event_list;new_event!=NULL;){
+		next_event=new_event->next;
+
+		last_event=temp_list;
+		for(temp_event=temp_list;temp_event!=NULL;temp_event=temp_event->next){
+			if(new_event->time_stamp>=temp_event->time_stamp){
+				new_event->next=temp_event;
+				if(temp_event==temp_list)
+					temp_list=new_event;
+				else
+					last_event->next=new_event;
+				break;
+			} else
+				last_event=temp_event;
+		}
+
+		if(temp_list==NULL){
+			new_event->next=NULL;
+			temp_list=new_event;
+		}
+		else if(temp_event==NULL){
+			new_event->next=NULL;
+			last_event->next=new_event;
+		}
+
+		new_event=next_event;
+	}
+	event_list=temp_list;
+
+	return;
+}
+
 
 /* determines standard report options */
 void determine_standard_report_options(void){
 
 	/* report over last 7 days */
-	convert_timeperiod_to_times(TIMEPERIOD_LAST7DAYS);
+	convert_timeperiod_to_times(TIMEPERIOD_LAST7DAYS,&t1,&t2);
 	compute_time_from_parts=FALSE;
 
 	/* common options */
@@ -1609,7 +1543,7 @@ void determine_standard_report_options(void){
 	        }
 
 	return;
-        }
+}
 
 /* displays report */
 void display_report(void){
@@ -1628,7 +1562,19 @@ void display_report(void){
 		return;
 	}
 
-	if(content_type==CSV_CONTENT) {
+	if(content_type==JSON_CONTENT) {
+		if(display_type==REPORT_ALERT_TOTALS)
+			printf("\"overall_alert_totals\": [\n");
+		if(display_type==REPORT_HOST_ALERT_TOTALS)
+			printf("\"alert_totals_by_host\": {\n");
+		if(display_type==REPORT_HOSTGROUP_ALERT_TOTALS)
+			printf("\"alert_totals_by_hostgroup\": {\n");
+		if(display_type==REPORT_SERVICE_ALERT_TOTALS)
+			printf("\"alert_totals_by_service\": {\n");
+		if(display_type==REPORT_SERVICEGROUP_ALERT_TOTALS)
+			printf("\"alert_totals_by_servicegroup\": {\n");
+
+	}else if(content_type==CSV_CONTENT) {
 		if(display_type==REPORT_HOST_ALERT_TOTALS || display_type==REPORT_SERVICE_ALERT_TOTALS)
 			printf("%sHOST_NAME%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 		if(display_type==REPORT_HOSTGROUP_ALERT_TOTALS)
@@ -1651,11 +1597,13 @@ void display_report(void){
 			printf("%sHOST_UNREACHABLE_TOTAL%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sHOST_ALL_SOFT%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sHOST_ALL_HARD%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
-			printf("%sHOST_ALL_TOTAL%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
+			printf("%sHOST_ALL_TOTAL%s",csv_data_enclosure,csv_data_enclosure);
 		}
 
 		/* Service Alerts Head */
 		if(alert_types & AE_SERVICE_ALERT){
+			if(alert_types & AE_HOST_ALERT && display_type!=REPORT_SERVICE_ALERT_TOTALS)
+				printf("%s",csv_delimiter);
 			printf("%sSERVICE_OK_SOFT%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sSERVICE_OK_HARD%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sSERVICE_OK_TOTAL%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
@@ -1671,6 +1619,8 @@ void display_report(void){
 			printf("%sSERVICE_ALL_SOFT%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sSERVICE_ALL_HARD%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 			printf("%sSERVICE_ALL_TOTAL%s\n",csv_data_enclosure,csv_data_enclosure);
+		} else {
+			printf("\n");
 		}
 	} else {
 		printf("<BR>\n");
@@ -1691,11 +1641,7 @@ void display_report(void){
 		printf("</DIV>\n");
 
                 /* add export to csv link */
-                if(getenv("QUERY_STRING")!=NULL) {
-			printf("<DIV class='csv_export_link'><A HREF='%s?%s&csvoutput' target='_blank'>Export to CSV</A></DIV>\n",SUMMARY_CGI,strdup(getenv("QUERY_STRING")));
-		} else {
-			printf("<DIV class='csv_export_link'><A HREF='%s?csvoutput' target='_blank'>Export to CSV</A></DIV>\n",SUMMARY_CGI);
-		}
+		printf("<DIV class='csv_export_link'><A HREF='%s' target='_blank'>Export to CSV</A></DIV>\n",get_export_csv_link(SUMMARY_CGI));
 	}
 
 	if(display_type==REPORT_ALERT_TOTALS) {
@@ -1738,8 +1684,13 @@ void display_report(void){
 		}
 	}
 
-	if(content_type!=CSV_CONTENT)
+	if(content_type!=CSV_CONTENT && content_type!=JSON_CONTENT)
 		printf("</DIV>\n");
+	else if (content_type==JSON_CONTENT) {
+		printf("\n]\n");
+		if(display_type!=REPORT_ALERT_TOTALS)
+			printf("\n}\n");
+	}
 
 	return;
 }
@@ -1749,7 +1700,7 @@ void display_recent_alerts(void){
 	archived_event *temp_event;
 	int current_item=0;
 	int odd=0;
-	char *bgclass="";
+	int json_start=TRUE;
 	char *status_bgclass="";
 	char *status="";
 	char date_time[MAX_DATETIME_LENGTH];
@@ -1757,7 +1708,9 @@ void display_recent_alerts(void){
 	host *temp_host=NULL;
 	service *temp_service=NULL;
 
-	if(content_type==CSV_CONTENT) {
+	if(content_type==JSON_CONTENT)
+		printf("\"recent_alerts\": [\n");
+	else if(content_type==CSV_CONTENT) {
 		printf("%sTIME%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 		printf("%sALERT_TYPE%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 		printf("%sHOST%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
@@ -1777,27 +1730,22 @@ void display_recent_alerts(void){
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
 
                 /* add export to csv link */
-                if(getenv("QUERY_STRING")!=NULL) {
-			printf("<TR><TD colspan='7'><DIV class='csv_export_link'><A HREF='%s?%s&csvoutput' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",SUMMARY_CGI,strdup(getenv("QUERY_STRING")));
-		} else {
-			printf("<TR><TD colspan='7'><DIV class='csv_export_link'><A HREF='%s?csvoutput' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",SUMMARY_CGI);
-		}
+		printf("<TR><TD colspan='7'><DIV class='csv_export_link'><A HREF='%s' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",get_export_csv_link(SUMMARY_CGI));
 
 		printf("<TR><TH CLASS='data'>Time</TH><TH CLASS='data'>Alert Type</TH><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>State</TH><TH CLASS='data'>State Type</TH><TH CLASS='data'>Information</TH></TR>\n");
 	}
+
+	sort_archive_states();
 
 	for(temp_event=event_list;temp_event!=NULL;temp_event=temp_event->next,current_item++){
 
 		if(current_item>=item_limit && item_limit>0)
 			break;
 
-		if(odd){
+		if(odd)
 			odd=0;
-			bgclass="Odd";
-		} else {
+		else
 			odd=1;
-			bgclass="Even";
-		}
 
 		/* find the host */
 		temp_host=find_host(temp_event->host_name);
@@ -1807,24 +1755,36 @@ void display_recent_alerts(void){
 
 		get_time_string(&temp_event->time_stamp,date_time,(int)sizeof(date_time),SHORT_DATE_TIME);
 
-		if(content_type==CSV_CONTENT) {
+		if(content_type==JSON_CONTENT) {
+			// always add a comma, except for the first line
+			if (json_start==FALSE)
+				printf(",\n");
+			json_start=FALSE;
+			printf("{ \"time\": \"%s\", ",date_time);
+			printf("\"alert_type\": \"%s\", ",(temp_event->event_type==AE_HOST_ALERT)?"Host Alert":"Service Alert");
+			printf("\"host\": \"%s\", ",(temp_host->display_name!=NULL)?json_encode(temp_host->display_name):json_encode(temp_host->name));
+			if (temp_event->event_type==AE_HOST_ALERT)
+				printf("\"service\": null, ");
+			else
+				printf("\"service\": \"%s\", ",(temp_service->display_name!=NULL)?json_encode(temp_service->display_name):json_encode(temp_service->description));
+		}else if(content_type==CSV_CONTENT) {
 			printf("%s%s%s%s",csv_data_enclosure,date_time,csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,(temp_event->event_type==AE_HOST_ALERT)?"Host Alert":"Service Alert",csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name,csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,(temp_event->event_type==AE_HOST_ALERT)?"":(temp_service->display_name!=NULL)?temp_service->display_name:temp_service->description,csv_data_enclosure,csv_delimiter);
 		} else {
-			printf("<tr CLASS='data%s'>",bgclass);
+			printf("<tr CLASS='data%s'>",(odd)?"Even":"Odd");
 
-			printf("<td CLASS='data%s'>%s</td>",bgclass,date_time);
+			printf("<td CLASS='data%s'>%s</td>",(odd)?"Even":"Odd",date_time);
 
-			printf("<td CLASS='data%s'>%s</td>",bgclass,(temp_event->event_type==AE_HOST_ALERT)?"Host Alert":"Service Alert");
+			printf("<td CLASS='data%s'>%s</td>",(odd)?"Even":"Odd",(temp_event->event_type==AE_HOST_ALERT)?"Host Alert":"Service Alert");
 
-			printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s'>%s</a></td>",bgclass,EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_event->host_name),(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
+			printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s'>%s</a></td>",(odd)?"Even":"Odd",EXTINFO_CGI,DISPLAY_HOST_INFO,url_encode(temp_event->host_name),(temp_host->display_name!=NULL)?temp_host->display_name:temp_host->name);
 
 			if(temp_event->event_type==AE_HOST_ALERT)
-				printf("<td CLASS='data%s'>N/A</td>",bgclass);
+				printf("<td CLASS='data%s'>N/A</td>",(odd)?"Even":"Odd");
 			else{
-				printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s",bgclass,EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_event->host_name));
+				printf("<td CLASS='data%s'><a href='%s?type=%d&host=%s",(odd)?"Even":"Odd",EXTINFO_CGI,DISPLAY_SERVICE_INFO,url_encode(temp_event->host_name));
 				printf("&service=%s'>%s</a></td>",url_encode(temp_event->service_description),(temp_service->display_name!=NULL)?temp_service->display_name:temp_service->description);
 			}
 
@@ -1860,30 +1820,36 @@ void display_recent_alerts(void){
 			status="CRITICAL";
 			break;
 		default:
-			status_bgclass=bgclass;
+			status_bgclass=(odd)?"Even":"Odd";
 			status="???";
 			break;
 		}
 
-		if(content_type==CSV_CONTENT) {
+		if(content_type==JSON_CONTENT) {
+			printf("\"state\": \"%s\", ",status);
+			printf("\"state_type\": \"%s\", ",(temp_event->state_type==AE_SOFT_STATE)?"SOFT":"HARD");
+			printf("\"information\": \"%s\"}",json_encode(temp_event->event_info));
+		}else if(content_type==CSV_CONTENT) {
 			printf("%s%s%s%s",csv_data_enclosure,status,csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,(temp_event->state_type==AE_SOFT_STATE)?"SOFT":"HARD",csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s\n",csv_data_enclosure,temp_event->event_info,csv_data_enclosure);
 		} else {
 			printf("<td CLASS='%s'>%s</td>",status_bgclass,status);
 
-			printf("<td CLASS='data%s'>%s</td>",bgclass,(temp_event->state_type==AE_SOFT_STATE)?"SOFT":"HARD");
+			printf("<td CLASS='data%s'>%s</td>",(odd)?"Even":"Odd",(temp_event->state_type==AE_SOFT_STATE)?"SOFT":"HARD");
 
-			printf("<td CLASS='data%s'>%s</td>",bgclass,temp_event->event_info);
+			printf("<td CLASS='data%s'>%s</td>",(odd)?"Even":"Odd",temp_event->event_info);
 
 			printf("</tr>\n");
 		}
 	}
 
-	if(content_type!=CSV_CONTENT) {
+	if(content_type!=CSV_CONTENT && content_type!=JSON_CONTENT){
 		printf("</TABLE>\n");
 		printf("</DIV>\n");
-	}
+	}else if (content_type==JSON_CONTENT)
+		printf("\n]\n");
+
 
 	return;
 }
@@ -1942,7 +1908,7 @@ alert_producer *add_producer(int producer_type, char *host_name, char *service_d
 	producer_list=new_producer;
 
 	return new_producer;
-        }
+}
 
 void free_producer_list(void){
 	alert_producer *this_producer=NULL;
@@ -1961,7 +1927,7 @@ void free_producer_list(void){
 	producer_list=NULL;
 
 	return;
-        }
+}
 
 /* displays top alerts */
 void display_top_alerts(void){
@@ -1974,6 +1940,7 @@ void display_top_alerts(void){
 	int producer_type=AE_HOST_PRODUCER;
 	int current_item=0;
 	int odd=0;
+	int json_start=TRUE;
 	char *bgclass="";
 
 	/* process all events */
@@ -2031,7 +1998,9 @@ void display_top_alerts(void){
 	producer_list=temp_list;
 
 
-	if(content_type==CSV_CONTENT) {
+	if(content_type==JSON_CONTENT) {
+		printf("\"top_alert_producers\": [\n");
+	}else if(content_type==CSV_CONTENT) {
 		printf("%sRANK%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 		printf("%sPRODUCER_TYPE%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
 		printf("%sHOST%s%s",csv_data_enclosure,csv_data_enclosure,csv_delimiter);
@@ -2049,11 +2018,8 @@ void display_top_alerts(void){
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
 
                 /* add export to csv link */
-                if(getenv("QUERY_STRING")!=NULL) {
-			printf("<TR><TD colspan='5'><DIV class='csv_export_link'><A HREF='%s?%s&csvoutput' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",SUMMARY_CGI,strdup(getenv("QUERY_STRING")));
-		} else {
-			printf("<TR><TD colspan='5'><DIV class='csv_export_link'><A HREF='%s?csvoutput' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",SUMMARY_CGI);
-		}
+		printf("<TR><TD colspan='5'><DIV class='csv_export_link'><A HREF='%s' target='_blank'>Export to CSV</A></DIV></TD></TR>\n",get_export_csv_link(SUMMARY_CGI));
+
 		printf("<TR><TH CLASS='data'>Rank</TH><TH CLASS='data'>Producer Type</TH><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>Total Alerts</TH></TR>\n");
 	}
 
@@ -2074,7 +2040,20 @@ void display_top_alerts(void){
 			bgclass="Even";
 		}
 
-		if(content_type==CSV_CONTENT) {
+		if(content_type==JSON_CONTENT) {
+			// always add a comma, except for the first line
+			if (json_start==FALSE)
+				printf(",\n");
+			json_start=FALSE;
+			printf("{ \"rank\": %d, ",current_item);
+			printf(" \"producer_type\": \"%s\", ",(temp_producer->producer_type==AE_HOST_PRODUCER)?"Host":"Service");
+			printf(" \"host\": \"%s\", ",json_encode(temp_producer->host_name));
+			if (temp_producer->producer_type==AE_HOST_PRODUCER)
+				printf(" \"service\": null, ");
+			else
+				printf(" \"service\": \"%s\", ",json_encode(temp_producer->service_description));
+			printf(" \"total_alerts\": %d}",temp_producer->total_alerts);
+		}else if(content_type==CSV_CONTENT) {
 			printf("%s%d%s%s",csv_data_enclosure,current_item,csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,(temp_producer->producer_type==AE_HOST_PRODUCER)?"Host":"Service",csv_data_enclosure,csv_delimiter);
 			printf("%s%s%s%s",csv_data_enclosure,temp_producer->host_name,csv_data_enclosure,csv_delimiter);
@@ -2102,10 +2081,11 @@ void display_top_alerts(void){
 		}
 	}
 
-	if(content_type!=CSV_CONTENT) {
+	if(content_type!=CSV_CONTENT && content_type!=JSON_CONTENT){
 		printf("</TABLE>\n");
 		printf("</DIV>\n");
-	}
+	}else if (content_type==JSON_CONTENT)
+		printf("\n]\n");
 	
 	return;
 }
@@ -2127,6 +2107,8 @@ void display_alerts(void){
 	int hard_service_critical_alerts=0;
 	int soft_service_critical_alerts=0;
 
+	int json_start=TRUE;
+
 	archived_event *temp_event;
 	host *temp_host;
 	service *temp_service;
@@ -2142,7 +2124,15 @@ void display_alerts(void){
 		if(show_all_hostgroups==FALSE && target_hostgroup!=NULL){
 			if(is_host_member_of_hostgroup(target_hostgroup,target_host)==FALSE)
 				return;
-			}
+		}
+
+		if(content_type==JSON_CONTENT) {
+			if(json_list_start==FALSE)
+				printf("],\n");
+			json_list_start=FALSE;
+			printf("\"host_name\": \"%s\",\n",json_encode(target_host->name));
+			printf("\"report\": [\n");
+		}
 	}
 
 	if(display_type==REPORT_HOSTGROUP_ALERT_TOTALS) {
@@ -2152,6 +2142,14 @@ void display_alerts(void){
 		/* make sure the user is authorized to view this hostgroup */
 		if(is_authorized_for_hostgroup(target_hostgroup,&current_authdata)==FALSE)
 			return;
+
+		if(content_type==JSON_CONTENT) {
+			if(json_list_start==FALSE)
+				printf("],\n");
+			json_list_start=FALSE;
+			printf("\"hostgroup_name\": \"%s\",\n",json_encode(target_hostgroup->group_name));
+			printf("\"report\": [\n");
+		}
 	}
 	if(display_type==REPORT_SERVICE_ALERT_TOTALS) {
 		if(target_service==NULL)
@@ -2171,6 +2169,16 @@ void display_alerts(void){
 			if(strcmp(target_host->name,target_service->host_name))
 				return;
 			}
+
+		if(content_type==JSON_CONTENT) {
+			if(json_list_start==FALSE)
+				printf("],\n");
+			json_list_start=FALSE;
+			printf("\"host_name\": \"%s\",\n",json_encode(target_service->host_name));
+			printf("\"service\": \"%s\",\n",json_encode(target_service->description));
+			printf("\"report\": [\n");
+		}
+
 	}
 
 	if(display_type==REPORT_SERVICEGROUP_ALERT_TOTALS) {
@@ -2180,6 +2188,14 @@ void display_alerts(void){
 		/* make sure the user is authorized to view this servicegroup */
 		if(is_authorized_for_servicegroup(target_servicegroup,&current_authdata)==FALSE)
 			return;
+
+		if(content_type==JSON_CONTENT) {
+			if(json_list_start==FALSE)
+				printf("],\n");
+			json_list_start=FALSE;
+			printf("\"servicegroup_name\": \"%s\",\n",json_encode(target_servicegroup->group_name));
+			printf("\"report\": [\n");
+		}
 	}
 
 	/* process all events */
@@ -2260,7 +2276,55 @@ void display_alerts(void){
 	}
 
 
-	if (content_type==CSV_CONTENT) {
+	if(content_type==JSON_CONTENT) {
+		// always add a comma, except for the first line
+		if (json_start==FALSE)
+			printf(",\n");
+		json_start=FALSE;
+
+		/* Host Alerts Data */
+		if(alert_types & AE_HOST_ALERT && display_type!=REPORT_SERVICE_ALERT_TOTALS){
+			printf("{ \"host_up_soft\": %d, ",soft_host_up_alerts);
+			printf("\"host_up_hard\": %d, ",hard_host_up_alerts);
+			printf("\"host_up_total\": %d, ",soft_host_up_alerts+hard_host_up_alerts);
+			printf("\"host_down_soft\": %d, ",soft_host_down_alerts);
+			printf("\"host_down_hard\": %d, ",hard_host_down_alerts);
+			printf("\"host_down_total\": %d, ",soft_host_down_alerts+hard_host_down_alerts);
+			printf("\"host_unreachable_soft\": %d, ",soft_host_unreachable_alerts);
+			printf("\"host_unreachable_hard\": %d, ",hard_host_unreachable_alerts);
+			printf("\"host_unreachable_total\": %d, ",soft_host_unreachable_alerts+hard_host_unreachable_alerts);
+			printf("\"host_all_soft\": %d, ",soft_host_up_alerts+soft_host_down_alerts+soft_host_unreachable_alerts);
+			printf("\"host_all_hard\": %d, ",hard_host_up_alerts+hard_host_down_alerts+hard_host_unreachable_alerts);
+			printf("\"host_all_total\": %d",soft_host_up_alerts+hard_host_up_alerts+soft_host_down_alerts+hard_host_down_alerts+soft_host_unreachable_alerts+hard_host_unreachable_alerts);
+		}
+
+		/* Service Alerts Data */
+		if(alert_types & AE_SERVICE_ALERT){
+			if(alert_types & AE_HOST_ALERT && display_type!=REPORT_SERVICE_ALERT_TOTALS)
+				printf(", ");
+			else
+				printf("{ ");
+
+			printf("\"service_ok_soft\": %d, ",soft_service_ok_alerts);
+			printf("\"service_ok_hard\": %d, ",hard_service_ok_alerts);
+			printf("\"service_ok_total\": %d, ",soft_service_ok_alerts+hard_service_ok_alerts);
+			printf("\"service_warning_soft\": %d, ",soft_service_warning_alerts);
+			printf("\"service_warning_hard\": %d, ",hard_service_warning_alerts);
+			printf("\"service_warning_total\": %d, ",soft_service_warning_alerts+hard_service_warning_alerts);
+			printf("\"service_unknown_soft\": %d, ",soft_service_unknown_alerts);
+			printf("\"service_unknown_hard\": %d, ",hard_service_unknown_alerts);
+			printf("\"service_unknown_total\": %d, ",soft_service_unknown_alerts+hard_service_unknown_alerts);
+			printf("\"service_critical_soft\": %d, ",soft_service_critical_alerts);
+			printf("\"service_critical_hard\": %d, ",hard_service_critical_alerts);
+			printf("\"service_critical_total\": %d, ",soft_service_critical_alerts+hard_service_critical_alerts);
+			printf("\"service_all_soft\": %d, ",soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts);
+			printf("\"service_all_hard\": %d, ",hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts);
+			printf("\"service_all_total\": %d}",soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts+hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts);
+		} else {
+			printf("}");
+		}
+
+	}else if(content_type==CSV_CONTENT) {
 		if(display_type==REPORT_HOST_ALERT_TOTALS)
 			printf("%s%s%s%s",csv_data_enclosure,target_host->name,csv_data_enclosure,csv_delimiter);
 		if(display_type==REPORT_HOSTGROUP_ALERT_TOTALS)
@@ -2285,11 +2349,13 @@ void display_alerts(void){
 			printf("%s%d%s%s",csv_data_enclosure,soft_host_unreachable_alerts+hard_host_unreachable_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,soft_host_up_alerts+soft_host_down_alerts+soft_host_unreachable_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,hard_host_up_alerts+hard_host_down_alerts+hard_host_unreachable_alerts,csv_data_enclosure,csv_delimiter);
-			printf("%s%d%s%s",csv_data_enclosure,soft_host_up_alerts+hard_host_up_alerts+soft_host_down_alerts+hard_host_down_alerts+soft_host_unreachable_alerts+hard_host_unreachable_alerts,csv_data_enclosure,csv_delimiter);
+			printf("%s%d%s",csv_data_enclosure,soft_host_up_alerts+hard_host_up_alerts+soft_host_down_alerts+hard_host_down_alerts+soft_host_unreachable_alerts+hard_host_unreachable_alerts,csv_data_enclosure);
 		}
 
 		/* Service Alerts Data */
 		if(alert_types & AE_SERVICE_ALERT){
+			if(alert_types & AE_HOST_ALERT && display_type!=REPORT_SERVICE_ALERT_TOTALS)
+				printf("%s",csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,soft_service_ok_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,hard_service_ok_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,soft_service_ok_alerts+hard_service_ok_alerts,csv_data_enclosure,csv_delimiter);
@@ -2305,6 +2371,8 @@ void display_alerts(void){
 			printf("%s%d%s%s",csv_data_enclosure,soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s%s",csv_data_enclosure,hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts,csv_data_enclosure,csv_delimiter);
 			printf("%s%d%s\n",csv_data_enclosure,soft_service_ok_alerts+soft_service_warning_alerts+soft_service_unknown_alerts+soft_service_critical_alerts+hard_service_ok_alerts+hard_service_warning_alerts+hard_service_unknown_alerts+hard_service_critical_alerts,csv_data_enclosure);
+		} else {
+			printf("\n");
 		}
 	}else{
 		printf("<BR>\n");

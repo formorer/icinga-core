@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# SUBMIT_CHECK_RESULT
+# Written by Ethan Galstad (egalstad@nagios.org)
+# Modified by Icinga Development Team (https://dev.icinga.org)
+#
+# This script will write a command to the Icinga command
+# file to cause Icinga to process a passive service check
+# result.  Note: This script is intended to be run on the
+# same host that is running Icinga.  If you want to 
+# submit passive check results from a remote machine, look
+# at using the nsca addon.
+#
+# Arguments:
+#  $1 = host_name (Short name of host that the service is
+#       associated with)
+#  $2 = svc_description (Description of the service)
+#  $3 = return_code (An integer that determines the state
+#       of the service check, 0=OK, 1=WARNING, 2=CRITICAL,
+#       3=UNKNOWN).
+#  $4 = plugin_output (A text string that should be used
+#       as the plugin output for the service check)
+# 
+ 
+echocmd="/bin/echo"
+ 
+CommandFile="@EXTCMDFILEDIR@/icinga.cmd"
+ 
+# get the current date/time in seconds since UNIX epoch
+datetime=`date +%s`
+ 
+# create the command line to add to the command file
+cmdline="[$datetime] PROCESS_SERVICE_CHECK_RESULT;$1;$2;$3;$4"
+ 
+# append the command to the end of the command file
+`$echocmd $cmdline >> $CommandFile`

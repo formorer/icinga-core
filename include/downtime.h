@@ -3,7 +3,8 @@
  * DOWNTIME.H - Header file for scheduled downtime functions
  *
  * Copyright (c) 2001-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -101,6 +102,8 @@ scheduled_downtime *find_service_downtime(unsigned long);
 scheduled_downtime *find_downtime_by_similar_content(int,char *,char *,char *,char *,time_t,time_t,int,unsigned long);
 
 void free_downtime_data(void);                                       /* frees memory allocated to scheduled downtime list */
+
+int delete_downtime_by_hostname_service_description_start_time_comment(char *,char *,time_t,char *);
 
 #ifdef __cplusplus
   }

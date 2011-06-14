@@ -3,7 +3,8 @@
  * Icinga Main Header File
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -639,6 +640,9 @@ int cmd_change_object_int_var(int,char *);                      /* changes host/
 int cmd_change_object_char_var(int,char *);			/* changes host/svc (char) variable */
 int cmd_change_object_custom_var(int,char *);                   /* changes host/svc custom variable */
 int cmd_process_external_commands_from_file(int,char *);        /* process external commands from a file */
+int cmd_delete_downtime_by_start_time_comment(int,char *);
+int cmd_delete_downtime_by_host_name(int,char *);
+int cmd_delete_downtime_by_hostgroup_name(int,char *);
 
 int process_passive_service_check(time_t,char *,char *,int,char *);
 int process_passive_host_check(time_t,char *,int,char *);

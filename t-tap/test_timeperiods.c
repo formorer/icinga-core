@@ -225,7 +225,7 @@ int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
 
-int		allow_empty_hostgroup_assignment;
+int		allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
@@ -297,6 +297,11 @@ int schedule_new_event(int event_type, int high_priority, time_t run_time, int r
 int my_tcp_connect(char *host_name, int port, int *sd, int timeout){}
 int my_recvall(int s, char *buf, int *len, int timeout){}
 int neb_free_module_list(void){}
+
+/* Icinga special */
+int     event_profiling_enabled=FALSE;
+void    profiler_update(int event, struct timeval start){}
+
 
 int main(int argc, char **argv){
 	int result;
@@ -535,13 +540,15 @@ int main(int argc, char **argv){
         test_time=1256508001;
         is_valid_time = check_time_against_period(test_time, temp_timeperiod);
         ok( is_valid_time==ERROR, "Sun Oct 25 22:00:01 2009 - false" );
-        _get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        //_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        _get_next_valid_time_per_timeperiod(test_time, &chosen_valid_time, test_time, temp_timeperiod);
         ok( chosen_valid_time==1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
  
         test_time=1256513000;
         is_valid_time = check_time_against_period(test_time, temp_timeperiod);
         ok( is_valid_time==ERROR, "Sun Oct 25 23:23:20 2009 - false" );
-        _get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        //_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        _get_next_valid_time_per_timeperiod(test_time, &chosen_valid_time, test_time, temp_timeperiod);
         ok( chosen_valid_time==1257033600, "Next valid time=Sun Nov 1 00:00:00 2009");
  
  
@@ -555,7 +562,8 @@ int main(int argc, char **argv){
         test_time=1268109420;
         is_valid_time = check_time_against_period(test_time, temp_timeperiod);
         ok( is_valid_time==ERROR, "Mon Mar  8 23:37:00 2010 - false");
-        _get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        //_get_next_valid_time(test_time, test_time, &chosen_valid_time, temp_timeperiod);
+        _get_next_valid_time_per_timeperiod(test_time, &chosen_valid_time, test_time, temp_timeperiod);
         ok( chosen_valid_time==1268115300, "Next valid time=Tue Mar  9 01:15:00 2010" );
 
 	cleanup();

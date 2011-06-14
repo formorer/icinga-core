@@ -9,9 +9,9 @@ AC_CONFIG_HEADER(include/config.h include/snprintf.h)
 AC_PREFIX_DEFAULT(/usr/local/icinga)
 
 PKG_NAME=icinga-core
-PKG_VERSION="1.3.0"
+PKG_VERSION="1.5.0"
 PKG_HOME_URL="http://www.icinga.org/"
-PKG_REL_DATE="10-25-2010"
+PKG_REL_DATE="08-17-2011"
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL
@@ -61,10 +61,17 @@ else
     fi
 fi
 
+dnl base/Makefile.in
 AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O=../common/snprintf.o)
 AC_CHECK_FUNC(snprintf,,SNPRINTF_O=../common/snprintf.o)
 AC_CHECK_FUNC(asprintf,,SNPRINTF_O=../common/snprintf.o)
 AC_CHECK_FUNC(vasprintf,,SNPRINTF_O=../common/snprintf.o)
+
+dnl module/idoutils/src/Makefile.in
+AC_CHECK_FUNC(vsnprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
+AC_CHECK_FUNC(snprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
+AC_CHECK_FUNC(asprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
+AC_CHECK_FUNC(vasprintf,,SNPRINTF_O_IDO=../../../common/snprintf.o)
 
 AC_CACHE_CHECK([for C99 vsnprintf],ac_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([
@@ -98,6 +105,7 @@ fi
 
 dnl AC_CHECK_FUNC(snprintf,AC_DEFINE(HAVE_SNPRINTF),SNPRINTF_O=../common/snprintf.o)
 AC_SUBST(SNPRINTF_O)
+AC_SUBST(SNPRINTF_O_IDO)
 
 
 dnl Checks for library functions.
@@ -268,6 +276,16 @@ if test x$TMPDIR = xno; then
 	TMPDIR="/tmp"
 fi
 AC_SUBST(TMPDIR)
+
+
+dnl Location of the external command file path
+EXTCMDFILEDIR=no
+AC_ARG_WITH(ext-cmd-file-dir,AC_HELP_STRING([--with-ext-cmd-file-dir=<path>],[sets path to external command file directory]),EXTCMDFILEDIR=$withval,EXTCMDFILEDIR=no)
+if test x$EXTCMDFILEDIR = xno; then
+        EXTCMDFILEDIR="$localstatedir/rw"
+fi
+AC_SUBST(EXTCMDFILEDIR)
+
 
 dnl Check for location of init scripts
 init_dir=/etc/rc.d/init.d
@@ -686,6 +704,14 @@ if test x$USE_IDOUTILS = xyes; then
 		AC_MSG_ERROR([--enable-idoutils needs also --enable-event-broker])
 	fi
 
+	dnl instance name
+	IDO_INSTANCE_NAME=no
+	AC_ARG_WITH(ido-instance-name,AC_HELP_STRING([--ido-instance-name=<instancename>],[sets instance_name for IDOUtils]),IDO_INSTANCE_NAME=$withval,IDO_INSTANCE_NAME=no)
+	if test x$IDO_INSTANCE_NAME = xno; then
+	        IDO_INSTANCE_NAME="default"
+	fi
+	AC_SUBST(IDO_INSTANCE_NAME)
+
 	dnl check if oracle enabled, then require ocilib
 	dnl check if pgsql enabled, then require libpq
 	dnl else require libpq
@@ -895,9 +921,13 @@ AC_DEFINE_UNQUOTED(TRACEROUTE_COMMAND,"$PATH_TO_TRACEROUTE",[traceroute command 
 dnl Package directory for Solaris pkgmk (and other OSs, eventually)
 dnl VERSION=`grep 1.0 include/common.h | cut -d ' ' -f 3 | sed 's/"//g'`
 VERSION=$PKG_VERSION
-PACKDIR=`pwd`/pkg
+PACKDIR=`pwd`/solaris_pkg
+SOL_PKG_NAME=Icinga
+ARCH=`uname -p`
 AC_SUBST(PACKDIR)
 AC_SUBST(VERSION)
+AC_SUBST(ARCH)
+AC_SUBST(SOL_PKG_NAME)
 
 AC_MSG_CHECKING(for type va_list)
 AC_TRY_COMPILE([#ifdef __STDC__
@@ -1111,6 +1141,9 @@ else
 	echo ""
 fi
 
+TESTS_CFLAGS="$CFLAGS"
+AC_SUBST(TESTS_CFLAGS)
+
 dnl set -Wall based on os/compiler
 AC_MSG_CHECKING(for -Wall based on os/compiler)
         case $host_os in
@@ -1127,20 +1160,26 @@ AC_MSG_CHECKING(for -Wall based on os/compiler)
 			CFLAGS="-Wall $CFLAGS"
 		;;
                 freebsd*)
-			CFLAGS="-Wall $CFLAGS"
+			CFLAGS=?"-Wall $CFLAGS"
                 ;;
                 *)
                 ;;
         esac
 
 
-AC_OUTPUT(Makefile subst pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile module/idoutils/Makefile xdata/Makefile daemon-init daemon-init-redhat rc.ido2db module/idoutils/src/Makefile t-tap/Makefile t/Makefile module/idoutils/db/scripts/installdb module/idoutils/db/scripts/upgradedb module/idoutils/db/scripts/prepsql)
+AC_OUTPUT(Makefile subst solaris/pkginfo base/Makefile common/Makefile contrib/Makefile cgi/Makefile html/Makefile module/Makefile module/idoutils/Makefile xdata/Makefile daemon-init daemon-init-redhat rc.ido2db module/idoutils/src/Makefile t-tap/Makefile t/Makefile module/idoutils/db/scripts/installdb module/idoutils/db/scripts/upgradedb module/idoutils/db/scripts/prepsql)
 
 
 perl subst $srcdir/include/locations.h
+
+perl subst $srcdir/contrib/eventhandlers/submit_check_result
+perl subst $srcdir/contrib/eventhandlers/disable_active_service_checks
+perl subst $srcdir/contrib/eventhandlers/disable_notifications
+perl subst $srcdir/contrib/eventhandlers/enable_active_service_checks
+perl subst $srcdir/contrib/eventhandlers/enable_notifications
+
 perl subst $srcdir/html/index.html
 perl subst $srcdir/html/menu.html
-perl subst $srcdir/html/top.html
 
 echo ""
 echo "Creating sample config files in sample-config/ ..."
@@ -1166,6 +1205,7 @@ echo ""
 echo "Creating sample config files in module/idoutils/config/ ..."
 
 perl subst $srcdir/module/idoutils/config/icinga.cfg
+perl subst $srcdir/module/idoutils/config/idoutils.cfg
 perl subst $srcdir/module/idoutils/config/ido2db.cfg-sample
 perl subst $srcdir/module/idoutils/config/idomod.cfg-sample
 
@@ -1202,13 +1242,14 @@ else
 AC_MSG_RESULT([             Event Broker:  no])
 fi
 if test x$USE_IDOUTILS = xyes; then
-AC_MSG_RESULT([           Build IDOUtils:  yes])
+AC_MSG_RESULT([           Build IDOUtils:  yes, instance_name=$IDO_INSTANCE_NAME])
 else
 AC_MSG_RESULT([           Build IDOUtils:  no])
 fi
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([                Lock file:  $lockfile])
 AC_MSG_RESULT([   Check result directory:  $CHECKRESULTDIR])
+AC_MSG_RESULT([   Ext Cmd file directory:  $EXTCMDFILEDIR])
 AC_MSG_RESULT([           Init directory:  $init_dir])
 AC_MSG_RESULT([  Apache conf.d directory:  $HTTPD_CONF])
 AC_MSG_RESULT([             Mail program:  $MAIL_PROG])

@@ -3,7 +3,8 @@
  * SEHANDLERS.C - Service and host event and state handlers for Icinga
  *
  * Copyright (c) 1999-2010 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -62,7 +63,7 @@ extern command         *ochp_command_ptr;
 
 extern time_t          program_start;
 
-
+int dummy;	/* reduce compiler warnings */
 
 /******************************************************************/
 /************* OBSESSIVE COMPULSIVE HANDLER FUNCTIONS *************/
@@ -100,13 +101,13 @@ int obsessive_compulsive_service_check_processor(service *svc){
 
 	/* update service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, ocsp_command_ptr,ocsp_command,&raw_command,macro_options);
 	if(raw_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 	log_debug_info(DEBUGL_CHECKS,2,"Raw obsessive compulsive service processor command line: %s\n",raw_command);
@@ -114,7 +115,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -123,7 +124,7 @@ int obsessive_compulsive_service_check_processor(service *svc){
 	/* run the command */
 	my_system_r(&mac, processed_command,ocsp_timeout,&early_timeout,&exectime,NULL,0);
 
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -164,12 +165,12 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 	/* update macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, ochp_command_ptr,ochp_command,&raw_command,macro_options);
 	if(raw_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -178,7 +179,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command,&processed_command,macro_options);
 	if(processed_command==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -186,7 +187,7 @@ int obsessive_compulsive_host_check_processor(host *hst){
 
 	/* run the command */
 	my_system_r(&mac, processed_command,ochp_timeout,&early_timeout,&exectime,NULL,0);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
@@ -234,8 +235,8 @@ int handle_service_event(service *svc){
 
 	/* update service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* run the global service event handler */
 	run_global_service_event_handler(&mac, svc);
@@ -243,7 +244,7 @@ int handle_service_event(service *svc){
 	/* run the event handler command if there is one */
 	if(svc->event_handler!=NULL)
 		run_service_event_handler(&mac, svc);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check for external commands - the event handler may have given us some directives... */
 	check_for_external_commands();
@@ -307,7 +308,7 @@ int run_global_service_event_handler(icinga_macros *mac, service *svc){
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global service event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
-		asprintf(&raw_logentry,"GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,global_service_event_handler);
+		dummy=asprintf(&raw_logentry,"GLOBAL SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,global_service_event_handler);
 		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
@@ -406,7 +407,7 @@ int run_service_event_handler(icinga_macros *mac, service *svc){
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed service event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
-		asprintf(&raw_logentry,"SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,svc->event_handler);
+		dummy=asprintf(&raw_logentry,"SERVICE EVENT HANDLER: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,svc->event_handler);
 		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
@@ -484,7 +485,7 @@ int handle_host_event(host *hst){
 
 	/* update host macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* run the global host event handler */
 	run_global_host_event_handler(&mac, hst);
@@ -553,7 +554,7 @@ int run_global_host_event_handler(icinga_macros *mac, host *hst){
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed global host event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
-		asprintf(&raw_logentry,"GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,global_host_event_handler);
+		dummy=asprintf(&raw_logentry,"GLOBAL HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,global_host_event_handler);
 		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}
@@ -651,7 +652,7 @@ int run_host_event_handler(icinga_macros *mac, host *hst){
 	log_debug_info(DEBUGL_EVENTHANDLERS,2,"Processed host event handler command line: %s\n",processed_command);
 
 	if(log_event_handlers==TRUE){
-		asprintf(&raw_logentry,"HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,hst->event_handler);
+		dummy=asprintf(&raw_logentry,"HOST EVENT HANDLER: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,hst->event_handler);
 		process_macros_r(mac, raw_logentry,&processed_logentry,macro_options);
 		logit(NSLOG_EVENT_HANDLER,FALSE,"%s",processed_logentry);
 		}

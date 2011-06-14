@@ -4,7 +4,7 @@
  *
  * Program: Nagios Core Testing
  * License: GPL
- * Copyright (c) 2009-2010 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
  * Copyright (c) 1999-2009 Ethan Galstad
  *
  * First Written:   06-01-2010, based on test_nagios_config.c
@@ -46,6 +46,10 @@
 extern comment *comment_list;
 extern scheduled_downtime *scheduled_downtime_list;
 
+/* Icinga special */
+void profile_object_update_count(char * name, int val){}
+void profile_object_update_elapsed(char * name, double val){}
+
 /* Icinga cgiutils.c special */
 char alert_message;
 char *host_name;
@@ -63,6 +67,10 @@ int overview_columns;
 int max_grid_width;
 int group_style_type;
 int navbar_search;
+void get_log_archive_to_use(int archive,char *file_name,int file_name_length){}
+time_t last_scheduled_log_rotation=0L;
+time_t this_scheduled_log_rotation=0L;
+int CGI_ID;
 
 int main(int argc, char **argv){
 	int result;

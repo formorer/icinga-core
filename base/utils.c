@@ -3,7 +3,8 @@
  * UTILS.C - Miscellaneous utility functions for Icinga
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -280,7 +281,7 @@ extern unsigned long   max_debug_file_size;
 extern int errno;
 #endif
 
-
+int dummy;	/* reduce compiler warnings */
 
 /******************************************************************/
 /******************** SYSTEM COMMAND FUNCTIONS ********************/
@@ -372,7 +373,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 			 */
 			(void) POPs ;
 
-			asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
+			dummy=asprintf(&temp_buffer,"%s", SvPVX(ERRSV));
 
 			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl failed to compile %s, compile error %s\n",fname,temp_buffer);
 
@@ -395,7 +396,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 #endif
 
 	/* create a pipe */
-	pipe(fd);
+	dummy=pipe(fd);
 
 	/* make the pipe non-blocking */
 	fcntl(fd[0],F_SETFL,O_NONBLOCK);
@@ -432,7 +433,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		setpgid(0,0);
 
 		/* set environment variables */
-		set_all_macro_environment_vars(mac, TRUE);
+		set_all_macro_environment_vars_r(mac, TRUE);
 
 		/* ADDED 11/12/07 EG */
 		/* close external command file and shut down worker thread */
@@ -489,7 +490,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 			log_debug_info(DEBUGL_COMMANDS,0,"Embedded perl ran command %s with output %d, %s\n",fname,status,buffer);
 
 			/* write the output back to the parent process */
-			write(fd[1],buffer,strlen(buffer)+1);
+			dummy=write(fd[1],buffer,strlen(buffer)+1);
 
 			/* close pipe for writing */
 			close(fd[1]);
@@ -513,7 +514,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 			buffer[sizeof(buffer)-1]='\x0';
 
 			/* write the error back to the parent process */
-			write(fd[1],buffer,strlen(buffer)+1);
+			dummy=write(fd[1],buffer,strlen(buffer)+1);
 
 			result=STATE_CRITICAL;
 		        }
@@ -521,7 +522,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 
 			/* write all the lines of output back to the parent process */
 			while(fgets(buffer,sizeof(buffer)-1,fp))
-				write(fd[1],buffer,strlen(buffer));
+				dummy=write(fd[1],buffer,strlen(buffer));
 
 			/* close the command and get termination status */
 			status=pclose(fp);
@@ -543,7 +544,7 @@ int my_system_r(icinga_macros *mac, char *cmd,int timeout,int *early_timeout,dou
 		alarm(0);
 
 		/* clear environment variables */
-		set_all_macro_environment_vars(mac, FALSE);
+		set_all_macro_environment_vars_r(mac, FALSE);
 
 #ifndef DONT_USE_MEMORY_PERFORMANCE_TWEAKS
 		/* free allocated memory */
@@ -689,7 +690,7 @@ int get_raw_command_line_r(icinga_macros *mac, command *cmd_ptr, char *cmd, char
 	log_debug_info(DEBUGL_FUNCTIONS,0,"get_raw_command_line_r()\n");
 
 	/* clear the argv macros */
-	clear_argv_macros(mac);
+	clear_argv_macros_r(mac);
 
 	/* make sure we've got all the requirements */
 	if(cmd_ptr==NULL || full_command==NULL)
@@ -788,7 +789,7 @@ int set_environment_var(char *name, char *value, int set){
 #else
 		/* needed for Solaris and systems that don't have setenv() */
 		/* this will leak memory, but in a "controlled" way, since lost memory should be freed when the child process exits */
-		asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value);
+		dummy=asprintf(&env_string,"%s=%s",name,(value==NULL)?"":value);
 		if(env_string)
 			putenv(env_string);
 #endif
@@ -810,6 +811,24 @@ int set_environment_var(char *name, char *value, int set){
 /************************* TIME FUNCTIONS *************************/
 /******************************************************************/
 
+/* Checks if the given time is in daylight time saving period */
+int is_dlst_time(time_t *time) {
+	struct tm *bt = localtime(time);
+	return bt->tm_isdst;
+}
+
+/* Returns the shift in seconds if the given times are across the daylight time saving period change */
+int get_dlst_shift(time_t *start, time_t *end) {
+	int shift = 0, dlst_end, dlst_start;
+	dlst_start = is_dlst_time(start);
+	dlst_end = is_dlst_time(end);
+	if (dlst_start < dlst_end) {
+		shift = 3600;
+	} else if (dlst_start > dlst_end) {
+		shift = -3600;
+	}
+	return shift;
+}
 
 /*#define TEST_TIMEPERIODS_A 1*/
 
@@ -819,7 +838,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	timeperiodexclusion *first_timeperiodexclusion=NULL;
 	daterange *temp_daterange=NULL;
 	timerange *temp_timerange=NULL;
-	unsigned long midnight=0L;
+	time_t midnight=0L;
 	time_t start_time=(time_t)0L;
 	time_t end_time=(time_t)0L;
 	int found_match=FALSE;
@@ -833,6 +852,7 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 	int test_time_mday=0;
 	int test_time_wday=0;
 	int year=0;
+	int shift;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"check_time_against_period()\n");
 
@@ -1005,13 +1025,15 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 
 			/* calculate skip date start (and end) */
 			if(temp_daterange->skip_interval>1){
-
 				/* skip start date must be before test time */
 				if(start_time>test_time)
 					continue;
 
+				/* check if interval is across dlst change and gets the compensation */
+				shift=get_dlst_shift(&start_time,&midnight);
+
 				/* how many days have passed between skip start date and test time? */
-				days=(midnight-(unsigned long)start_time)/(3600*24);
+				days=(shift+midnight-(unsigned long)start_time)/(3600*24);
 
 				/* if test date doesn't fall on a skip interval day, bail out early */
 				if((days % temp_daterange->skip_interval)!=0)
@@ -1029,6 +1051,8 @@ int check_time_against_period(time_t test_time, timeperiod *tperiod){
 #ifdef TEST_TIMEPERIODS_A
 			printf("NEW START:    %lu = %s",(unsigned long)start_time,ctime(&start_time));
 			printf("NEW END:      %lu = %s",(unsigned long)end_time,ctime(&end_time));
+			printf("%d DAYS PASSED\n",days);
+			printf("DLST SHIFT:   %d",shift);
 #endif
 
 			/* time falls into the range of days */
@@ -1143,7 +1167,7 @@ void _get_next_valid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 	time_t preferred_time=(time_t)0L;
 	timerange *temp_timerange;
 	daterange *temp_daterange;
-	unsigned long midnight=0L;
+	time_t midnight=0L;
 	struct tm *t, tm_s;
 	time_t day_start=(time_t)0L;
 	time_t day_range_start=(time_t)0L;
@@ -1171,6 +1195,7 @@ void _get_next_valid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 	int current_time_mon=0;
 	int current_time_mday=0;
 	int current_time_wday=0;
+	int shift;
 
 	/* preferred time must be now or in the future */
 	preferred_time=pref_time;
@@ -1396,9 +1421,11 @@ void _get_next_valid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 
 				/* advance to the next possible skip date */
 				if(start_time<preferred_time){
+					/* check if interval is across dlst change and gets the compensation */
+					shift=get_dlst_shift(&start_time,&midnight);
 
 					/* how many days have passed between skip start date and preferred time? */
-					days=(midnight-(unsigned long)start_time)/(3600*24);
+					days=(shift+midnight-(unsigned long)start_time)/(3600*24);
 
 #ifdef TEST_TIMEPERIODS_B
 					printf("MIDNIGHT: %lu = %s",midnight,ctime(&midnight));
@@ -1406,6 +1433,7 @@ void _get_next_valid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 					printf("%d DAYS PASSED\n",days);
 					printf("REMAINDER: %d\n",(days % temp_daterange->skip_interval));
 					printf("SKIP INTERVAL: %d\n",temp_daterange->skip_interval);
+					printf("DLST SHIFT: %d",shift);
 #endif
 
 					/* advance start date to next skip day */
@@ -1537,7 +1565,7 @@ void get_min_invalid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 	time_t preferred_time=(time_t)0L;
 	timerange *temp_timerange;
 	daterange *temp_daterange;
-	unsigned long midnight=0L;
+	time_t midnight=0L;
 	struct tm *t, tm_s;
 	time_t day_start=(time_t)0L;
 	time_t day_range_start=(time_t)0L;
@@ -1565,7 +1593,7 @@ void get_min_invalid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 	int current_time_mon=0;
 	int current_time_mday=0;
 	int current_time_wday=0;
-
+	int shift;
 
 	log_debug_info(DEBUGL_FUNCTIONS,0,"get_next_valid_time_per_timeperiod()\n");
 
@@ -1770,9 +1798,11 @@ void get_min_invalid_time_per_timeperiod(time_t pref_time, time_t *valid_time, t
 
 				/* advance to the next possible skip date */
 				if(start_time<preferred_time){
+					/* check if interval is across dlst change and gets the compensation */
+					shift=get_dlst_shift(&start_time,&midnight);
 
 					/* how many days have passed between skip start date and preferred time? */
-					days=(midnight-(unsigned long)start_time)/(3600*24);
+					days=(shift+midnight-(unsigned long)start_time)/(3600*24);
 
 					/* advance start date to next skip day */
 					if((days % temp_daterange->skip_interval)==0)
@@ -2299,9 +2329,9 @@ int daemon_init(void){
 	/* change working directory. scuttle home if we're dumping core */
 	homedir=getenv("HOME");
 	if(daemon_dumps_core==TRUE && homedir!=NULL)
-		chdir(homedir);
+		dummy=chdir(homedir);
 	else
-		chdir("/");
+		dummy=chdir("/");
 
 	umask(S_IWGRP|S_IWOTH);
 
@@ -2378,9 +2408,9 @@ int daemon_init(void){
 
 	/* write PID to lockfile... */
 	lseek(lockfile,0,SEEK_SET);
-	ftruncate(lockfile,0);
+	dummy=ftruncate(lockfile,0);
 	sprintf(buf,"%d\n",(int)getpid());
-	write(lockfile,buf,strlen(buf));
+	dummy=write(lockfile,buf,strlen(buf));
 
 	/* make sure lock file stays open while program is executing... */
 	val=fcntl(lockfile,F_GETFD,0);
@@ -2516,7 +2546,7 @@ int move_check_result_to_queue(char *checkresult_file){
 	old_umask=umask(new_umask);
 
 	/* create a safe temp file */
-	asprintf(&output_file,"%s/cXXXXXX",check_result_path);
+	dummy=asprintf(&output_file,"%s/cXXXXXX",check_result_path);
 	output_file_fd=mkstemp(output_file);
 
 	/* file created okay */
@@ -2539,7 +2569,7 @@ int move_check_result_to_queue(char *checkresult_file){
 #endif
 
 		/* create an ok-to-go indicator file */
-		asprintf(&temp_buffer,"%s.ok",output_file);
+		dummy=asprintf(&temp_buffer,"%s.ok",output_file);
 		if((output_file_fd=open(temp_buffer,O_CREAT|O_WRONLY|O_TRUNC,S_IRUSR|S_IWUSR))>=0)
 			close(output_file_fd);
 		my_free(temp_buffer);
@@ -2624,7 +2654,7 @@ int process_check_result_queue(char *dirname){
 			/* at this point we have a regular file... */
 
 			/* can we find the associated ok-to-go file ? */
-			asprintf(&temp_buffer,"%s.ok",file);
+			dummy=asprintf(&temp_buffer,"%s.ok",file);
 			result=stat(temp_buffer,&ok_stat_buf);
 			my_free(temp_buffer);
 			if(result==-1)
@@ -2830,7 +2860,7 @@ int delete_check_result_file(char *fname){
 	unlink(fname);
 
 	/* delete the ok-to-go file */
-	asprintf(&temp_buffer,"%s.ok",fname);
+	dummy=asprintf(&temp_buffer,"%s.ok",fname);
 	unlink(temp_buffer);
 	my_free(temp_buffer);
 
@@ -3776,24 +3806,32 @@ int init_command_file_worker_thread(void){
 int shutdown_command_file_worker_thread(void){
 	int result=0;
 
-	/* CHANGED 11/12/07 EG */
-	/* cancel/join worker thread only if we're the main (parent) process */
+	/* 2010-01-04 AE:
+	 * calling pthread_cancel(0) will cause segfaults with some
+	 * thread libraries. It's possible that will happen if the
+	 * user has a number of config files larger than the max
+	 * open file descriptor limit (ulimit -n) and some retarded
+	 * eventbroker module leaks filedescriptors, since we'll then
+	 * enter the cleanup() routine from main() before we've
+	 * spawned any threads.
+	 */
+	if (worker_threads[COMMAND_WORKER_THREAD]) {
+		/* tell the worker thread to exit */
+		result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
 
-	/* tell the worker thread to exit */
-	result=pthread_cancel(worker_threads[COMMAND_WORKER_THREAD]);
-
-	/* wait for the worker thread to exit */
-	if(result==0){
-		result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
+		/* wait for the worker thread to exit */
+		if(result==0){
+			result=pthread_join(worker_threads[COMMAND_WORKER_THREAD],NULL);
 		}
 
-	/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
-	else{
-		cleanup_command_file_worker_thread(NULL);
-		}
+		/* we're being called from a fork()'ed child process - can't cancel thread, so just cleanup memory */
+		else {
+			cleanup_command_file_worker_thread(NULL);
+ 		}
+	}
 
 	return OK;
-        }
+}
 
 
 /* clean up resources used by command file worker thread */
@@ -4011,7 +4049,7 @@ int submit_raw_external_command(char *cmd, time_t *ts, int *buffer_items){
 		time(&timestamp);
 
 	/* create the command string */
-	asprintf(&newcmd,"[%lu] %s",(unsigned long)timestamp,cmd);
+	dummy=asprintf(&newcmd,"[%lu] %s",(unsigned long)timestamp,cmd);
 
 	/* submit the command */
 	result=submit_external_command(newcmd,buffer_items);
@@ -4374,7 +4412,7 @@ void free_memory(icinga_macros *mac){
 	 * macros when we get a reload or restart request through the
 	 * command pipe, or when we receive a SIGHUP.
 	 */
-	clear_volatile_macros(mac);
+	clear_volatile_macros_r(mac);
 
 	free_macrox_names();
 

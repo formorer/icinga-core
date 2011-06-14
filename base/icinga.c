@@ -3,10 +3,11 @@
  * ICINGA.C - Core Program Code For Icinga
  *
  * Program: Icinga
- * Version: 1.3.0
+ * Version: 1.5.0
  * License: GPL
  * Copyright (c) 1999-2009 Ethan Galstad (http://www.nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * Description:
  *
@@ -259,6 +260,7 @@ extern hostgroup       *hostgroup_list;
 extern command         *command_list;
 extern timeperiod      *timeperiod_list;
 extern serviceescalation *serviceescalation_list;
+extern module          *module_list;
 
 notification    *notification_list;
 
@@ -280,7 +282,7 @@ int             debug_level=DEFAULT_DEBUG_LEVEL;
 int             debug_verbosity=DEFAULT_DEBUG_VERBOSITY;
 unsigned long   max_debug_file_size=DEFAULT_MAX_DEBUG_FILE_SIZE;
 
-
+int dummy;	/* reduce compiler warnings */
 
 
 /* Following main() declaration required by older versions of Perl ut 5.00503 */
@@ -288,6 +290,7 @@ int main(int argc, char **argv, char **env){
 	int result;
 	int error=FALSE;
 	char *buffer=NULL;
+	char *dummy_c=NULL;
 	int display_license=FALSE;
 	int display_help=FALSE;
 	int c=0;
@@ -398,8 +401,8 @@ int main(int argc, char **argv, char **env){
 
 	if(daemon_mode==FALSE){
 		printf("\n%s %s\n", PROGRAM_NAME ,PROGRAM_VERSION);
-		printf("Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)\n");
-		printf("Copyright (c) 2009 Nagios Core Development Team and Community Contributors\n");
+		printf("Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)\n");
+		printf("Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors\n");
 		printf("Copyright (c) 1999-2009 Ethan Galstad\n");
 		printf("Last Modified: %s\n",PROGRAM_MODIFICATION_DATE);
 		printf("License: GPL\n\n");
@@ -473,7 +476,7 @@ int main(int argc, char **argv, char **env){
 		        }
 
 		/* get absolute path of current working directory */
-		getcwd(config_file,MAX_FILENAME_LENGTH);
+		dummy_c=getcwd(config_file,MAX_FILENAME_LENGTH);
 
 		/* append a forward slash */
 		strncat(config_file,"/",1);
@@ -670,11 +673,17 @@ int main(int argc, char **argv, char **env){
 			/* read in the configuration files (main and resource config files) */
 			result=read_main_config_file(config_file);
 
+			/* we need to read the modules in the first place as object configuration before neb modules are initialized/loaded */
+			result=read_object_config_data(config_file,READ_MODULES,FALSE,FALSE);
+
+			/* add modules to neb */
+			result=add_module_objects_to_neb();
+
 			/* NOTE 11/06/07 EG moved to after we read config files, as user may have overridden timezone offset */
 			/* get program (re)start time and save as macro */
 			program_start=time(NULL);
 			my_free(mac->x[MACRO_PROCESSSTARTTIME]);
-			asprintf(&mac->x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
+			dummy=asprintf(&mac->x[MACRO_PROCESSSTARTTIME],"%lu",(unsigned long)program_start);
 
 			/* open debug log */
 			open_debug_log();
@@ -799,7 +808,7 @@ int main(int argc, char **argv, char **env){
 					exit(ERROR);
 					}
 
-				asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
+				dummy=asprintf(&buffer,"Finished daemonizing... (New PID=%d)\n",(int)getpid());
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 				my_free(buffer);
 
@@ -863,7 +872,7 @@ int main(int argc, char **argv, char **env){
 			/* get event start time and save as macro */
 			event_start=time(NULL);
 			my_free(mac->x[MACRO_EVENTSTARTTIME]);
-			asprintf(&mac->x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
+			dummy=asprintf(&mac->x[MACRO_EVENTSTARTTIME],"%lu",(unsigned long)event_start);
 
 		        /***** start monitoring all services *****/
 			/* (doesn't return until a restart or shutdown signal is encountered) */
@@ -875,9 +884,9 @@ int main(int argc, char **argv, char **env){
 			if(caught_signal==TRUE){
 
 				if(sig_id==SIGHUP)
-					asprintf(&buffer,"Caught SIGHUP, restarting...\n");
+					dummy=asprintf(&buffer,"Caught SIGHUP, restarting...\n");
 				else if(sig_id!=SIGSEGV)
-					asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
+					dummy=asprintf(&buffer,"Caught SIG%s, shutting down...\n",sigs[sig_id]);
 
 				write_to_all_logs(buffer,NSLOG_PROCESS_INFO);
 				my_free(buffer);

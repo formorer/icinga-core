@@ -3,7 +3,7 @@
  * CMD.C - Icinga Command CGI
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * Last Modified: 08-08-2010
  *
@@ -23,6 +23,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *************************************************************************/
 
+/** @file cmd.c
+ *  @brief submits commands to Icinga command pipe
+**/
+
+
 #include "../include/config.h"
 #include "../include/common.h"
 #include "../include/objects.h"
@@ -33,6 +38,8 @@
 #include "../include/cgiauth.h"
 #include "../include/getcgi.h"
 
+/** @name External vars
+    @{ **/
 extern const char *extcmd_get_name(int id);
 
 extern char main_config_file[MAX_FILENAME_LENGTH];
@@ -51,14 +58,23 @@ extern int  content_type;
 extern int  display_header;
 extern int  daemon_check;
 
+extern int enforce_comments_on_actions;
 extern int date_format;
+extern int use_logging;
 
 extern scheduled_downtime *scheduled_downtime_list;
 extern comment *comment_list;
+/** @} */
 
+/** @name LIMITS
+ @{**/
 #define MAX_AUTHOR_LENGTH		64
 #define MAX_COMMENT_LENGTH		1024
+#define NUMBER_OF_STRUCTS		500		/**< Set a limit of 500 structs, which is around 125 checks total */
+/** @}*/
 
+/** @name ELEMET TEMPLATE TYPES
+ @{**/
 #define PRINT_COMMON_HEADER		1
 #define PRINT_AUTHOR			2
 #define PRINT_STICKY_ACK		3
@@ -75,100 +91,201 @@ extern comment *comment_list;
 #define PRINT_FIXED_FLEXIBLE_TYPE	14
 #define PRINT_BROADCAST_NOTIFICATION	15
 #define PRINT_FORCE_NOTIFICATION	16
+/** @}*/
+
+/** @name OBJECT LIST TYPES
+ @{**/
 #define PRINT_HOST_LIST			17
 #define PRINT_SERVICE_LIST		18
 #define PRINT_COMMENT_LIST		19
 #define PRINT_DOWNTIME_LIST		20
+/** @}*/
 
-char *host_name="";
-char *hostgroup_name="";
-char *servicegroup_name="";
-char *service_desc="";
-char *comment_author="";
-char *comment_data="";
-char *start_time_string="";
-char *end_time_string="";
-
-char help_text[MAX_INPUT_BUFFER]="";
-
-int notification_delay=0;
-int schedule_delay=0;
-int persistent_comment=FALSE;
-int sticky_ack=FALSE;
-int send_notification=FALSE;
-int force_check=FALSE;
-int plugin_state=STATE_OK;
-char plugin_output[MAX_INPUT_BUFFER]="";
-char performance_data[MAX_INPUT_BUFFER]="";
-time_t start_time=0L;
-time_t end_time=0L;
-int affect_host_and_services=FALSE;
-int propagate_to_children=FALSE;
-int fixed=FALSE;
-unsigned long duration=0L;
-unsigned long triggered_by=0L;
-int child_options=0;
-int force_notification=0;
-int broadcast_notification=0;
-int display_type=DISPLAY_HOSTS;
-int show_all_hosts=TRUE;
-int show_all_hostgroups=TRUE;
-int show_all_servicegroups=TRUE;
-
-int command_type=CMD_NONE;
-int command_mode=CMDMODE_REQUEST;
-
-authdata current_authdata;
-
-void request_command_data(int);
-void commit_command_data(int);
-int commit_command(int);
-int write_command_to_file(char *);
-void clean_comment_data(char *);
-
-void print_form_element(int,int);
-void print_object_list(int);
-void print_help_box(char *);
-
-void check_comment_sanity(int*);
-void check_time_sanity(int*);
-
-int process_cgivars(void);
-
-int string_to_time(char *,time_t *);
-
-/* Set a limit of 500 structs, which is around 125 checks total*/
-#define NUMBER_OF_STRUCTS 500
-
-/* Struct to hold information for batch processing */
+/** @brief host/service list structure
+ *
+ *  Struct to hold information of hosts and services for batch processing
+**/
 struct hostlist {
 	char *host_name;
 	char *description;
 };
 
-/* store the errors we find during processing */
+/** @brief error list structure
+ *
+ *  hold the errors we find during processing of @ref commit_command_data
+**/
 struct errorlist {
 	char *message;
 };
 
-/* Initialize the struct */
+
+/** @name Vars which are imported for cgiutils
+ *  @warning these wars should be all extern, @n
+ *	then they could get deleted, because they aren't used here.
+ *	@n cgiutils.c , needs them
+    @{ **/
+int show_all_hosts=TRUE;			/**< */
+int show_all_hostgroups=TRUE;			/**< */
+int show_all_servicegroups=TRUE;		/**< */
+int display_type=DISPLAY_HOSTS;			/**< */
+/** @}*/
+
+/** @name Internal vars
+    @{ **/
+char *host_name="";				/**< requested host name */
+char *hostgroup_name="";			/**< requested hostgroup name */
+char *servicegroup_name="";			/**< requested servicegroup name */
+char *service_desc="";				/**< requested service name */
+char *comment_author="";			/**< submitted comment author */
+char *comment_data="";				/**< submitted comment data */
+char *start_time_string="";			/**< the requested start time */
+char *end_time_string="";			/**< the requested end time */
+
+char help_text[MAX_INPUT_BUFFER]="";		/**< help string */
+char plugin_output[MAX_INPUT_BUFFER]="";	/**< plugin output text for passive submitted check */
+char performance_data[MAX_INPUT_BUFFER]="";	/**< plugin performance data for passive submitted check */
+
+int notification_delay=0;			/**< delay for submitted notification in minutes */
+int schedule_delay=0;				/**< delay for sheduled actions in minutes (Icinga restart, Notfications enable/disable)
+							!not implemented in GUI! */
+int persistent_comment=FALSE;			/**< bool if omment should survive Icinga restart */
+int sticky_ack=FALSE;				/**< bool to disable notifications until recover */
+int send_notification=FALSE;			/**< bool sends a notification if service gets acknowledged */
+int force_check=FALSE;				/**< bool if check should be forced */
+int plugin_state=STATE_OK;			/**< plugin state for passive submitted check */
+int affect_host_and_services=FALSE;		/**< bool if notifiactions or else affect all host and services */
+int propagate_to_children=FALSE;		/**< bool if en/disable host notifications should propagated to children */
+int fixed=FALSE;				/**< bool if downtime is fixed or flexible */
+unsigned long duration=0L;			/**< downtime duration */
+unsigned long triggered_by=0L;			/**< downtime id which triggers submited downtime */
+int child_options=0;				/**< if downtime should trigger child host downtimes */
+int force_notification=0;			/**< force a notification to be send out through event handler */
+int broadcast_notification=0;			/**< this options determines if notification should be broadcasted */
+
+int command_type=CMD_NONE;			/**< the requested command ID */
+int command_mode=CMDMODE_REQUEST;		/**< if command mode is request or commit */
+
+time_t start_time=0L;				/**< start time as unix timestamp */
+time_t end_time=0L;				/**< end time as unix timestamp */
+
+int CGI_ID=CMD_CGI_ID;				/**< ID to identify the cgi for functions in cgiutils.c */
+
+authdata current_authdata;			/**< struct to hold current authentication data */
+
+/** Initialize the struct */
 struct hostlist commands[NUMBER_OF_STRUCTS];
 
-/* initialze the error list */
+/** initialze the error list */
 struct errorlist error[NUMBER_OF_STRUCTS];
 
-/* Hold IDs of comments and downtimes */
+/** Hold IDs of comments and downtimes */
 unsigned long multi_ids[NUMBER_OF_STRUCTS];
 
-/* store the authentication status when data gets checked to submited */
+/** store the authentication status when data gets checked to submited */
 short is_authorized[NUMBER_OF_STRUCTS];
 
-/* store the result of each object which get submited */
+/** store the result of each object which get submited */
 short submit_result[NUMBER_OF_STRUCTS];
+/** @} */
 
-int CGI_ID=CMD_CGI_ID;
 
-/* Everything needs a main */
+/** @brief Print form for all details to submit command
+ *  @param [in] cmd ID of requested command
+ *
+ *  This function generates the form for the command with all requested
+ *  host/services/downtimes/comments items. This is the first page you get
+ *  when you submit a command.
+**/
+void request_command_data(int);
+
+/** @brief submits the command data and checks for sanity
+ *  @param [in] cmd ID of requested command
+ *
+ *  This function checks the submitted data (@ref request_command_data)
+ *  for sanity. If everything is alright it passes the data to @ref commit_command.
+**/
+void commit_command_data(int);
+
+/** @brief checks the authorization and passes the data to cmd_submitf
+ *  @param [in] cmd ID of requested command
+ *  @retval OK
+ *  @retval ERROR
+ *  @return success / fail
+ *
+ *  Here the command get formatted properly to be readable by icinga
+ *  core. It passes the data to @ref cmd_submitf .
+**/
+int commit_command(int);
+
+/** @brief write the command to Icinga command pipe
+ *  @param [in] cmd the formatted command string
+ *  @retval OK
+ *  @retval ERROR
+ *  @return success / fail
+ *
+ *  This function actually writes the formatted string into Icinga command pipe.
+ *  And if configured also to Icinga CGI log.
+**/
+int write_command_to_file(char *);
+
+/** @brief strips out semicolons and newlines from comment data
+ *  @param [in,out] buffer the stringt which should be cleaned
+ *
+ *  Converts semicolons, newline and carriage return to space.
+**/
+void clean_comment_data(char *);
+
+/** @brief strips out semicolons and newlines from comment data
+ *  @param [in] element ID of the element which should be printed
+ *  @param [in] cmd ID of requested command
+ *
+ *  These are templates for the different form elements. Specify
+ *  the element you want to print with element id.
+**/
+void print_form_element(int,int);
+
+/** @brief print the list of affected objects
+ *  @param [in] list_type ID of the item list which should be printed
+ *
+ *  Used to print the list of requested objects. Depending on the command
+ *  you can specify the list (HOST/SERVICE/COMMENT/DOWNTIME).
+**/
+void print_object_list(int);
+
+/** @brief print the mouseover box with help text
+ *  @param [in] content string which should be printed as help box
+ *
+ *  This writes the mousover help box.
+**/
+void print_help_box(char *);
+
+/** @brief checks start and end time and if start_time is before end_time
+ *  @param [in] e the error element list
+ *
+ *  Checks if author or comment is empty. If so it adds an error to error list.
+**/
+void check_comment_sanity(int*);
+
+/** @brief checks if comment and author are not empty strings
+ *  @param [in] e the error element list
+ *
+ *  Checks the sanity of given start and end time. Checks if time is
+ *  wrong or start_time is past end_time then if found an error it
+ *  adds an error to error list.
+**/
+void check_time_sanity(int*);
+
+/** @brief Parses the requested GET/POST variables
+ *  @retval TRUE
+ *  @retval FALSE
+ *  @return wether parsing was successful or not
+ *
+ *  @n This function parses the request and set's the necessary variables
+**/
+int process_cgivars(void);
+
+
+/** @brief Yes we need a main function **/
 int main(void){
 	int result=OK;
 
@@ -185,7 +302,7 @@ int main(void){
 		if(content_type==WML_CONTENT)
 			printf("<p>Error: Could not open CGI config file!</p>\n");
 		else
-			cgi_config_file_error(get_cgi_config_location());
+			print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	}
@@ -197,7 +314,7 @@ int main(void){
 		if(content_type==WML_CONTENT)
 			printf("<p>Error: Could not open main config file!</p>\n");
 		else
-			main_config_file_error(main_config_file);
+			print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	}
@@ -217,7 +334,7 @@ int main(void){
 		if(content_type==WML_CONTENT)
 			printf("<p>Error: Could not read object config data!</p>\n");
 		else
-			object_data_error();
+			print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
 	}
@@ -263,15 +380,12 @@ int main(void){
 
 	/* if no command was specified... */
 	if(command_type==CMD_NONE){
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: No command specified!</p>\n");
-		else {
-			printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td class='errorMessage'>Error: No command was specified</td></tr></table></DIV>\n");
-			printf("</DIV>\n");
-			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message("Error: No command was specified!",NULL,2);
+	}
+
+	/* if not authorized to perform commands*/
+	else if (is_authorized_for_read_only(&current_authdata)==TRUE){
+		print_generic_error_message("Error: It appears as though you do not have permission to perform any commands!",NULL,1);
 	}
 
 	/* if this is the first request for a command, present option */
@@ -414,7 +528,7 @@ int process_cgivars(void){
 			if(variables[x]==NULL){
 				error=TRUE;
 				break;
-				}
+			}
 
 			if((hostgroup_name=(char *)strdup(variables[x]))==NULL)
 				hostgroup_name="";
@@ -646,7 +760,6 @@ int process_cgivars(void){
 	return error;
 }
 
-/* print the list of affected objects */
 void print_object_list(int list_type) {
 	int x = 0;
 	int row_color = 0;
@@ -699,7 +812,6 @@ void print_object_list(int list_type) {
 	return;
 }
 
-/* print the mouseover box with help */
 void print_help_box(char *content) {
 
 	printf("<img src='%s%s' onMouseOver=\"return tooltip('<table border=0 width=100%% height=100%%>",url_images_path,CONTEXT_HELP_ICON1);
@@ -709,7 +821,6 @@ void print_help_box(char *content) {
 	return;
 }
 
-/* templates for the different form elements */
 void print_form_element(int element,int cmd) {
 	time_t t;
 	char buffer[MAX_INPUT_BUFFER];
@@ -908,7 +1019,6 @@ void print_form_element(int element,int cmd) {
 	return;
 }
 
-/* Print form to commit a command */
 void request_command_data(int cmd){
 	char start_time[MAX_DATETIME_LENGTH];
 	contact *temp_contact;
@@ -1216,12 +1326,8 @@ void request_command_data(int cmd){
 		break;
 
 	default:
-		printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
-		printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-		printf("<td CLASS='errorMessage'>Sorry Dave, I can't let you do that...</td></tr></table></DIV>\n");
-		printf("<DIV CLASS='errorDescription'>Executing an unknown command? Shame on you!</DIV><br>");
-		printf("</DIV>\n");
-		printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
+		print_generic_error_message("Sorry Dave, I can't let you do that...","Executing an unknown command? Shame on you!",2);
+
 		return;
 	}
 
@@ -1308,6 +1414,12 @@ void request_command_data(int cmd){
 		else
 			print_object_list(PRINT_DOWNTIME_LIST);
 
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
 		break;
 
 	case CMD_DELAY_SVC_NOTIFICATION:
@@ -1319,6 +1431,12 @@ void request_command_data(int cmd){
 			print_object_list(PRINT_HOST_LIST);
 
 		print_form_element(PRINT_COMMON_HEADER,cmd);
+
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
 		print_form_element(PRINT_NOTIFICATION_DELAY,cmd);
 
 		break;
@@ -1333,6 +1451,12 @@ void request_command_data(int cmd){
 			print_object_list(PRINT_HOST_LIST);
 
 		print_form_element(PRINT_COMMON_HEADER,cmd);
+
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
 		print_form_element(PRINT_CHECK_TIME,cmd);
 		print_form_element(PRINT_FORCE_CHECK,cmd);
 
@@ -1354,6 +1478,12 @@ void request_command_data(int cmd){
 	case CMD_STOP_OBSESSING_OVER_SVC:
 
 		print_object_list(PRINT_SERVICE_LIST);
+
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
 
 		break;
 
@@ -1380,8 +1510,15 @@ void request_command_data(int cmd){
 
 		print_object_list(PRINT_HOST_LIST);
 
-		if(cmd==CMD_ENABLE_HOST_SVC_CHECKS || cmd==CMD_DISABLE_HOST_SVC_CHECKS || cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_ENABLE_HOST_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_NOTIFICATIONS){
+		if(enforce_comments_on_actions==TRUE) {
 			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
+		if(cmd==CMD_ENABLE_HOST_SVC_CHECKS || cmd==CMD_DISABLE_HOST_SVC_CHECKS || cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_ENABLE_HOST_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_NOTIFICATIONS){
+			if(enforce_comments_on_actions!=TRUE)
+				print_form_element(PRINT_COMMON_HEADER,cmd);
 		}
 
 		if(cmd==CMD_ENABLE_HOST_SVC_CHECKS || cmd==CMD_DISABLE_HOST_SVC_CHECKS || cmd==CMD_ENABLE_HOST_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOST_SVC_NOTIFICATIONS){
@@ -1429,8 +1566,16 @@ void request_command_data(int cmd){
 	case CMD_STOP_ACCEPTING_PASSIVE_HOST_CHECKS:
 	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
 	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
-		printf("<tr><td COLSPAN=\"2\">&nbsp;</td></tr>\n");
-		printf("<tr><td CLASS='objectDescription' colspan=2>There are no options for this command.<br>Click the 'Commit' button to submit the command.</td></tr>\n");
+
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		} else	{
+			printf("<tr><td COLSPAN=\"2\">&nbsp;</td></tr>\n");
+			printf("<tr><td CLASS='objectDescription' colspan=2>There are no options for this command.<br>Click the 'Commit' button to submit the command.</td></tr>\n");
+		}
+
 		break;
 
 	case CMD_PROCESS_HOST_CHECK_RESULT:
@@ -1442,6 +1587,11 @@ void request_command_data(int cmd){
 			print_object_list(PRINT_HOST_LIST);
 
 		print_form_element(PRINT_COMMON_HEADER,cmd);
+
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
 
 		snprintf(help_text,sizeof(help_text),"Set the state which should be send to %s for this %s.",PROGRAM_NAME,(cmd==CMD_PROCESS_HOST_CHECK_RESULT)?"hosts":"services");
 		help_text[sizeof(help_text)-1]='\x0';
@@ -1555,9 +1705,16 @@ void request_command_data(int cmd){
 		printf("<tr class=\"statusEven\" ><td width=\"50%%\" style=\"font-weight:bold;\">Hostgroup Name:</td>");
 		printf("<td><INPUT TYPE='HIDDEN' NAME='hostgroup' VALUE='%s'>%s</td></tr>\n",escape_string(hostgroup_name),escape_string(hostgroup_name));
 
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
 		if(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_DISABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_HOSTGROUP_SVC_NOTIFICATIONS){
 
-			print_form_element(PRINT_COMMON_HEADER,cmd);
+			if(enforce_comments_on_actions!=TRUE)
+				print_form_element(PRINT_COMMON_HEADER,cmd);
 
 			printf("<tr><td class=\"objectDescription descriptionleft\">%s For Hosts Too:</td><td align=\"left\">\n",(cmd==CMD_ENABLE_HOSTGROUP_SVC_CHECKS || cmd==CMD_ENABLE_HOSTGROUP_SVC_NOTIFICATIONS)?"Enable":"Disable");
 			printf("<INPUT TYPE='checkbox' NAME='ahas'></td></tr>\n");
@@ -1575,9 +1732,16 @@ void request_command_data(int cmd){
 		printf("<tr class=\"statusEven\"><td width=\"50%%\" style=\"font-weight:bold;\">Servicegroup Name:</td>");
 		printf("<td><INPUT TYPE='HIDDEN' NAME='servicegroup' VALUE='%s'>%s</td></tr>\n",escape_string(servicegroup_name),escape_string(servicegroup_name));
 
+		if(enforce_comments_on_actions==TRUE) {
+			print_form_element(PRINT_COMMON_HEADER,cmd);
+			print_form_element(PRINT_AUTHOR,cmd);
+			print_form_element(PRINT_COMMENT_BOX,cmd);
+		}
+
 		if(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS || cmd==CMD_DISABLE_SERVICEGROUP_SVC_NOTIFICATIONS){
 
-			print_form_element(PRINT_COMMON_HEADER,cmd);
+			if(enforce_comments_on_actions!=TRUE)
+				print_form_element(PRINT_COMMON_HEADER,cmd);
 
 			printf("<tr><td class=\"objectDescription descriptionleft\">%s For Hosts Too:</td><td align=\"left\">\n",(cmd==CMD_ENABLE_SERVICEGROUP_SVC_CHECKS || cmd==CMD_ENABLE_SERVICEGROUP_SVC_NOTIFICATIONS)?"Enable":"Disable");
 			printf("<INPUT TYPE='checkbox' NAME='ahas'></td></tr>\n");
@@ -1683,7 +1847,6 @@ void commit_command_data(int cmd){
 	case CMD_SEND_CUSTOM_HOST_NOTIFICATION:
 	case CMD_SEND_CUSTOM_SVC_NOTIFICATION:
 
-
 		/* make sure we have author name, and comment data... */
 		check_comment_sanity(&e);
 
@@ -1714,6 +1877,12 @@ void commit_command_data(int cmd){
 
 	case CMD_DEL_HOST_COMMENT:
 	case CMD_DEL_SVC_COMMENT:
+
+		if(enforce_comments_on_actions==TRUE) {
+			check_comment_sanity(&e);
+			clean_comment_data(comment_author);
+			clean_comment_data(comment_data);
+		}
 
 		for ( x = 0; x < NUMBER_OF_STRUCTS; x++ ) {
 
@@ -1755,6 +1924,12 @@ void commit_command_data(int cmd){
 
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
+
+		if(enforce_comments_on_actions==TRUE) {
+			check_comment_sanity(&e);
+			clean_comment_data(comment_author);
+			clean_comment_data(comment_data);
+		}
 
 		for ( x = 0; x < NUMBER_OF_STRUCTS; x++ ) {
 
@@ -1813,12 +1988,13 @@ void commit_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_SVC:
 	case CMD_STOP_OBSESSING_OVER_SVC:
 
-		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME) {
+		if(cmd==CMD_SCHEDULE_SVC_DOWNTIME || enforce_comments_on_actions==TRUE) {
 			/* make sure we have author and comment data */
 			check_comment_sanity(&e);
 
 			/* make sure we have start/end times for downtime */
-			check_time_sanity(&e);
+			if (cmd==CMD_SCHEDULE_SVC_DOWNTIME)
+				check_time_sanity(&e);
 
 			/* clean up the comment data if scheduling downtime */
 			clean_comment_data(comment_author);
@@ -1877,6 +2053,12 @@ void commit_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST_CHECKS:
 	case CMD_STOP_OBSESSING_OVER_HOST_CHECKS:
 
+		if(enforce_comments_on_actions==TRUE) {
+			check_comment_sanity(&e);
+			clean_comment_data(comment_author);
+			clean_comment_data(comment_data);
+		}
+
 		/* see if the user is authorized to issue a command... */
 		is_authorized[x]=FALSE;
 		if(is_authorized_for_system_commands(&current_authdata)==TRUE)
@@ -1910,12 +2092,13 @@ void commit_command_data(int cmd){
 	case CMD_START_OBSESSING_OVER_HOST:
 	case CMD_STOP_OBSESSING_OVER_HOST:
 
-		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME||cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME) {
+		if(cmd==CMD_SCHEDULE_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME || enforce_comments_on_actions==TRUE) {
 			/* make sure we have author and comment data */
 			check_comment_sanity(&e);
 
 			/* make sure we have start/end times for downtime */
-			check_time_sanity(&e);
+			if(cmd==CMD_SCHEDULE_HOST_DOWNTIME || cmd==CMD_SCHEDULE_HOST_SVC_DOWNTIME)
+				check_time_sanity(&e);
 
 			/* clean up the comment data if scheduling downtime */
 			clean_comment_data(comment_author);
@@ -1979,6 +2162,10 @@ void commit_command_data(int cmd){
 			/* clean up the comment data if scheduling downtime */
 			clean_comment_data(comment_author);
 			clean_comment_data(comment_data);
+		} else if (enforce_comments_on_actions==TRUE) {
+			check_comment_sanity(&e);
+			clean_comment_data(comment_author);
+			clean_comment_data(comment_data);
 		}
 
 		/* see if the user is authorized to issue a command... */
@@ -1991,7 +2178,6 @@ void commit_command_data(int cmd){
 			if(is_authorized_for_hostgroup(temp_hostgroup,&current_authdata)==TRUE)
 				is_authorized[x]=TRUE;
 		} else {
-		//	if(cmd==CMD_SCHEDULE_SERVICEGROUP_HOST_DOWNTIME || cmd==CMD_SCHEDULE_SERVICEGROUP_SVC_DOWNTIME) {
 			temp_servicegroup=find_servicegroup(servicegroup_name);
 			if(is_authorized_for_servicegroup(temp_servicegroup,&current_authdata)==TRUE)
 				is_authorized[x]=TRUE;
@@ -2000,12 +2186,8 @@ void commit_command_data(int cmd){
 		break;
 
 	default:
-		printf("<BR><DIV align='center'><DIV CLASS='errorBox'>\n");
-		printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-		printf("<td CLASS='errorMessage'>Sorry Dave, I can't let you do that...</td></tr></table></DIV>\n");
-		printf("<DIV CLASS='errorDescription'>Executing an unknown command? Shame on you!</DIV><br>");
-		printf("</DIV>\n");
-		printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
+		print_generic_error_message("Sorry Dave, I can't let you do that...","Executing an unknown command? Shame on you!",2);
+
 		return;
 	}
 
@@ -2039,35 +2221,15 @@ void commit_command_data(int cmd){
 
 	/* if Icinga isn't checking external commands, don't do anything... */
 	if(check_external_commands==FALSE){
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: %s is not checking external commands!</p>\n", PROGRAM_NAME);
-		else{
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>Sorry, but %s is currently not checking for external commands, so your command will not be committed!</td></tr></table></DIV>\n", PROGRAM_NAME);
-			printf("<DIV CLASS='errorDescription'>Read the documentation for information on how to enable external commands...</DIV>\n");
-			printf("</DIV>\n");
-			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message("Sorry, but Icinga is currently not checking for external commands, so your command will not be committed!","Read the documentation for information on how to enable external commands...",2);
+
 		return;
 	}
 
 	/* to be safe, we are going to REQUIRE that the authentication functionality is enabled... */
 	if(use_authentication==FALSE){
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: Authentication is not enabled!</p>\n");
-		else{
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>Sorry Dave, I can't let you do that...</td></tr></table></DIV>\n");
-			printf("<DIV CLASS='errorDescription'>");
-			printf("It seems that you have chosen to not use the authentication functionality of the CGIs. ");
-			printf("I don't want to be personally responsible for what may happen as a result of allowing unauthorized users to issue commands to %s, ", PROGRAM_NAME);
-			printf("so you'll have to disable this safeguard if you are really stubborn and want to invite trouble. ");
-			printf("Read the section on CGI authentication in the HTML documentation to learn how you can enable authentication and why you should want to.</DIV>\n");
-			printf("</DIV>\n");
-			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message("Sorry Dave, I can't let you do that...","It seems that you have chosen to not use the authentication functionality of the CGIs. I don't want to be personally responsible for what may happen as a result of allowing unauthorized users to issue commands to Icinga, so you'll have to disable this safeguard if you are really stubborn and want to invite trouble. Read the section on CGI authentication in the HTML documentation to learn how you can enable authentication and why you should want to.",2);
+
 		return;
 	}
 
@@ -2097,21 +2259,12 @@ void commit_command_data(int cmd){
 
 	/* Let's see if we have a command witch dosn't have any host, services or downtime/comment id's and check the authorisation */
 	if (cmd_has_objects == FALSE && is_authorized[0]==FALSE ) {
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: You're not authorized to commit that command!</p>\n");
-		else{
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>Sorry, but you are not authorized to commit the specified command.</td></tr></table></DIV>\n");
-			printf("<DIV CLASS='errorDescription'>Read the section of the documentation that deals with authentication and authorization in the CGIs for more information.</DIV>\n");
-			printf("</DIV>\n");
-			printf("<BR><DIV align='center'><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message("Sorry, but you are not authorized to commit the specified command.","Read the section of the documentation that deals with authentication and authorization in the CGIs for more information.",2);
+
 		return;
 	}
 
 	/* everything looks okay, so let's go ahead and commit the command... */
-	/* commit the command */
 	commit_command(cmd);
 
 	/* for commands without objects get the first result*/
@@ -2127,16 +2280,7 @@ void commit_command_data(int cmd){
 				printf("<BR><input type='submit' value='Done' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
 			}
 		}else{
-			if(content_type==WML_CONTENT)
-				printf("<p>An error occurred while committing your command!</p>\n");
-			else{
-				printf("<DIV CLASS='errorBox'>\n");
-				printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-				printf("<td CLASS='errorMessage'>An error occurred while attempting to commit your command for processing.</td></tr></table></DIV>\n");
-				printf("<DIV CLASS='errorDescription'>Unfortunately I can't determine the root cause of this problem.</DIV>\n");
-				printf("</DIV>\n");
-				printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-			}
+			print_generic_error_message("An error occurred while attempting to commit your command for processing.","Unfortunately I can't determine the root cause of this problem.",2);
 		}
 	} else {
 		for ( x = 0; x < NUMBER_OF_STRUCTS; x++ ) {
@@ -2155,11 +2299,7 @@ void commit_command_data(int cmd){
 		}
 
 		if (error_found) {
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>An error occurred while attempting to commit your command for processing.</td></tr></table></DIV>\n");
-			printf("<DIV CLASS='errorDescription'>Not all commands could be send off successfully...</DIV>\n");
-			printf("</DIV>\n");
+			print_generic_error_message("An error occurred while attempting to commit your command for processing.","Not all commands could be send off successfully...",0);
 		} else {
 			printf("<DIV CLASS='successBox'>\n");
 			printf("<DIV CLASS='successMessage'>Your command requests were successfully submitted to %s for processing.<BR><BR>\n",PROGRAM_NAME);
@@ -2215,6 +2355,11 @@ void commit_command_data(int cmd){
 	return;
 }
 
+
+/** @brief doe's some checks before passing data to write_command_to_file
+ *
+ *  Actually defines the command cmd_submitf.
+**/
 __attribute__((format(printf, 2, 3)))
 static int cmd_submitf(int id, const char *fmt, ...){
 	char cmd[MAX_EXTERNAL_COMMAND_LENGTH];
@@ -2252,7 +2397,6 @@ static int cmd_submitf(int id, const char *fmt, ...){
 	return write_command_to_file(cmd);
 }
 
-/* commits a command for processing */
 int commit_command(int cmd){
 	time_t current_time;
 	time_t scheduled_time;
@@ -2296,7 +2440,7 @@ int commit_command(int cmd){
 			submit_result[x] = cmd_submitf(cmd,NULL);
 		break;
 
-		/** simple host commands **/
+		/* simple host commands */
 	case CMD_ENABLE_HOST_FLAP_DETECTION:
 	case CMD_DISABLE_HOST_FLAP_DETECTION:
 	case CMD_ENABLE_PASSIVE_HOST_CHECKS:
@@ -2319,7 +2463,7 @@ int commit_command(int cmd){
 		}
 		break;
 
-		/** simple service commands **/
+		/* simple service commands */
 	case CMD_ENABLE_SVC_FLAP_DETECTION:
 	case CMD_DISABLE_SVC_FLAP_DETECTION:
 	case CMD_ENABLE_PASSIVE_SVC_CHECKS:
@@ -2665,10 +2809,14 @@ int commit_command(int cmd){
 	return OK;
 }
 
-/* write a command entry to the command file */
 int write_command_to_file(char *cmd){
+	char *buffer;
+	char *ip_address;
+	int dummy;
+	char *p;
 	FILE *fp;
 	struct stat statbuf;
+	char error_string[MAX_INPUT_BUFFER];
 
 	/*
 	 * Commands are not allowed to have newlines in them, as
@@ -2680,17 +2828,10 @@ int write_command_to_file(char *cmd){
 
 	/* bail out if the external command file doesn't exist */
 	if(stat(command_file,&statbuf)){
+		snprintf(error_string,sizeof(error_string),"Error: Could not stat() command file '%s'!",command_file);
+		error_string[sizeof(error_string)-1]='\x0';
 
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: Could not stat() external command file!</p>\n");
-		else{
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>Error: Could not stat() command file '%s'!</td></tr></table></DIV>\n",command_file);
-			printf("<DIV CLASS='errorDescription'>The external command file may be missing, %s may not be running, and/or %s may not be checking external commands.</DIV>\n", PROGRAM_NAME, PROGRAM_NAME);
-			printf("</DIV>\n");
-			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message(error_string,"The external command file may be missing, Icinga may not be running, and/or Icinga may not be checking external commands.",2);
 
 		return ERROR;
 	}
@@ -2698,19 +2839,39 @@ int write_command_to_file(char *cmd){
 	/* open the command for writing (since this is a pipe, it will really be appended) */
 	fp=fopen(command_file,"w");
 	if(fp==NULL){
+		snprintf(error_string,sizeof(error_string),"Error: Could not open command file '%s' for update!",command_file);
+		error_string[sizeof(error_string)-1]='\x0';
 
-		if(content_type==WML_CONTENT)
-			printf("<p>Error: Could not open command file for update!</p>\n");
-		else{
-			printf("<DIV CLASS='errorBox'>\n");
-			printf("<DIV CLASS='errorMessage'><table cellspacing=0 cellpadding=0 border=0><tr><td width=55><img src=\"%s%s\" border=0></td>",url_images_path,CMD_STOP_ICON);
-			printf("<td CLASS='errorMessage'>Error: Could not open command file '%s' for update!</td></tr></table></DIV>\n",command_file);
-			printf("<DIV CLASS='errorDescription'>The permissions on the external command file and/or directory may be incorrect. Read the FAQs on how to setup proper permissions.</DIV>\n");
-			printf("</DIV>\n");
-			printf("<BR><input type='submit' value='Get me out of here' onClick='window.history.go(-2);' class='submitButton'></DIV>\n");
-		}
+		print_generic_error_message(error_string,"The permissions on the external command file and/or directory may be incorrect. Read the FAQs on how to setup proper permissions.",2);
 
 		return ERROR;
+	}
+
+	if(use_logging==TRUE) {
+		// find closing bracket in cmd line
+		p = strchr(cmd, ']');
+		// if found get everything after closing bracket
+		if (p!=NULL)
+			p+=2;
+		else	// get complete command line
+			p=&cmd[0];
+
+		/* get remote address */
+		ip_address=strdup(getenv("REMOTE_ADDR"));
+
+		/* construct log entry */
+		dummy=asprintf(&buffer, "EXTERNAL COMMAND: %s;%s;%s", current_authdata.username,(ip_address!=NULL)?ip_address:"unknown remote address",p);
+
+		/* write command to cgi log */
+		write_to_cgi_log(buffer);
+
+		/* log comments if forced */
+		if(enforce_comments_on_actions==TRUE) {
+			my_free(buffer);
+			dummy=asprintf(&buffer, "FORCED COMMENT: %s;%s;%s;%s", current_authdata.username,(ip_address!=NULL)?ip_address:"unknown remote address",comment_author,comment_data);
+			write_to_cgi_log(buffer);
+		}
+		my_free(buffer);
 	}
 
 	/* write the command to file */
@@ -2724,7 +2885,6 @@ int write_command_to_file(char *cmd){
 	return OK;
 }
 
-/* strips out semicolons from comment data */
 void clean_comment_data(char *buffer){
 	int x;
 	int y;
@@ -2732,56 +2892,13 @@ void clean_comment_data(char *buffer){
 	y=(int)strlen(buffer);
 
 	for(x=0;x<y;x++){
-		if(buffer[x]==';' || buffer[x]=='\n')
+		if(buffer[x]==';' || buffer[x]=='\n' || buffer[x]=='\r' )
 			buffer[x]=' ';
 	}
 
 	return;
 }
 
-/* converts a time string to a UNIX timestamp, respecting the date_format option */
-int string_to_time(char *buffer, time_t *t){
-	struct tm lt;
-	int ret=0;
-
-
-	/* Initialize some variables just in case they don't get parsed
-	   by the sscanf() call.  A better solution is to also check the
-	   CGI input for validity, but this should suffice to prevent
-	   strange problems if the input is not valid.
-	   Jan 15 2003	Steve Bonds */
-	lt.tm_mon=0;
-	lt.tm_mday=1;
-	lt.tm_year=1900;
-	lt.tm_hour=0;
-	lt.tm_min=0;
-	lt.tm_sec=0;
-	lt.tm_wday=0;
-	lt.tm_yday=0;
-
-
-	if(date_format==DATE_FORMAT_EURO)
-		ret=sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mday,&lt.tm_mon,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
-	else if(date_format==DATE_FORMAT_ISO8601 || date_format==DATE_FORMAT_STRICT_ISO8601)
-		ret=sscanf(buffer,"%04d-%02d-%02d%*[ T]%02d:%02d:%02d",&lt.tm_year,&lt.tm_mon,&lt.tm_mday,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
-	else
-		ret=sscanf(buffer,"%02d-%02d-%04d %02d:%02d:%02d",&lt.tm_mon,&lt.tm_mday,&lt.tm_year,&lt.tm_hour,&lt.tm_min,&lt.tm_sec);
-
-	if (ret!=6)
-		return ERROR;
-
-	lt.tm_mon--;
-	lt.tm_year-=1900;
-
-	/* tell mktime() to try and compute DST automatically */
-	lt.tm_isdst=-1;
-
-	*t=mktime(&lt);
-
-	return OK;
-}
-
-/* check if comment data is complete */
 void check_comment_sanity(int *e){
 	if(!strcmp(comment_author,""))
 		error[(*e)++].message=strdup("Author name was not entered");
@@ -2791,7 +2908,6 @@ void check_comment_sanity(int *e){
 	return;
 }
 
-/* check if given sane values for times */
 void check_time_sanity(int *e) {
 	if (start_time==(time_t)0)
 		error[(*e)++].message=strdup("Start time can't be zero or date format couldn't be recognized correctly");

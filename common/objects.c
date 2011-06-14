@@ -3,7 +3,8 @@
  * OBJECTS.C - Object addition and search functions for Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -27,7 +28,13 @@
 #include "../include/objects.h"
 #include "../include/skiplist.h"
 
+
 #ifdef NSCORE
+
+#ifdef USE_EVENT_BROKER
+#include "../include/nebmods.h"
+#endif
+
 #include "../include/icinga.h"
 #endif
 
@@ -54,6 +61,7 @@ serviceescalation *serviceescalation_list=NULL,*serviceescalation_list_tail=NULL
 servicedependency *servicedependency_list=NULL,*servicedependency_list_tail=NULL;
 hostdependency  *hostdependency_list=NULL,*hostdependency_list_tail=NULL;
 hostescalation  *hostescalation_list=NULL,*hostescalation_list_tail=NULL;
+module		*module_list=NULL,*module_list_tail=NULL;
 
 skiplist *object_skiplists[NUM_OBJECT_SKIPLISTS];
 
@@ -117,6 +125,8 @@ int init_object_skiplists(void){
 	object_skiplists[SERVICEESCALATION_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_serviceescalation);
 	object_skiplists[HOSTDEPENDENCY_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_hostdependency);
 	object_skiplists[SERVICEDEPENDENCY_SKIPLIST]=skiplist_new(15,0.5,TRUE,FALSE,skiplist_compare_servicedependency);
+
+	object_skiplists[MODULE_SKIPLIST]=skiplist_new(10,0.5,FALSE,FALSE,skiplist_compare_module);
 
 	return OK;
 	}
@@ -377,6 +387,23 @@ int skiplist_compare_servicedependency(void *a, void *b){
 	return skiplist_compare_text(oa->dependent_host_name,oa->dependent_service_description,ob->dependent_host_name,ob->dependent_service_description);
 	}
 
+int skiplist_compare_module(void *a, void *b){
+        module *oa=NULL;
+        module *ob=NULL;
+
+        oa=(module *)a;
+        ob=(module *)b;
+
+        if(oa==NULL && ob==NULL)
+                return 0;
+        if(oa==NULL)
+                return 1;
+        if(ob==NULL)
+                return -1;
+
+        return skiplist_compare_text(oa->name,NULL,ob->name,NULL);
+        }
+
 
 int get_host_count(void){
 
@@ -596,7 +623,7 @@ timerange *add_timerange_to_daterange(daterange *drange, unsigned long start_tim
 
 
 /* add a new host definition */
-host *add_host(char *name, char *display_name, char *alias, char *address, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
+host *add_host(char *name, char *display_name, char *alias, char *address, char *address6, char *check_period, int initial_state, double check_interval, double retry_interval, int max_attempts, int notify_up, int notify_down, int notify_unreachable, int notify_flapping, int notify_downtime, double notification_interval, double first_notification_delay, char *notification_period, int notifications_enabled, char *check_command, int checks_enabled, int accept_passive_checks, char *event_handler, int event_handler_enabled, int flap_detection_enabled, double low_flap_threshold, double high_flap_threshold, int flap_detection_on_up, int flap_detection_on_down, int flap_detection_on_unreachable, int stalk_on_up, int stalk_on_down, int stalk_on_unreachable, int process_perfdata, int failure_prediction_enabled, char *failure_prediction_options, int check_freshness, int freshness_threshold, char *notes, char *notes_url, char *action_url, char *icon_image, char *icon_image_alt, char *vrml_image, char *statusmap_image, int x_2d, int y_2d, int have_2d_coords, double x_3d, double y_3d, double z_3d, int have_3d_coords, int should_be_drawn, int retain_status_information, int retain_nonstatus_information, int obsess_over_host){
 	host *new_host=NULL;
 	int result=OK;
 #ifdef NSCORE
@@ -643,6 +670,8 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 	if((new_host->alias=(char *)strdup((alias==NULL)?name:alias))==NULL)
 		result=ERROR;
 	if((new_host->address=(char *)strdup(address))==NULL)
+		result=ERROR;
+	if((new_host->address6=(char *)strdup(address6))==NULL)
 		result=ERROR;
 	if(check_period){
 		if((new_host->check_period=(char *)strdup(check_period))==NULL)
@@ -826,6 +855,7 @@ host *add_host(char *name, char *display_name, char *alias, char *address, char 
 		my_free(new_host->notification_period);
 		my_free(new_host->check_period);
 		my_free(new_host->address);
+		my_free(new_host->address6);
 		my_free(new_host->alias);
 		my_free(new_host->display_name);
 		my_free(new_host->name);
@@ -2470,7 +2500,91 @@ customvariablesmember *add_custom_variable_to_object(customvariablesmember **obj
         }
 
 
+/* add a new module to the list in memory */
+module *add_module(char *name,char *type,char *path,char *args){
+        module *new_module=NULL;
+        int result=OK;
+                
+        /* make sure we have the data we need */
+        if((name==NULL || !strcmp(name,"")) || (path==NULL || !strcmp(path,""))){
+                logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Module name or path is NULL\n");
+                return NULL;
+                }
 
+        /* allocate memory for the new module */
+        if((new_module=(module *)calloc(1, sizeof(module)))==NULL)
+                return NULL;
+
+        /* duplicate vars */
+        if((new_module->name=(char *)strdup(name))==NULL)
+                result=ERROR;
+        if((new_module->type=(char *)strdup(type))==NULL)
+                result=ERROR;
+        if((new_module->path=(char *)strdup(path))==NULL)
+                result=ERROR;
+        if((new_module->args=(char *)strdup(args))==NULL)
+                result=ERROR;
+
+        /* add new command to skiplist */
+        if(result==OK){
+                result=skiplist_insert(object_skiplists[MODULE_SKIPLIST],(void *)new_module);
+                switch(result){
+                case SKIPLIST_ERROR_DUPLICATE:
+                        logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Module '%s' has already been defined\n",name);
+                        result=ERROR;
+                        break;
+                case SKIPLIST_OK:
+                        result=OK;
+                        break;
+                default:
+                        logit(NSLOG_CONFIG_ERROR,TRUE,"Error: Could not add module '%s' to skiplist\n",name);
+                        result=ERROR;
+                        break;
+                        }
+                }
+
+        /* handle errors */
+        if(result==ERROR){
+                my_free(new_module->args);
+                my_free(new_module->path);
+                my_free(new_module->type);
+                my_free(new_module->name);
+                my_free(new_module);
+                return NULL;
+                }
+
+        /* modules are sorted alphabetically, so add new items to tail of list */
+        if(module_list==NULL){
+                module_list=new_module;
+                module_list_tail=module_list;
+                }
+        else {
+                module_list_tail->next=new_module;
+                module_list_tail=new_module;
+                }
+
+        return new_module;
+        }
+
+#ifdef NSCORE
+int add_module_objects_to_neb(void){
+	module *temp_module;
+	int total_objects=0;
+
+        for(temp_module=module_list,total_objects=0;temp_module!=NULL;temp_module=temp_module->next,total_objects++){
+
+		/* just an idea to re-use the type a bit better - MF 2011-04-30 FIXME */
+		//if!strcmp(temp_module->module_type,"neb"){
+#ifdef USE_EVENT_BROKER
+		neb_add_module(temp_module->path,temp_module->args,TRUE);
+#endif
+		//}
+	}
+
+	return OK;
+
+}
+#endif
 
 /******************************************************************/
 /******************** OBJECT SEARCH FUNCTIONS *********************/
@@ -2580,6 +2694,18 @@ service * find_service(char *host_name,char *svc_desc){
 	return skiplist_find_first(object_skiplists[SERVICE_SKIPLIST],&temp_service,NULL);
         }
 
+
+/* given a module name, find a module from the list in memory */
+module * find_module(char *name){
+        module temp_module;
+
+        if(name==NULL)
+                return NULL;
+
+        temp_module.name=name;
+
+        return skiplist_find_first(object_skiplists[MODULE_SKIPLIST],&temp_module,NULL);
+        }
 
 
 
@@ -2920,72 +3046,27 @@ int is_service_member_of_servicegroup(servicegroup *group, service *svc){
 /* 06/14/10 MF all 3 functions mandatory for mk_livestatus */
 /*  tests whether a contact is a member of a particular contactgroup - used only by the CGIs */
 int is_contact_member_of_contactgroup(contactgroup *group, contact *cntct){
-        contactsmember *temp_contactsmember=NULL;
+	contactsmember *member;
+	contact *temp_contact=NULL;
 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        /* search all contacts in this contact group */
-        for(temp_contactsmember=group->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
- 
-#ifdef NSCORE
-                if(temp_contactsmember->contact_ptr==cntct)
-                        return TRUE;
-#else
-                if(!strcmp(temp_contactsmember->contact_name,cntct->name))
-                        return TRUE;
-#endif
-                 }
- 
-        return FALSE;
-        }
+	if (!group || !cntct)
+		return FALSE;
 
+	/* search all contacts in this contact group */
+	for (member = group->members; member; member = member->next) {
+#ifdef NSCORE
+		temp_contact=member->contact_ptr;
+#else
+		temp_contact=find_contact(member->contact_name);
+#endif
+		if(temp_contact==NULL)
+			continue;
+		if (temp_contact == cntct)
+			return TRUE;
+	}
 
-/*  tests whether a contact is a member of a particular hostgroup - used only by the CGIs */
-int is_contact_for_hostgroup(hostgroup *group, contact *cntct){
-        hostsmember *temp_hostsmember=NULL;
-        host *temp_host=NULL;
- 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        for(temp_hostsmember=group->members;temp_hostsmember!=NULL;temp_hostsmember=temp_hostsmember->next){
-#ifdef NSCORE
-                temp_host=temp_hostsmember->host_ptr;
-#else
-                temp_host=find_host(temp_hostsmember->host_name);
-#endif
-                if(temp_host==NULL)
-                        continue;
-                if(is_contact_for_host(temp_host,cntct)==TRUE)
-                        return TRUE;
-                }
- 
-        return FALSE;
-        }
- 
- /*  tests whether a contact is a member of a particular servicegroup - used only by the CGIs */
- int is_contact_for_servicegroup(servicegroup *group, contact *cntct){
-        servicesmember *temp_servicesmember=NULL;
-        service *temp_service=NULL;
- 
-        if(group==NULL || cntct==NULL)
-                return FALSE;
- 
-        for(temp_servicesmember=group->members;temp_servicesmember!=NULL;temp_servicesmember=temp_servicesmember->next){
-#ifdef NSCORE
-                temp_service=temp_servicesmember->service_ptr;
-#else
-                temp_service=find_service(temp_servicesmember->host_name,temp_servicesmember->service_description);
-#endif
-                if(temp_service==NULL)
-                        continue;
-                if(is_contact_for_service(temp_service,cntct)==TRUE)
-                        return TRUE;
-                }
- 
-        return FALSE;
-        }
+	return FALSE;
+}
 
 
 /*  tests whether a contact is a contact for a particular host */
@@ -2994,7 +3075,7 @@ int is_contact_for_host(host *hst, contact *cntct){
 	contact *temp_contact=NULL;
 	contactgroupsmember *temp_contactgroupsmember=NULL;
 	contactgroup *temp_contactgroup=NULL;
-	
+
 	if(hst==NULL || cntct==NULL){
 		return FALSE;
 	        }
@@ -3022,17 +3103,8 @@ int is_contact_for_host(host *hst, contact *cntct){
 		if(temp_contactgroup==NULL)
 			continue;
 
-		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-			temp_contact=temp_contactsmember->contact_ptr;
-#else
-			temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact==NULL)
-				continue;
-			if(temp_contact==cntct)
-				return TRUE;
-			}
+		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+			return TRUE;
 		}
 
 	return FALSE;
@@ -3076,17 +3148,9 @@ int is_escalated_contact_for_host(host *hst, contact *cntct){
 			if(temp_contactgroup==NULL)
 				continue;
 
-			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-				temp_contact=temp_contactsmember->contact_ptr;
-#else
-				temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-				if(temp_contact==NULL)
-					continue;
-				if(temp_contact==cntct)
-					return TRUE;
-				}
+			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+				return TRUE;
+
 			}
 		}
 
@@ -3126,17 +3190,9 @@ int is_contact_for_service(service *svc, contact *cntct){
 		if(temp_contactgroup==NULL)
 			continue;
 
-		for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-			temp_contact=temp_contactsmember->contact_ptr;
-#else
-			temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-			if(temp_contact==NULL)
-				continue;
-			if(temp_contact==cntct)
-				return TRUE;
-			}
+		if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+			return TRUE;
+
 		}
 
 	return FALSE;
@@ -3179,17 +3235,9 @@ int is_escalated_contact_for_service(service *svc, contact *cntct){
 			if(temp_contactgroup==NULL)
 				continue;
 
-			for(temp_contactsmember=temp_contactgroup->members;temp_contactsmember!=NULL;temp_contactsmember=temp_contactsmember->next){
-#ifdef NSCORE
-				temp_contact=temp_contactsmember->contact_ptr;
-#else
-				temp_contact=find_contact(temp_contactsmember->contact_name);
-#endif
-				if(temp_contact==NULL)
-					continue;
-				if(temp_contact==cntct)
-					return TRUE;
-				}
+			if(is_contact_member_of_contactgroup(temp_contactgroup,cntct))
+				return TRUE;
+
 			}
 	        }
 
@@ -3356,6 +3404,8 @@ int free_object_data(void){
 	hostescalation *next_hostescalation=NULL;
         escalation_condition *this_escalation_condition=NULL;
         escalation_condition *next_escalation_condition=NULL;
+	module *this_module=NULL;
+	module *next_module=NULL;
 	register int x=0;
 	register int i=0;
 
@@ -3470,10 +3520,12 @@ int free_object_data(void){
 		my_free(this_host->display_name);
 		my_free(this_host->alias);
 		my_free(this_host->address);
+		my_free(this_host->address6);
 #ifdef NSCORE
 		my_free(this_host->plugin_output);
 		my_free(this_host->long_plugin_output);
 		my_free(this_host->perf_data);
+		my_free(this_host->processed_command);
 
 		free_objectlist(&this_host->hostgroups_ptr);
 #endif
@@ -3674,6 +3726,7 @@ int free_object_data(void){
 		my_free(this_service->plugin_output);
 		my_free(this_service->long_plugin_output);
 		my_free(this_service->perf_data);
+		my_free(this_service->processed_command);
 
 		my_free(this_service->event_handler_args);
 		my_free(this_service->check_command_args);
@@ -3828,6 +3881,22 @@ int free_object_data(void){
 
 	/* reset pointers */
 	hostescalation_list=NULL;
+
+        /**** free memory for the module list ****/
+        this_module=module_list;
+        while(this_module!=NULL){
+                next_module=this_module->next;
+                my_free(this_module->name);
+                my_free(this_module->type);
+                my_free(this_module->path);
+                my_free(this_module->args);
+                my_free(this_module);
+                this_module=next_module;
+                }
+
+        /* reset pointers */
+        module_list=NULL;
+
 
 	/* free object skiplists */
 	free_object_skiplists();

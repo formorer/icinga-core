@@ -8,7 +8,7 @@
 # instance of Icinga and is used to seperate data coming from multiple
 # instances.  Defaults to 'default' (without quotes).
 
-instance_name=default
+instance_name=@IDO_INSTANCE_NAME@
 
 
 
@@ -193,7 +193,9 @@ data_processing_options=67108861
 # CONFIG OUTPUT OPTION
 # This option determines what types of configuration data the IDO
 # NEB module will dump from Icinga.  Values can be OR'ed together.
-# Values: 
+# Hint: 2 is the preferred value, doing a restart after initial startup.
+#
+# Values:
 # 	  0 = Don't dump any configuration information
 #         1 = Dump only original config (from config files)
 #         2 = Dump config only after retained information has been restored
@@ -240,5 +242,6 @@ debug_file=@localstatedir@/idomod.debug
 # automatically be deleted.  This helps ensure your disk space usage doesn't
 # get out of control when debugging.
 
-max_debug_file_size=1000000
+# 100M
+max_debug_file_size=100000000
 

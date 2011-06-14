@@ -3,7 +3,7 @@
  * AVAIL.C -  Icinga Availability CGI
  *
  * Copyright (c) 2000-2010 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -26,6 +26,7 @@
 #include "../include/objects.h"
 #include "../include/comments.h"
 #include "../include/statusdata.h"
+#include "../include/readlogs.h"
 
 #include "../include/cgiutils.h"
 #include "../include/cgiauth.h"
@@ -43,6 +44,7 @@ extern hostgroup *hostgroup_list;
 extern servicegroup *servicegroup_list;
 extern service   *service_list;
 extern timeperiod *timeperiod_list;
+extern logentry  *entry_list;
 
 extern int       log_rotation_method;
 
@@ -85,23 +87,6 @@ extern int       log_rotation_method;
 /* subject types */
 #define HOST_SUBJECT            0
 #define SERVICE_SUBJECT         1
-
-
-/* standard report times */
-#define TIMEPERIOD_CUSTOM	0
-#define TIMEPERIOD_TODAY	1
-#define TIMEPERIOD_YESTERDAY	2
-#define TIMEPERIOD_THISWEEK	3
-#define TIMEPERIOD_LASTWEEK	4
-#define TIMEPERIOD_THISMONTH	5
-#define TIMEPERIOD_LASTMONTH	6
-#define TIMEPERIOD_THISQUARTER	7
-#define TIMEPERIOD_LASTQUARTER	8
-#define TIMEPERIOD_THISYEAR	9
-#define TIMEPERIOD_LASTYEAR	10
-#define TIMEPERIOD_LAST24HOURS	11
-#define TIMEPERIOD_LAST7DAYS	12
-#define TIMEPERIOD_LAST31DAYS	13
 
 #define MIN_TIMESTAMP_SPACING	10
 
@@ -238,13 +223,13 @@ void free_availability_data(void);
 void free_archived_state_list(archived_state *);
 void read_archived_state_data(void);
 void scan_log_file_for_archived_state_data(char *);
-void convert_timeperiod_to_times(int);
 unsigned long calculate_total_time(time_t,time_t);
 
 int process_cgivars(void);
 
 int backtrack_archives=2;
 int earliest_archive=0;
+int json_list_start=TRUE;
 
 extern int embedded;
 extern int display_header;
@@ -285,7 +270,7 @@ int main(int argc, char **argv){
 	result=read_cgi_config_file(get_cgi_config_location());
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		cgi_config_file_error(get_cgi_config_location());
+		print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -294,7 +279,7 @@ int main(int argc, char **argv){
 	result=read_main_config_file(main_config_file);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		main_config_file_error(main_config_file);
+		print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -303,7 +288,7 @@ int main(int argc, char **argv){
 	result=read_all_object_configuration_data(main_config_file,READ_ALL_OBJECT_DATA);
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
-		object_data_error();
+		print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -312,7 +297,7 @@ int main(int argc, char **argv){
 	result=read_all_status_data(get_cgi_config_location(),READ_ALL_STATUS_DATA);
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
-		status_data_error();
+		print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
 		}
@@ -496,11 +481,14 @@ int main(int argc, char **argv){
 		/* right hand column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
+		printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 
 		if(display_type!=DISPLAY_NO_AVAIL && get_date_parts==FALSE){
 
-			printf("<form method=\"GET\" action=\"%s\">\n",AVAIL_CGI);
+			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
+			printf("<tr>\n");
+			printf("<td valign=top align=left class='optBoxItem'>\n");
 
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
@@ -522,9 +510,6 @@ int main(int argc, char **argv){
 			printf("<input type='hidden' name='assumestatesduringnotrunning' value='%s'>\n",(assume_states_during_notrunning==TRUE)?"yes":"no");
 			printf("<input type='hidden' name='includesoftstates' value='%s'>\n",(include_soft_states==TRUE)?"yes":"no");
 
-			printf("<tr><td valign=top align=left class='optBoxItem'>First assumed %s state:</td><td valign=top align=left class='optBoxItem'>%s</td></tr>\n",(display_type==DISPLAY_SERVICE_AVAIL)?"service":"host",(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL)?"First assumed service state":"");
-			printf("<tr>\n");
-			printf("<td valign=top align=left class='optBoxItem'>\n");
 			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 				printf("<select name='initialassumedhoststate'>\n");
 				printf("<option value=%d %s>Unspecified\n",AS_NO_DATA,(initial_assumed_host_state==AS_NO_DATA)?"SELECTED":"");
@@ -588,8 +573,6 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td>\n");
 			printf("</tr>\n");
-
-			printf("</form>\n");
 		        }
 
 		/* display context-sensitive help */
@@ -615,6 +598,7 @@ int main(int argc, char **argv){
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 
@@ -977,10 +961,13 @@ int main(int argc, char **argv){
 				is_authorized=is_authorized_for_service(find_service(host_name,service_desc),&current_authdata);
 		        }
 
-		if(is_authorized==FALSE)
-			printf("<P><DIV ALIGN=CENTER CLASS='errorMessage'>It appears as though you are not authorized to view information for the specified %s...</DIV></P>\n",(display_type==DISPLAY_HOST_AVAIL)?"host":"service");
+		if(is_authorized==FALSE) {
+			if (display_type==DISPLAY_HOST_AVAIL)
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified host...",NULL,0);
+			else
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified service...",NULL,0);
 
-		else{
+		}else{
 
 			time(&report_start_time);
 
@@ -999,7 +986,7 @@ int main(int argc, char **argv){
 				get_time_breakdown((time_t)(report_end_time-report_start_time),&days,&hours,&minutes,&seconds);
 				printf("<div align=center class='reportTime'>[ Availability report completed in %d min %d sec ]</div>\n",minutes,seconds);
 				printf("<BR><BR>\n");
-			        }
+			}
 
 			/* display availability data */
 			if(display_type==DISPLAY_HOST_AVAIL)
@@ -1054,7 +1041,7 @@ int main(int argc, char **argv){
 	free_memory();
 
 	return OK;
-        }
+}
 
 int process_cgivars(void){
 	char **variables;
@@ -1297,7 +1284,7 @@ int process_cgivars(void){
 			else
 				continue;
 
-			convert_timeperiod_to_times(timeperiod_type);
+			convert_timeperiod_to_times(timeperiod_type,&t1,&t2);
 			compute_time_from_parts=FALSE;
 		        }
 
@@ -1313,7 +1300,13 @@ int process_cgivars(void){
 		else if(!strcmp(variables[x],"csvoutput")){
 			display_header=FALSE;
 			content_type=CSV_CONTENT;
-			}
+		}
+
+		/* we found the JSON output option */
+		else if(!strcmp(variables[x],"jsonoutput")){
+			display_header=FALSE;
+			content_type=JSON_CONTENT;
+		}
 
 		/* we found the log entries option  */
 		else if(!strcmp(variables[x],"show_log_entries"))
@@ -1578,7 +1571,7 @@ int process_cgivars(void){
 	free_cgivars(variables);
 
 	return error;
-        }
+}
 
 
 
@@ -1595,7 +1588,7 @@ void compute_availability(void){
 	        }
 
 	return;
-        }
+}
 
 
 
@@ -1905,7 +1898,7 @@ void compute_subject_availability(avail_subject *subject, time_t current_time){
 
 
 	return;
-        }
+}
 
 
 /* computes availability times */
@@ -2088,7 +2081,7 @@ void compute_subject_availability_times(int first_state,int last_state,time_t re
                 }
 
 	return;
-        }
+}
 
 
 /* computes downtime data for a given subject */
@@ -2180,7 +2173,7 @@ void compute_subject_downtime(avail_subject *subject, time_t current_time){
 	        }
 
 	return;
-        }
+}
 
 
 
@@ -2309,7 +2302,7 @@ void compute_subject_downtime_times(time_t start_time, time_t end_time, avail_su
 		}
 
 	return;
-	}
+}
 
 
 
@@ -2359,7 +2352,7 @@ void compute_subject_downtime_part_times(time_t start_time, time_t end_time, int
 #endif
 
 	return;
-        }
+}
 
 
 
@@ -2374,7 +2367,7 @@ int convert_host_state_to_archived_state(int current_status){
 		return AS_HOST_UNREACHABLE;
 
 	return AS_NO_DATA;
-        }
+}
 
 
 /* convert current service state to archived state value */
@@ -2390,7 +2383,7 @@ int convert_service_state_to_archived_state(int current_status){
 		return AS_SVC_CRITICAL;
 
 	return AS_NO_DATA;
-        }
+}
 
 
 
@@ -2486,7 +2479,7 @@ void create_subject_list(void){
 	        }
 
 	return;
-        }
+}
 
 
 
@@ -2581,7 +2574,7 @@ void add_subject(int subject_type, char *hn, char *sd){
 	        }
 
 	return;
-        }
+}
 
 
 
@@ -2606,7 +2599,7 @@ avail_subject *find_subject(int type, char *hn, char *sd){
 	        }
 
 	return NULL;
-        }
+}
 
 
 
@@ -2618,7 +2611,7 @@ void add_global_archived_state(int entry_type, int state_type, time_t time_stamp
 		add_archived_state(entry_type,state_type,time_stamp,state_info,temp_subject);
 
 	return;
-        }
+}
 
 
 
@@ -2680,7 +2673,7 @@ void add_archived_state(int entry_type, int state_type, time_t time_stamp, char 
 	subject->as_list_tail=new_as;
 
 	return;
-        }
+}
 
 
 /* adds a scheduled downtime entry to a specific subject */
@@ -2724,7 +2717,7 @@ void add_scheduled_downtime(int state_type, time_t time_stamp, avail_subject *su
 	        }
 
 	return;
-        }
+}
 
 
 /* frees memory allocated to all availability data */
@@ -2742,10 +2735,10 @@ void free_availability_data(void){
 		free_archived_state_list(this_subject->sd_list);
 		free(this_subject);
 		this_subject=next_subject;
-	        }
+	}
 
 	return;
-        }
+}
 
 /* frees memory allocated to the archived state list */
 void free_archived_state_list(archived_state *as_list){
@@ -2758,12 +2751,12 @@ void free_archived_state_list(archived_state *as_list){
 			free(this_as->state_info);
 		free(this_as);
 		this_as=next_as;
-	        }
+	}
 
 	as_list=NULL;
 
 	return;
-        }
+}
 
 
 
@@ -2787,7 +2780,6 @@ void read_archived_state_data(void){
 
 	/* read in all the necessary archived logs (from most recent to earliest) */
 	for(current_archive=newest_archive;current_archive<=oldest_archive;current_archive++){
-
 #ifdef DEBUG
 		printf("Reading archive #%d\n",current_archive);
 #endif
@@ -2801,331 +2793,245 @@ void read_archived_state_data(void){
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_state_data(filename);
-	        }
+	}
 
 	return;
-        }
+}
 
 
 
 /* grabs archives state data from a log file */
 void scan_log_file_for_archived_state_data(char *filename){
-	char *input=NULL;
-	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_service_desc[MAX_INPUT_BUFFER];
 	char *plugin_output=NULL;
 	char *temp_buffer=NULL;
-	time_t time_stamp;
-	mmapfile *thefile=NULL;
 	avail_subject *temp_subject=NULL;
-	int state_type=0;
+	logentry *temp_entry=NULL;
+	int state_type=0,status;
 
-	if((thefile=mmap_fopen(filename))==NULL)
-		return;
+	status = get_log_entries(filename,NULL,FALSE,t1-(60*60*24*backtrack_archives),t2);
+	
+	if (status==READLOG_OK) {
 
-	while(1){
+		for(temp_entry=entry_list;temp_entry!=NULL;temp_entry=temp_entry->next) {
+		
+			/* program starts/restarts */
+			if(temp_entry->type==LOGENTRY_STARTUP)
+				add_global_archived_state(AS_PROGRAM_START,AS_NO_DATA,temp_entry->timestamp,"Program start");
+			if(temp_entry->type==LOGENTRY_RESTART)
+				add_global_archived_state(AS_PROGRAM_START,AS_NO_DATA,temp_entry->timestamp,"Program restart");
 
-		/* free memory */
-		free(input);
-		free(input2);
-		input=NULL;
-		input2=NULL;
+			/* program stops */
+			if(temp_entry->type==LOGENTRY_SHUTDOWN)
+				add_global_archived_state(AS_PROGRAM_END,AS_NO_DATA,temp_entry->timestamp,"Normal program termination");
+			if(temp_entry->type==LOGENTRY_BAILOUT)
+				add_global_archived_state(AS_PROGRAM_END,AS_NO_DATA,temp_entry->timestamp,"Abnormal program termination");
 
-		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
+			if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
-		strip(input);
+				switch(temp_entry->type){
 
-		if((input2=strdup(input))==NULL)
-			continue;
+					/* normal host alerts and initial/current states */
+					case LOGENTRY_HOST_DOWN:
+					case LOGENTRY_HOST_UNREACHABLE:
+					case LOGENTRY_HOST_RECOVERY:
+					case LOGENTRY_HOST_UP:
+					case LOGENTRY_HOST_INITIAL_STATE:
+					case LOGENTRY_HOST_CURRENT_STATE:
 
-		temp_buffer=my_strtok(input2,"]");
-		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-		/* program starts/restarts */
-		if(strstr(input," starting..."))
-			add_global_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program start");
-		if(strstr(input," restarting..."))
-			add_global_archived_state(AS_PROGRAM_START,AS_NO_DATA,time_stamp,"Program restart");
+						/* see if there is a corresponding subject for this host */
+						temp_subject=find_subject(HOST_SUBJECT,entry_host_name,NULL);
+						if(temp_subject==NULL)
+							break;
 
-		/* program stops */
-		if(strstr(input," shutting down..."))
-			add_global_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Normal program termination");
-		if(strstr(input,"Bailing out"))
-			add_global_archived_state(AS_PROGRAM_END,AS_NO_DATA,time_stamp,"Abnormal program termination");
+						/* state types */
+						if(strstr(temp_entry->entry_text,";SOFT;")){
+							if(include_soft_states==FALSE)
+								break;
+							state_type=AS_SOFT_STATE;
+						}
+						if(strstr(temp_entry->entry_text,";HARD;"))
+							state_type=AS_HARD_STATE;
 
-		if(display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_HOSTGROUP_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
+						/* get the plugin output */
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						plugin_output=my_strtok(NULL,"\n");
 
-			/* normal host alerts and initial/current states */
-			if(strstr(input,"HOST ALERT:") || strstr(input,"INITIAL HOST STATE:") || strstr(input,"CURRENT HOST STATE:")){
+						if(strstr(temp_entry->entry_text,";DOWN;"))
+							add_archived_state(AS_HOST_DOWN,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else if(strstr(temp_entry->entry_text,";UNREACHABLE;"))
+							add_archived_state(AS_HOST_UNREACHABLE,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else if(strstr(temp_entry->entry_text,";RECOVERY;") || strstr(temp_entry->entry_text,";UP;"))
+							add_archived_state(AS_HOST_UP,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else
+							add_archived_state(AS_NO_DATA,AS_NO_DATA,temp_entry->timestamp,plugin_output,temp_subject);
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						break;
 
-				/* see if there is a corresponding subject for this host */
-				temp_subject=find_subject(HOST_SUBJECT,entry_host_name,NULL);
-				if(temp_subject==NULL)
-					continue;
+					/* scheduled downtime notices */
+					case LOGENTRY_HOST_DOWNTIME_STARTED:
+					case LOGENTRY_HOST_DOWNTIME_STOPPED:
+					case LOGENTRY_HOST_DOWNTIME_CANCELLED:
 
-				/* state types */
-				if(strstr(input,";SOFT;")){
-					if(include_soft_states==FALSE)
-						continue;
-					state_type=AS_SOFT_STATE;
-				        }
-				if(strstr(input,";HARD;"))
-					state_type=AS_HARD_STATE;
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-				/* get the plugin output */
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				plugin_output=my_strtok(NULL,"\n");
+						/* see if there is a corresponding subject for this host */
+						temp_subject=find_subject(HOST_SUBJECT,entry_host_name,NULL);
+						if(temp_subject==NULL)
+							break;
 
-				if(strstr(input,";DOWN;"))
-					add_archived_state(AS_HOST_DOWN,state_type,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input,";UNREACHABLE;"))
-					add_archived_state(AS_HOST_UNREACHABLE,state_type,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
-					add_archived_state(AS_HOST_UP,state_type,time_stamp,plugin_output,temp_subject);
-				else
-					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output,temp_subject);
-			        }
+						if(show_scheduled_downtime==FALSE)
+							break;
 
-			/* scheduled downtime notices */
-			else if(strstr(input,"HOST DOWNTIME ALERT:")){
+						if(temp_entry->type==LOGENTRY_HOST_DOWNTIME_STARTED)
+							add_scheduled_downtime(AS_HOST_DOWNTIME_START,temp_entry->timestamp,temp_subject);
+						else
+							add_scheduled_downtime(AS_HOST_DOWNTIME_END,temp_entry->timestamp,temp_subject);
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						break;
+				}
+			}
 
-				/* see if there is a corresponding subject for this host */
-				temp_subject=find_subject(HOST_SUBJECT,entry_host_name,NULL);
-				if(temp_subject==NULL)
-					continue;
+			if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
 
-				if(show_scheduled_downtime==FALSE)
-					continue;
+				switch(temp_entry->type){
 
-				if(strstr(input,";STARTED;"))
-					add_scheduled_downtime(AS_HOST_DOWNTIME_START,time_stamp,temp_subject);
-				else
-					add_scheduled_downtime(AS_HOST_DOWNTIME_END,time_stamp,temp_subject);
+					/* normal service alerts and initial/current states */
+					case LOGENTRY_SERVICE_CRITICAL:
+					case LOGENTRY_SERVICE_WARNING:
+					case LOGENTRY_SERVICE_UNKNOWN:
+					case LOGENTRY_SERVICE_RECOVERY:
+					case LOGENTRY_SERVICE_OK:
+					case LOGENTRY_SERVICE_INITIAL_STATE:
+					case LOGENTRY_SERVICE_CURRENT_STATE:
+					
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-			        }
-		        }
+						/* get service description */
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
+						entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
 
-		if(display_type==DISPLAY_SERVICE_AVAIL || display_type==DISPLAY_HOST_AVAIL || display_type==DISPLAY_SERVICEGROUP_AVAIL){
+						/* see if there is a corresponding subject for this service */
+						temp_subject=find_subject(SERVICE_SUBJECT,entry_host_name,entry_service_desc);
+						if(temp_subject==NULL)
+							break;
 
-			/* normal service alerts and initial/current states */
-			if(strstr(input,"SERVICE ALERT:") || strstr(input,"INITIAL SERVICE STATE:") || strstr(input,"CURRENT SERVICE STATE:")){
+						/* state types */
+						if(strstr(temp_entry->entry_text,";SOFT;")){
+							if(include_soft_states==FALSE)
+								break;
+							state_type=AS_SOFT_STATE;
+						        }
+						if(strstr(temp_entry->entry_text,";HARD;"))
+							state_type=AS_HARD_STATE;
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						/* get the plugin output */
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						temp_buffer=my_strtok(NULL,";");
+						plugin_output=my_strtok(NULL,"\n");
 
-				/* get service description */
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-				entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+						if(strstr(temp_entry->entry_text,";CRITICAL;"))
+							add_archived_state(AS_SVC_CRITICAL,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else if(strstr(temp_entry->entry_text,";WARNING;"))
+							add_archived_state(AS_SVC_WARNING,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else if(strstr(temp_entry->entry_text,";UNKNOWN;"))
+							add_archived_state(AS_SVC_UNKNOWN,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else if(strstr(temp_entry->entry_text,";RECOVERY;") || strstr(temp_entry->entry_text,";OK;"))
+							add_archived_state(AS_SVC_OK,state_type,temp_entry->timestamp,plugin_output,temp_subject);
+						else
+							add_archived_state(AS_NO_DATA,AS_NO_DATA,temp_entry->timestamp,plugin_output,temp_subject);
 
-				/* see if there is a corresponding subject for this service */
-				temp_subject=find_subject(SERVICE_SUBJECT,entry_host_name,entry_service_desc);
-				if(temp_subject==NULL)
-					continue;
+						break;
 
-				/* state types */
-				if(strstr(input,";SOFT;")){
-					if(include_soft_states==FALSE)
-						continue;
-					state_type=AS_SOFT_STATE;
-				        }
-				if(strstr(input,";HARD;"))
-					state_type=AS_HARD_STATE;
+					/* scheduled service downtime notices */
+					case LOGENTRY_SERVICE_DOWNTIME_STARTED:
+					case LOGENTRY_SERVICE_DOWNTIME_STOPPED:
+					case LOGENTRY_SERVICE_DOWNTIME_CANCELLED:
 
-				/* get the plugin output */
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				temp_buffer=my_strtok(NULL,";");
-				plugin_output=my_strtok(NULL,"\n");
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-				if(strstr(input,";CRITICAL;"))
-					add_archived_state(AS_SVC_CRITICAL,state_type,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input,";WARNING;"))
-					add_archived_state(AS_SVC_WARNING,state_type,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input,";UNKNOWN;"))
-					add_archived_state(AS_SVC_UNKNOWN,state_type,time_stamp,plugin_output,temp_subject);
-				else if(strstr(input,";RECOVERY;") || strstr(input,";OK;"))
-					add_archived_state(AS_SVC_OK,state_type,time_stamp,plugin_output,temp_subject);
-				else
-					add_archived_state(AS_NO_DATA,AS_NO_DATA,time_stamp,plugin_output,temp_subject);
+						/* get service description */
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
+						entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
 
-			        }
+						/* see if there is a corresponding subject for this service */
+						temp_subject=find_subject(SERVICE_SUBJECT,entry_host_name,entry_service_desc);
+						if(temp_subject==NULL)
+							break;
 
-			/* scheduled service downtime notices */
-			else if(strstr(input,"SERVICE DOWNTIME ALERT:")){
+						if(show_scheduled_downtime==FALSE)
+							break;
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						if(temp_entry->type==LOGENTRY_SERVICE_DOWNTIME_STARTED)
+							add_scheduled_downtime(AS_SVC_DOWNTIME_START,temp_entry->timestamp,temp_subject);
+						else
+							add_scheduled_downtime(AS_SVC_DOWNTIME_END,temp_entry->timestamp,temp_subject);
 
-				/* get service description */
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-				entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+						break;
+					
+					/* scheduled host downtime notices */
+					case LOGENTRY_HOST_DOWNTIME_STARTED:
+					case LOGENTRY_HOST_DOWNTIME_STOPPED:
+					case LOGENTRY_HOST_DOWNTIME_CANCELLED:
 
-				/* see if there is a corresponding subject for this service */
-				temp_subject=find_subject(SERVICE_SUBJECT,entry_host_name,entry_service_desc);
-				if(temp_subject==NULL)
-					continue;
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-				if(show_scheduled_downtime==FALSE)
-					continue;
+						/* this host downtime entry must be added to all service subjects associated with the host! */
+						for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
 
-				if(strstr(input,";STARTED;"))
-					add_scheduled_downtime(AS_SVC_DOWNTIME_START,time_stamp,temp_subject);
-				else
-					add_scheduled_downtime(AS_SVC_DOWNTIME_END,time_stamp,temp_subject);
-		                }
+							if(temp_subject->type!=SERVICE_SUBJECT)
+								break;
 
-			/* scheduled host downtime notices */
-			else if(strstr(input,"HOST DOWNTIME ALERT:")){
+							if(strcmp(temp_subject->host_name,entry_host_name))
+								break;
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+							if(show_scheduled_downtime==FALSE)
+								break;
 
-				/* this host downtime entry must be added to all service subjects associated with the host! */
-				for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
+							if(temp_entry->type==LOGENTRY_HOST_DOWNTIME_STARTED)
+								add_scheduled_downtime(AS_HOST_DOWNTIME_START,temp_entry->timestamp,temp_subject);
+							else
+								add_scheduled_downtime(AS_HOST_DOWNTIME_END,temp_entry->timestamp,temp_subject);
+						}
 
-					if(temp_subject->type!=SERVICE_SUBJECT)
-						continue;
+						break;
+				}
+			}
+		}
+	}
 
-					if(strcmp(temp_subject->host_name,entry_host_name))
-						continue;
-
-					if(show_scheduled_downtime==FALSE)
-						continue;
-
-					if(strstr(input,";STARTED;"))
-						add_scheduled_downtime(AS_HOST_DOWNTIME_START,time_stamp,temp_subject);
-					else
-						add_scheduled_downtime(AS_HOST_DOWNTIME_END,time_stamp,temp_subject);
-				        }
-			        }
-		        }
-
-	        }
-
-	/* free memory and close the file */
-	free(input);
-	free(input2);
-	mmap_fclose(thefile);
-
-	return;
-        }
-
-
-
-
-void convert_timeperiod_to_times(int type){
-	time_t current_time;
-	struct tm *t;
-
-	/* get the current time */
-	time(&current_time);
-
-	t=localtime(&current_time);
-
-	t->tm_sec=0;
-	t->tm_min=0;
-	t->tm_hour=0;
-        t->tm_isdst=-1;
-
-	switch(type){
-	case TIMEPERIOD_LAST24HOURS:
-		t1=current_time-(60*60*24);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_TODAY:
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_YESTERDAY:
-		t1=(time_t)(mktime(t)-(60*60*24));
-		t2=(time_t)mktime(t);
-		break;
-	case TIMEPERIOD_THISWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday)-(60*60*24*7));
-		t2=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		break;
-	case TIMEPERIOD_THISMONTH:
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTMONTH:
-		t->tm_mday=1;
-		t2=mktime(t);
-		if(t->tm_mon==0){
-			t->tm_mon=11;
-			t->tm_year--;
-		        }
-		else
-			t->tm_mon--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_THISQUARTER:
-		/* not implemented */
-		break;
-	case TIMEPERIOD_LASTQUARTER:
-		/* not implemented */
-		break;
-	case TIMEPERIOD_THISYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t2=mktime(t);
-		t->tm_year--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_LAST7DAYS:
-		t2=current_time;
-		t1=current_time-(7*24*60*60);
-		break;
-	case TIMEPERIOD_LAST31DAYS:
-		t2=current_time;
-		t1=current_time-(31*24*60*60);
-		break;
-	default:
-		break;
-	        }
+	free_log_entries();
 
 	return;
-        }
-
+}
 
 
 void compute_report_times(void){
@@ -3159,7 +3065,7 @@ void compute_report_times(void){
 	et->tm_isdst=-1;
 
 	t2=mktime(et);
-        }
+}
 
 
 /* writes log entries to screen */
@@ -3354,7 +3260,7 @@ void write_log_entries(avail_subject *subject){
 	printf("</DIV>\n");
 
 	return;
-        }
+}
 
 
 
@@ -3375,8 +3281,7 @@ void display_hostgroup_availability(void){
 	        }
 
 	return;
-        }
-
+}
 
 
 /* display availability for a specific hostgroup */
@@ -3386,7 +3291,7 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 	unsigned long time_indeterminate;
 	avail_subject *temp_subject;
         host *temp_host;
-        char *csv_header[34];
+        char *header[34];
         double percent_time_indeterminate=0.0;
 	double percent_time_up=0.0;
 	double percent_time_down=0.0;
@@ -3420,9 +3325,12 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 	double average_percent_time_indeterminate=0.0;
 
 	int current_subject=0;
-	int i=0;
+	int i=0, j=0;
 	char *bgclass="";
 	int odd=1;
+	int json_start=TRUE;
+	char lower_header[34][100];
+	int len=0;
 
 	if(hg==NULL)
 		return;
@@ -3434,6 +3342,41 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 	/* calculate total time during period based on timeperiod used for reporting */
 	total_time=calculate_total_time(t1,t2);
 
+	header[0] = "HOST_NAME";
+	header[1] = "TIME_UP_SCHEDULED";
+	header[2] = "PERCENT_TIME_UP_SCHEDULED";
+	header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
+	header[4] = "TIME_UP_UNSCHEDULED";
+	header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
+	header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
+	header[7] = "TOTAL_TIME_UP";
+	header[8] = "PERCENT_TOTAL_TIME_UP";
+	header[9] = "PERCENT_KNOWN_TIME_UP";
+	header[10] = "TIME_DOWN_SCHEDULED";
+	header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
+	header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
+	header[13] = "TIME_DOWN_UNSCHEDULED";
+	header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
+	header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
+	header[16] = "TOTAL_TIME_DOWN";
+	header[17] = "PERCENT_TOTAL_TIME_DOWN";
+	header[18] = "PERCENT_KNOWN_TIME_DOWN";
+	header[19] = "TIME_UNREACHABLE_SCHEDULED";
+	header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
+	header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
+	header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
+	header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
+	header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
+	header[25] = "TOTAL_TIME_UNREACHABLE";
+	header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
+	header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
+	header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
+	header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
+	header[30] = "TIME_UNDETERMINED_NO_DATA";
+	header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
+	header[32] = "TOTAL_TIME_UNDETERMINED";
+	header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+
 	if(content_type==HTML_CONTENT){
 		printf("<BR><BR>\n");
 		printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Hostgroup '%s' Host State Breakdowns:</DIV>\n",hg->group_name);
@@ -3441,46 +3384,28 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 		printf("<DIV ALIGN=CENTER>\n");
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
 		printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>%% Time Up</TH><TH CLASS='data'>%% Time Down</TH><TH CLASS='data'>%% Time Unreachable</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
+	} else if(content_type==JSON_CONTENT){
+		printf("%s\"hostgroup\": \"%s\",\n",(json_list_start==FALSE)?",":"",json_encode(hg->group_name));
+		printf("\"host_state_breakdowns\": [\n");
+		json_list_start=FALSE;
+
+		/* converting to lower case */
+		for(i=0;i<34;i++) {
+			len=(int)strlen(header[i]);
+			for(j=0;j<len;j++) {
+				if (header[i][j]=='_')
+					lower_header[i][j]=header[i][j];
+				else
+					lower_header[i][j]=header[i][j]+32;
+			}
+			lower_header[i][len]='\x0';
+		}
+
 	} else if(content_type==CSV_CONTENT){
 		printf("%sHOSTGROUP %s HOST_STATE_BREAKDOWNS%s%s\n",csv_data_enclosure,hg->group_name,csv_data_enclosure,csv_delimiter);
 
-		csv_header[0] = "HOST_NAME";
-                csv_header[1] = "TIME_UP_SCHEDULED";
-                csv_header[2] = "PERCENT_TIME_UP_SCHEDULED";
-                csv_header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
-                csv_header[4] = "TIME_UP_UNSCHEDULED";
-                csv_header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
-                csv_header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
-                csv_header[7] = "TOTAL_TIME_UP";
-                csv_header[8] = "PERCENT_TOTAL_TIME_UP";
-                csv_header[9] = "PERCENT_KNOWN_TIME_UP";
-                csv_header[10] = "TIME_DOWN_SCHEDULED";
-                csv_header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
-                csv_header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
-                csv_header[13] = "TIME_DOWN_UNSCHEDULED";
-                csv_header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
-                csv_header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
-                csv_header[16] = "TOTAL_TIME_DOWN";
-                csv_header[17] = "PERCENT_TOTAL_TIME_DOWN";
-                csv_header[18] = "PERCENT_KNOWN_TIME_DOWN";
-                csv_header[19] = "TIME_UNREACHABLE_SCHEDULED";
-                csv_header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
-                csv_header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
-                csv_header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[25] = "TOTAL_TIME_UNREACHABLE";
-                csv_header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
-                csv_header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
-                csv_header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[30] = "TIME_UNDETERMINED_NO_DATA";
-                csv_header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-                csv_header[32] = "TOTAL_TIME_UNDETERMINED";
-                csv_header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
-
 		for(i=0;i<34;i++)
-			printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+			printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
 		printf("\n");
 	}
@@ -3538,6 +3463,56 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 			host_report_url(temp_subject->host_name,temp_subject->host_name);
 			printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
 
+		} else if(content_type==JSON_CONTENT){
+			if (json_start!=TRUE)
+				printf(",\n");
+
+			/* host name */
+			printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+
+                        /* up times */
+			printf(" \"%s\": %lu, ",lower_header[1],temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[2],percent_time_up_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_up_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[4],temp_subject->time_up-temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[5],percent_time_up_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_up_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[7],temp_subject->time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[8],percent_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_up_known);
+
+                        /* down times */
+			printf(" \"%s\": %lu, ",lower_header[10],temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[11],percent_time_down_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_down_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[13],temp_subject->time_down-temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[14],percent_time_down_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_down_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[16],temp_subject->time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[17],percent_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_down_known);
+
+                        /* unreachable times */
+			printf(" \"%s\": %lu, ",lower_header[19],temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[20],percent_time_unreachable_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unreachable_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[22],temp_subject->time_unreachable-temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[23],percent_time_unreachable_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unreachable_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[25],temp_subject->time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[26],percent_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unreachable_known);
+
+                        /* indeterminate times */
+			printf(" \"%s\": %lu, ",lower_header[28],temp_subject->time_indeterminate_notrunning);
+			printf(" \"%s\": %2.3f, ",lower_header[29],percent_time_indeterminate_notrunning);
+			printf(" \"%s\": %lu, ",lower_header[30],temp_subject->time_indeterminate_nodata);
+			printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_indeterminate_nodata);
+			printf(" \"%s\": %lu, ",lower_header[32],time_indeterminate);
+			printf(" \"%s\": %2.3f} ",lower_header[33],percent_time_indeterminate);
+
+			json_start=FALSE;
+
 		} else if(content_type==CSV_CONTENT){
 
 			/* host name */
@@ -3594,23 +3569,32 @@ void display_specific_hostgroup_availability(hostgroup *hg){
 		get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
 		get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
 		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-                }
+	}
+
 
 	/* average statistics */
 	if(odd){
 		odd=0;
 		bgclass="Odd";
-	        }
-	else{
+	}else{
 		odd=1;
 		bgclass="Even";
-      	        }
+	}
 
 	if(content_type==HTML_CONTENT){
 		printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
 
 		printf("</table>\n");
 		printf("</DIV>\n");
+	}else if (content_type==JSON_CONTENT){
+		printf(", { \"average_percent_time_up\": %2.3f, ",average_percent_time_up);
+		printf("\"average_percent_time_up_known\": %2.3f, ",average_percent_time_up_known);
+		printf("\"average_percent_time_down\": %2.3f, ",average_percent_time_down);
+		printf("\"average_percent_time_down_known\": %2.3f, ",average_percent_time_down_known);
+		printf("\"average_percent_time_unreachable\": %2.3f, ",average_percent_time_unreachable);
+		printf("\"average_percent_time_unreachable_known\": %2.3f, ",average_percent_time_unreachable_known);
+		printf("\"average_percent_time_indeterminate\": %2.3f }",average_percent_time_indeterminate);
+		printf(" ]\n");
 	} else if(content_type==CSV_CONTENT){
 		/* average */
 		/* left for future rework */
@@ -3637,7 +3621,7 @@ void display_servicegroup_availability(void){
 	        }
 
 	return;
-        }
+}
 
 
 
@@ -3718,10 +3702,13 @@ void display_specific_servicegroup_availability(servicegroup *sg){
         double percent_time_indeterminate_nodata=0.0;
 
         int odd=1;
-        int i=0;
+        int i=0, j=0;
         char *bgclass="";
         char last_host[128]="";
-        char *csv_header[44];
+        char *header[44];
+	int json_start=TRUE;
+	char lower_header[44][100];
+	int len=0;
 
 	if(sg==NULL)
 		return;
@@ -3733,6 +3720,41 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 	/* calculate total time during period based on timeperiod used for reporting */
 	total_time=calculate_total_time(t1,t2);
 
+	header[0] = "HOST_NAME";
+	header[1] = "TIME_UP_SCHEDULED";
+	header[2] = "PERCENT_TIME_UP_SCHEDULED";
+	header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
+	header[4] = "TIME_UP_UNSCHEDULED";
+	header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
+	header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
+	header[7] = "TOTAL_TIME_UP";
+	header[8] = "PERCENT_TOTAL_TIME_UP";
+	header[9] = "PERCENT_KNOWN_TIME_UP";
+	header[10] = "TIME_DOWN_SCHEDULED";
+	header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
+	header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
+	header[13] = "TIME_DOWN_UNSCHEDULED";
+	header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
+	header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
+	header[16] = "TOTAL_TIME_DOWN";
+	header[17] = "PERCENT_TOTAL_TIME_DOWN";
+	header[18] = "PERCENT_KNOWN_TIME_DOWN";
+	header[19] = "TIME_UNREACHABLE_SCHEDULED";
+	header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
+	header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
+	header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
+	header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
+	header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
+	header[25] = "TOTAL_TIME_UNREACHABLE";
+	header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
+	header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
+	header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
+	header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
+	header[30] = "TIME_UNDETERMINED_NO_DATA";
+	header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
+	header[32] = "TOTAL_TIME_UNDETERMINED";
+	header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+
 	if(content_type==HTML_CONTENT){
 		printf("<BR><BR>\n");
 		printf("<DIV ALIGN=CENTER CLASS='dataTitle'>Servicegroup '%s' Host State Breakdowns:</DIV>\n",sg->group_name);
@@ -3740,46 +3762,29 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		printf("<DIV ALIGN=CENTER>\n");
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
 		printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>%% Time Up</TH><TH CLASS='data'>%% Time Down</TH><TH CLASS='data'>%% Time Unreachable</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
+	} else if(content_type==JSON_CONTENT){
+		printf("%s\"servicegroup\": \"%s\",\n",(json_list_start==FALSE)?",":"",json_encode(sg->group_name));
+		printf("\"host_state_breakdowns\": [\n");
+		json_list_start=FALSE;
+
+		/* converting to lower case */
+		for(i=0;i<34;i++) {
+			len=(int)strlen(header[i]);
+			for(j=0;j<len;j++) {
+				if (header[i][j]=='_')
+					lower_header[i][j]=header[i][j];
+				else
+					lower_header[i][j]=header[i][j]+32;
+			}
+			lower_header[i][len]='\x0';
+		}
+
 	} else if(content_type==CSV_CONTENT){
 		printf("%sSERVICEGROUP %s HOST_STATE_BREAKDOWNS%s%s\n",csv_data_enclosure,sg->group_name,csv_data_enclosure,csv_delimiter);
 
-                csv_header[0] = "HOST_NAME";
-                csv_header[1] = "TIME_UP_SCHEDULED";
-                csv_header[2] = "PERCENT_TIME_UP_SCHEDULED";
-                csv_header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
-                csv_header[4] = "TIME_UP_UNSCHEDULED";
-                csv_header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
-                csv_header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
-                csv_header[7] = "TOTAL_TIME_UP";
-                csv_header[8] = "PERCENT_TOTAL_TIME_UP";
-                csv_header[9] = "PERCENT_KNOWN_TIME_UP";
-                csv_header[10] = "TIME_DOWN_SCHEDULED";
-                csv_header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
-                csv_header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
-                csv_header[13] = "TIME_DOWN_UNSCHEDULED";
-                csv_header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
-                csv_header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
-                csv_header[16] = "TOTAL_TIME_DOWN";
-                csv_header[17] = "PERCENT_TOTAL_TIME_DOWN";
-                csv_header[18] = "PERCENT_KNOWN_TIME_DOWN";
-                csv_header[19] = "TIME_UNREACHABLE_SCHEDULED";
-                csv_header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
-                csv_header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
-                csv_header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
-                csv_header[25] = "TOTAL_TIME_UNREACHABLE";
-                csv_header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
-                csv_header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
-                csv_header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[30] = "TIME_UNDETERMINED_NO_DATA";
-                csv_header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-                csv_header[32] = "TOTAL_TIME_UNDETERMINED";
-                csv_header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
 
                 for(i=0;i<34;i++)
-                        printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+                        printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
                 printf("\n");
 	}
@@ -3819,23 +3824,72 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 				percent_time_up_known=(double)(((double)temp_subject->time_up*100.0)/(double)time_determinate);
 				percent_time_down_known=(double)(((double)temp_subject->time_down*100.0)/(double)time_determinate);
 				percent_time_unreachable_known=(double)(((double)temp_subject->time_unreachable*100.0)/(double)time_determinate);
-	                        }
-		        }
+			}
+		}
 
 		if(odd){
 			odd=0;
 			bgclass="Odd";
-	                }
-		else{
+		}else{
 			odd=1;
 			bgclass="Even";
-	                }
+		}
 
 		if(content_type==HTML_CONTENT){
 
 			printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 			host_report_url(temp_subject->host_name,temp_subject->host_name);
 			printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
+
+		} else if(content_type==JSON_CONTENT){
+			if (json_start!=TRUE)
+				printf(",\n");
+
+			/* host name */
+			printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+
+                        /* up times */
+			printf(" \"%s\": %lu, ",lower_header[1],temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[2],percent_time_up_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_up_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[4],temp_subject->time_up-temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[5],percent_time_up_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_up_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[7],temp_subject->time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[8],percent_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_up_known);
+
+                        /* down times */
+			printf(" \"%s\": %lu, ",lower_header[10],temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[11],percent_time_down_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_down_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[13],temp_subject->time_down-temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[14],percent_time_down_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_down_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[16],temp_subject->time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[17],percent_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_down_known);
+
+                        /* unreachable times */
+			printf(" \"%s\": %lu, ",lower_header[19],temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[20],percent_time_unreachable_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unreachable_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[22],temp_subject->time_unreachable-temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[23],percent_time_unreachable_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unreachable_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[25],temp_subject->time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[26],percent_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unreachable_known);
+
+                        /* indeterminate times */
+			printf(" \"%s\": %lu, ",lower_header[28],temp_subject->time_indeterminate_notrunning);
+			printf(" \"%s\": %2.3f, ",lower_header[29],percent_time_indeterminate_notrunning);
+			printf(" \"%s\": %lu, ",lower_header[30],temp_subject->time_indeterminate_nodata);
+			printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_indeterminate_nodata);
+			printf(" \"%s\": %lu, ",lower_header[32],time_indeterminate);
+			printf(" \"%s\": %2.3f} ",lower_header[33],percent_time_indeterminate);
+
+			json_start=FALSE;
 
 		} else if(content_type==CSV_CONTENT){
 
@@ -3893,17 +3947,71 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
 		get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
 		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-                }
+	}
 
 	/* average statistics */
 	if(odd){
 		odd=0;
 		bgclass="Odd";
-	        }
-	else{
+	}else{
 		odd=1;
 		bgclass="Even";
-      	        }
+	}
+
+	header[0] = "HOST_NAME";
+	header[1] = "SERVICE_DESCRIPTION";
+
+	/* ok times */
+	header[2] = "TIME_OK_SCHEDULED";
+	header[3] = "PERCENT_TIME_OK_SCHEDULED";
+	header[4] = "PERCENT_KNOWN_TIME_OK_SCHEDULED";
+	header[5] = "TIME_OK_UNSCHEDULED";
+	header[6] = "PERCENT_TIME_OK_UNSCHEDULED";
+	header[7] = "PERCENT_KNOWN_TIME_OK_UNSCHEDULED";
+	header[8] = "TOTAL_TIME_OK";
+	header[9] = "PERCENT_TOTAL_TIME_OK";
+	header[10] = "PERCENT_KNOWN_TIME_OK";
+
+	/* warning times */
+	header[11] = "TIME_WARNING_SCHEDULED";
+	header[12] = "PERCENT_TIME_WARNING_SCHEDULED";
+	header[13] = "PERCENT_KNOWN_TIME_WARNING_SCHEDULED";
+	header[14] = "TIME_WARNING_UNSCHEDULED";
+	header[15] = "PERCENT_TIME_WARNING_UNSCHEDULED";
+	header[16] = "PERCENT_KNOWN_TIME_WARNING_UNSCHEDULED";
+	header[17] = "TOTAL_TIME_WARNING";
+	header[18] = "PERCENT_TOTAL_TIME_WARNING";
+	header[19] = "PERCENT_KNOWN_TIME_WARNING";
+
+	/* unknown times */
+	header[20] = "TIME_UNKNOWN_SCHEDULED";
+	header[21] = "PERCENT_TIME_UNKNOWN_SCHEDULED";
+	header[22] = "PERCENT_KNOWN_TIME_UNKNOWN_SCHEDULED";
+	header[23] = "TIME_UNKNOWN_UNSCHEDULED";
+	header[24] = "PERCENT_TIME_UNKNOWN_UNSCHEDULED";
+	header[25] = "PERCENT_KNOWN_TIME_UNKNOWN_UNSCHEDULED";
+	header[26] = "TOTAL_TIME_UNKNOWN";
+	header[27] = "PERCENT_TOTAL_TIME_UNKNOWN";
+	header[28] = "PERCENT_KNOWN_TIME_UNKNOWN";
+
+	/* critical times */
+	header[29] = "TIME_CRITICAL_SCHEDULED";
+	header[30] = "PERCENT_TIME_CRITICAL_SCHEDULED";
+	header[31] = "PERCENT_KNOWN_TIME_CRITICAL_SCHEDULED";
+	header[32] = "TIME_CRITICAL_UNSCHEDULED";
+	header[33] = "PERCENT_TIME_CRITICAL_UNSCHEDULED";
+	header[34] = "PERCENT_KNOWN_TIME_CRITICAL_UNSCHEDULED";
+	header[35] = "TOTAL_TIME_CRITICAL";
+	header[36] = "PERCENT_TOTAL_TIME_CRITICAL";
+	header[37] = "PERCENT_KNOWN_TIME_CRITICAL";
+
+	/* indeterminate times */
+	header[38] = "TIME_UNDETERMINED_NOT_RUNNING";
+	header[39] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
+	header[40] = "TIME_UNDETERMINED_NO_DATA";
+	header[41] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
+	header[42] = "TOTAL_TIME_UNDETERMINED";
+	header[43] = "PERCENT_TOTAL_TIME_UNDETERMINED";
 
 	if(content_type==HTML_CONTENT){
 
@@ -3919,66 +4027,37 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		printf("<TABLE BORDER=0 CLASS='data'>\n");
 		printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>%% Time OK</TH><TH CLASS='data'>%% Time Warning</TH><TH CLASS='data'>%% Time Unknown</TH><TH CLASS='data'>%% Time Critical</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
 
+	} else if(content_type==JSON_CONTENT){
+		printf(", {\"average_percent_times\": null, ");
+		printf("\"average_percent_time_up\": %2.3f, ",average_percent_time_up);
+		printf("\"average_percent_time_up_known\": %2.3f, ",average_percent_time_up_known);
+		printf("\"average_percent_time_down\": %2.3f, ",average_percent_time_down);
+		printf("\"average_percent_time_down_known\": %2.3f, ",average_percent_time_down_known);
+		printf("\"average_percent_time_unreachable\": %2.3f, ",average_percent_time_unreachable);
+		printf("\"average_percent_time_unreachable_known\": %2.3f, ",average_percent_time_unreachable_known);
+		printf("\"average_percent_time_indeterminate\": %2.3f }",average_percent_time_indeterminate);
+
+		printf("],\n\"servicegroup\": \"%s\",\n",json_encode(sg->group_name));
+		printf("\"service_state_breakdowns\": [\n");
+		json_list_start=FALSE;
+
+		/* converting to lower case */
+		for(i=0;i<44;i++) {
+			len=(int)strlen(header[i]);
+			for(j=0;j<len;j++) {
+				if (header[i][j]=='_')
+					lower_header[i][j]=header[i][j];
+				else
+					lower_header[i][j]=header[i][j]+32;
+			}
+			lower_header[i][len]='\x0';
+		}
+		json_start=TRUE;
 	} else if(content_type==CSV_CONTENT){
 		printf("%sSERVICEGROUP %s SERVICE_STATE_BREAKDOWNS%s%s\n",csv_data_enclosure,sg->group_name,csv_data_enclosure,csv_delimiter);
 
-                csv_header[0] = "HOST_NAME";
-                csv_header[1] = "SERVICE_DESCRIPTION";
-
-                /* ok times */
-                csv_header[2] = "TIME_OK_SCHEDULED";
-                csv_header[3] = "PERCENT_TIME_OK_SCHEDULED";
-                csv_header[4] = "PERCENT_KNOWN_TIME_OK_SCHEDULED";
-                csv_header[5] = "TIME_OK_UNSCHEDULED";
-                csv_header[6] = "PERCENT_TIME_OK_UNSCHEDULED";
-                csv_header[7] = "PERCENT_KNOWN_TIME_OK_UNSCHEDULED";
-                csv_header[8] = "TOTAL_TIME_OK";
-                csv_header[9] = "PERCENT_TOTAL_TIME_OK";
-                csv_header[10] = "PERCENT_KNOWN_TIME_OK";
-
-                /* warning times */
-                csv_header[11] = "TIME_WARNING_SCHEDULED";
-                csv_header[12] = "PERCENT_TIME_WARNING_SCHEDULED";
-                csv_header[13] = "PERCENT_KNOWN_TIME_WARNING_SCHEDULED";
-                csv_header[14] = "TIME_WARNING_UNSCHEDULED";
-                csv_header[15] = "PERCENT_TIME_WARNING_UNSCHEDULED";
-                csv_header[16] = "PERCENT_KNOWN_TIME_WARNING_UNSCHEDULED";
-                csv_header[17] = "TOTAL_TIME_WARNING";
-                csv_header[18] = "PERCENT_TOTAL_TIME_WARNING";
-                csv_header[19] = "PERCENT_KNOWN_TIME_WARNING";
-
-                /* unknown times */
-                csv_header[20] = "TIME_UNKNOWN_SCHEDULED";
-                csv_header[21] = "PERCENT_TIME_UNKNOWN_SCHEDULED";
-                csv_header[22] = "PERCENT_KNOWN_TIME_UNKNOWN_SCHEDULED";
-                csv_header[23] = "TIME_UNKNOWN_UNSCHEDULED";
-                csv_header[24] = "PERCENT_TIME_UNKNOWN_UNSCHEDULED";
-                csv_header[25] = "PERCENT_KNOWN_TIME_UNKNOWN_UNSCHEDULED";
-                csv_header[26] = "TOTAL_TIME_UNKNOWN";
-                csv_header[27] = "PERCENT_TOTAL_TIME_UNKNOWN";
-                csv_header[28] = "PERCENT_KNOWN_TIME_UNKNOWN";
-
-                /* critical times */
-                csv_header[29] = "TIME_CRITICAL_SCHEDULED";
-                csv_header[30] = "PERCENT_TIME_CRITICAL_SCHEDULED";
-                csv_header[31] = "PERCENT_KNOWN_TIME_CRITICAL_SCHEDULED";
-                csv_header[32] = "TIME_CRITICAL_UNSCHEDULED";
-                csv_header[33] = "PERCENT_TIME_CRITICAL_UNSCHEDULED";
-                csv_header[34] = "PERCENT_KNOWN_TIME_CRITICAL_UNSCHEDULED";
-                csv_header[35] = "TOTAL_TIME_CRITICAL";
-                csv_header[36] = "PERCENT_TOTAL_TIME_CRITICAL";
-                csv_header[37] = "PERCENT_KNOWN_TIME_CRITICAL";
-
-                /* indeterminate times */
-                csv_header[38] = "TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[39] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-                csv_header[40] = "TIME_UNDETERMINED_NO_DATA";
-                csv_header[41] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-                csv_header[42] = "TOTAL_TIME_UNDETERMINED";
-                csv_header[43] = "PERCENT_TOTAL_TIME_UNDETERMINED";
-
                 for(i=0;i<44;i++)
-                        printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+                        printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
                 printf("\n");
 	}
@@ -4028,17 +4107,16 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 				percent_time_warning_known=(double)(((double)temp_subject->time_warning*100.0)/(double)time_determinate);
 				percent_time_unknown_known=(double)(((double)temp_subject->time_unknown*100.0)/(double)time_determinate);
 				percent_time_critical_known=(double)(((double)temp_subject->time_critical*100.0)/(double)time_determinate);
-	                        }
-                        }
+			}
+		}
 
 		if(odd){
 			odd=0;
 			bgclass="Odd";
-	                }
-		else{
+		}else{
 			odd=1;
 			bgclass="Even";
-	                }
+		}
 
 		if(content_type==HTML_CONTENT){
 
@@ -4051,6 +4129,69 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 
 			strncpy(last_host,temp_subject->host_name,sizeof(last_host)-1);
 			last_host[sizeof(last_host)-1]='\x0';
+
+		} else if(content_type==JSON_CONTENT){
+			if (json_start!=TRUE)
+				printf(",\n");
+
+                        /* host name and service description */
+			printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+			printf(" \"%s\": \"%s\", ",lower_header[1],json_encode(temp_subject->service_description));
+
+                        /* ok times */
+			printf(" \"%s\": %lu, ",lower_header[2],temp_subject->scheduled_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_ok_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[4],percent_time_ok_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[5],temp_subject->time_ok-temp_subject->scheduled_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_ok_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[7],percent_time_ok_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[8],temp_subject->time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[10],percent_time_ok_known);
+
+                        /* warning times */
+			printf(" \"%s\": %lu, ",lower_header[11],temp_subject->scheduled_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_warning_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[13],percent_time_warning_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[14],temp_subject->time_warning-temp_subject->scheduled_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_warning_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[16],percent_time_warning_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[17],temp_subject->time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[19],percent_time_warning_known);
+
+                        /* unknown times */
+			printf(" \"%s\": %lu, ",lower_header[20],temp_subject->scheduled_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unknown_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[22],percent_time_unknown_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[23],temp_subject->time_unknown-temp_subject->scheduled_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unknown_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[25],percent_time_unknown_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[26],temp_subject->time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[28],percent_time_unknown_known);
+
+                        /* critical times */
+			printf(" \"%s\": %lu, ",lower_header[29],temp_subject->scheduled_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[30],percent_time_critical_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_critical_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[32],temp_subject->time_critical-temp_subject->scheduled_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[33],percent_time_critical_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[34],percent_time_critical_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[35],temp_subject->time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[36],percent_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[37],percent_time_critical_known);
+
+
+                        /* indeterminate times */
+			printf(" \"%s\": %lu, ",lower_header[38],temp_subject->time_indeterminate_notrunning);
+			printf(" \"%s\": %2.3f, ",lower_header[39],percent_time_indeterminate_notrunning);
+			printf(" \"%s\": %lu, ",lower_header[40],temp_subject->time_indeterminate_nodata);
+			printf(" \"%s\": %2.3f, ",lower_header[41],percent_time_indeterminate_nodata);
+			printf(" \"%s\": %lu, ",lower_header[42],time_indeterminate);
+			printf(" \"%s\": %2.3f} ",lower_header[43],percent_time_indeterminate);
+
+			json_start=FALSE;
 
 		} else if(content_type==CSV_CONTENT){
 
@@ -4122,30 +4263,40 @@ void display_specific_servicegroup_availability(servicegroup *sg){
 		get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
 		get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
 		get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-	        }
+	}
 
 	/* display average stats */
 	if(odd){
 		odd=0;
 		bgclass="Odd";
-	        }
-	else{
+	}else{
 		odd=1;
 		bgclass="Even";
-	        }
+	}
 
 	if(content_type==HTML_CONTENT){
-
 		printf("<tr CLASS='data%s'><td CLASS='data%s' colspan='2'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
 
 		printf("</table>\n");
 		printf("</DIV>\n");
+	}else if (content_type==JSON_CONTENT){
+		printf(",{ \"average_percent_time_ok\": %2.3f, ",average_percent_time_ok);
+		printf("\"average_percent_time_ok_known\": %2.3f, ",average_percent_time_ok_known);
+		printf("\"average_percent_time_warning\": %2.3f, ",average_percent_time_warning);
+		printf("\"average_percent_time_warning_known\": %2.3f, ",average_percent_time_warning_known);
+		printf("\"average_percent_time_unknown\": %2.3f, ",average_percent_time_unknown);
+		printf("\"average_percent_time_unknown_known\": %2.3f, ",average_percent_time_unknown_known);
+		printf("\"average_percent_time_critical\": %2.3f, ",average_percent_time_critical);
+		printf("\"average_percent_time_critical_known\": %2.3f, ",average_percent_time_critical_known);
+		printf("\"average_percent_time_indeterminate\": %2.3f }",average_percent_time_indeterminate);
+		printf(" ]\n");
 	} else if(content_type==CSV_CONTENT){
-
+		/* average */
+		/* left for future rework */
 	}
 
 	return;
-        }
+}
 
 
 /* display host availability */
@@ -4160,7 +4311,7 @@ void display_host_availability(void){
 	char time_indeterminate_string[48];
 	char time_determinate_string[48];
 	char total_time_string[48];
-	char *csv_header[34];
+	char *header[34];
 	double percent_time_ok=0.0;
 	double percent_time_warning=0.0;
 	double percent_time_unknown=0.0;
@@ -4226,9 +4377,12 @@ void display_host_availability(void){
 	double average_percent_time_critical_known=0.0;
 
 	int current_subject=0;
-	int i=0;
+	int i=0, j=0;
 	char *bgclass="";
 	int odd=1;
+	int json_start=TRUE;
+	char lower_header[34][100];
+	int len=0;
 
 	/* calculate total time during period based on timeperiod used for reporting */
 	total_time=calculate_total_time(t1,t2);
@@ -4236,6 +4390,56 @@ void display_host_availability(void){
 #ifdef DEBUG
 	printf("Total time: '%ld' seconds<br>\n",total_time);
 #endif
+
+	/* fields for csv and json output */
+	header[0] = "HOST_NAME";
+	header[1] = "TIME_UP_SCHEDULED";
+	header[2] = "PERCENT_TIME_UP_SCHEDULED";
+	header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
+	header[4] = "TIME_UP_UNSCHEDULED";
+	header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
+	header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
+	header[7] = "TOTAL_TIME_UP";
+	header[8] = "PERCENT_TOTAL_TIME_UP";
+	header[9] = "PERCENT_KNOWN_TIME_UP";
+	header[10] = "TIME_DOWN_SCHEDULED";
+	header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
+	header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
+	header[13] = "TIME_DOWN_UNSCHEDULED";
+	header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
+	header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
+	header[16] = "TOTAL_TIME_DOWN";
+	header[17] = "PERCENT_TOTAL_TIME_DOWN";
+	header[18] = "PERCENT_KNOWN_TIME_DOWN";
+	header[19] = "TIME_UNREACHABLE_SCHEDULED";
+	header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
+	header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
+	header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
+	header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
+	header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
+	header[25] = "TOTAL_TIME_UNREACHABLE";
+	header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
+	header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
+	header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
+	header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
+	header[30] = "TIME_UNDETERMINED_NO_DATA";
+	header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
+	header[32] = "TOTAL_TIME_UNDETERMINED";
+	header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+
+	if(content_type==JSON_CONTENT){
+		/* converting to lower case */
+		for(i=0;i<34;i++) {
+			len=(int)strlen(header[i]);
+			for(j=0;j<len;j++) {
+				if (header[i][j]=='_')
+					lower_header[i][j]=header[i][j];
+				else
+					lower_header[i][j]=header[i][j]+32;
+			}
+			lower_header[i][len]='\x0';
+		}
+	}
 
 	/* show data for a specific host */
 	if(show_all_hosts==FALSE){
@@ -4325,8 +4529,8 @@ void display_host_availability(void){
 				percent_time_unreachable_known=(double)(((double)temp_subject->time_unreachable*100.0)/(double)time_determinate);
 				percent_time_unreachable_scheduled_known=(double)(((double)temp_subject->scheduled_time_unreachable*100.0)/(double)time_determinate);
 				percent_time_unreachable_unscheduled_known=percent_time_unreachable_known-percent_time_unreachable_scheduled_known;
-		                }
-	                }
+			}
+		}
 
 		if(content_type==HTML_CONTENT){
 
@@ -4404,11 +4608,10 @@ void display_host_availability(void){
 				if(odd){
 					odd=0;
 					bgclass="Odd";
-			                }
-				else{
+				}else{
 					odd=1;
 					bgclass="Even";
-			                }
+				}
 
 				/* reset variables */
 				percent_time_ok=0.0;
@@ -4435,8 +4638,8 @@ void display_host_availability(void){
 						percent_time_warning_known=(double)(((double)temp_subject->time_warning*100.0)/(double)time_determinate);
 						percent_time_unknown_known=(double)(((double)temp_subject->time_unknown*100.0)/(double)time_determinate);
 						percent_time_critical_known=(double)(((double)temp_subject->time_critical*100.0)/(double)time_determinate);
-				                }
-		                        }
+					}
+				}
 
 				printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 				service_report_url(temp_subject->host_name,temp_subject->service_description,temp_subject->service_description);
@@ -4451,62 +4654,74 @@ void display_host_availability(void){
 				get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
 				get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
 				get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-		                }
+			}
 
 			/* display average stats */
 			if(odd){
 				odd=0;
 				bgclass="Odd";
-		                }
-			else{
+			}else{
 				odd=1;
 				bgclass="Even";
-		                }
+			}
 
 			printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
 
 			printf("</table>\n");
 			printf("</DIV>\n");
 
+		} else if(content_type==JSON_CONTENT){
+			printf("\"host_availability\": {\n");
+			printf("\"hosts\": [\n");
+
+			/* host name */
+			printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+
+                        /* up times */
+			printf(" \"%s\": %lu, ",lower_header[1],temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[2],percent_time_up_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_up_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[4],temp_subject->time_up-temp_subject->scheduled_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[5],percent_time_up_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_up_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[7],temp_subject->time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[8],percent_time_up);
+			printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_up_known);
+
+                        /* down times */
+			printf(" \"%s\": %lu, ",lower_header[10],temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[11],percent_time_down_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_down_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[13],temp_subject->time_down-temp_subject->scheduled_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[14],percent_time_down_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_down_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[16],temp_subject->time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[17],percent_time_down);
+			printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_down_known);
+
+                        /* unreachable times */
+			printf(" \"%s\": %lu, ",lower_header[19],temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[20],percent_time_unreachable_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unreachable_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[22],temp_subject->time_unreachable-temp_subject->scheduled_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[23],percent_time_unreachable_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unreachable_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[25],temp_subject->time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[26],percent_time_unreachable);
+			printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unreachable_known);
+
+                        /* indeterminate times */
+			printf(" \"%s\": %lu, ",lower_header[28],temp_subject->time_indeterminate_notrunning);
+			printf(" \"%s\": %2.3f, ",lower_header[29],percent_time_indeterminate_notrunning);
+			printf(" \"%s\": %lu, ",lower_header[30],temp_subject->time_indeterminate_nodata);
+			printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_indeterminate_nodata);
+			printf(" \"%s\": %lu, ",lower_header[32],time_indeterminate);
+			printf(" \"%s\": %2.3f}\n]\n}",lower_header[33],percent_time_indeterminate);
+
 		} else if(content_type==CSV_CONTENT){
 
-                        csv_header[0] = "HOST_NAME";
-                        csv_header[1] = "TIME_UP_SCHEDULED";
-                        csv_header[2] = "PERCENT_TIME_UP_SCHEDULED";
-                        csv_header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
-                        csv_header[4] = "TIME_UP_UNSCHEDULED";
-                        csv_header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
-                        csv_header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
-                        csv_header[7] = "TOTAL_TIME_UP";
-                        csv_header[8] = "PERCENT_TOTAL_TIME_UP";
-                        csv_header[9] = "PERCENT_KNOWN_TIME_UP";
-                        csv_header[10] = "TIME_DOWN_SCHEDULED";
-                        csv_header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
-                        csv_header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
-                        csv_header[13] = "TIME_DOWN_UNSCHEDULED";
-                        csv_header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
-                        csv_header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
-                        csv_header[16] = "TOTAL_TIME_DOWN";
-                        csv_header[17] = "PERCENT_TOTAL_TIME_DOWN";
-                        csv_header[18] = "PERCENT_KNOWN_TIME_DOWN";
-                        csv_header[19] = "TIME_UNREACHABLE_SCHEDULED";
-                        csv_header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
-                        csv_header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
-                        csv_header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
-                        csv_header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
-                        csv_header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
-                        csv_header[25] = "TOTAL_TIME_UNREACHABLE";
-                        csv_header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
-                        csv_header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
-                        csv_header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
-                        csv_header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-                        csv_header[30] = "TIME_UNDETERMINED_NO_DATA";
-                        csv_header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-                        csv_header[32] = "TOTAL_TIME_UNDETERMINED";
-                        csv_header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
-
                         for(i=0;i<34;i++)
-                                printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+                                printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
                         printf("\n");
 
@@ -4555,12 +4770,12 @@ void display_host_availability(void){
                         printf("%s%2.3f%%%s%s",csv_data_enclosure,percent_time_indeterminate,csv_data_enclosure,csv_delimiter);
 
                         printf("\n");
-                	}
+		}
 
 		/* write log entries for the host */
 		temp_subject=find_subject(HOST_SUBJECT,host_name,NULL);
 		write_log_entries(temp_subject);
-	        }
+	}
 
 
 	/* display data for all hosts */
@@ -4574,49 +4789,16 @@ void display_host_availability(void){
 			printf("<DIV ALIGN=CENTER>\n");
 			printf("<TABLE BORDER=0 CLASS='data'>\n");
 			printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>%% Time Up</TH><TH CLASS='data'>%% Time Down</TH><TH CLASS='data'>%% Time Unreachable</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
-			}
-
-		else if(content_type==CSV_CONTENT){
-			csv_header[0] = "HOST_NAME";
-			csv_header[1] = "TIME_UP_SCHEDULED";
-			csv_header[2] = "PERCENT_TIME_UP_SCHEDULED";
-			csv_header[3] = "PERCENT_KNOWN_TIME_UP_SCHEDULED";
-			csv_header[4] = "TIME_UP_UNSCHEDULED";
-			csv_header[5] = "PERCENT_TIME_UP_UNSCHEDULED";
-			csv_header[6] = "PERCENT_KNOWN_TIME_UP_UNSCHEDULED";
-			csv_header[7] = "TOTAL_TIME_UP";
-			csv_header[8] = "PERCENT_TOTAL_TIME_UP";
-			csv_header[9] = "PERCENT_KNOWN_TIME_UP";
-			csv_header[10] = "TIME_DOWN_SCHEDULED";
-			csv_header[11] = "PERCENT_TIME_DOWN_SCHEDULED";
-			csv_header[12] = "PERCENT_KNOWN_TIME_DOWN_SCHEDULED";
-			csv_header[13] = "TIME_DOWN_UNSCHEDULED";
-			csv_header[14] = "PERCENT_TIME_DOWN_UNSCHEDULED";
-			csv_header[15] = "PERCENT_KNOWN_TIME_DOWN_UNSCHEDULED";
-			csv_header[16] = "TOTAL_TIME_DOWN";
-			csv_header[17] = "PERCENT_TOTAL_TIME_DOWN";
-			csv_header[18] = "PERCENT_KNOWN_TIME_DOWN";
-			csv_header[19] = "TIME_UNREACHABLE_SCHEDULED";
-			csv_header[20] = "PERCENT_TIME_UNREACHABLE_SCHEDULED";
-			csv_header[21] = "PERCENT_KNOWN_TIME_UNREACHABLE_SCHEDULED";
-			csv_header[22] = "TIME_UNREACHABLE_UNSCHEDULED";
-			csv_header[23] = "PERCENT_TIME_UNREACHABLE_UNSCHEDULED";
-			csv_header[24] = "PERCENT_KNOWN_TIME_UNREACHABLE_UNSCHEDULED";
-			csv_header[25] = "TOTAL_TIME_UNREACHABLE";
-			csv_header[26] = "PERCENT_TOTAL_TIME_UNREACHABLE";
-			csv_header[27] = "PERCENT_KNOWN_TIME_UNREACHABLE";
-			csv_header[28] = "TIME_UNDETERMINED_NOT_RUNNING";
-			csv_header[29] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-			csv_header[30] = "TIME_UNDETERMINED_NO_DATA";
-			csv_header[31] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-			csv_header[32] = "TOTAL_TIME_UNDETERMINED";
-			csv_header[33] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+		} else if(content_type==JSON_CONTENT){
+			printf("\"host_availability\": {\n");
+			printf("\"hosts\": [\n");
+		}else if(content_type==CSV_CONTENT){
 
 			for(i=0;i<34;i++)
-				printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+				printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
 			printf("\n");
-			}
+		}
 
 
 		for(temp_subject=subject_list;temp_subject!=NULL;temp_subject=temp_subject->next){
@@ -4690,23 +4872,72 @@ void display_host_availability(void){
 					percent_time_unreachable_known=(double)(((double)temp_subject->time_unreachable*100.0)/(double)time_determinate);
 					percent_time_unreachable_scheduled_known=(double)(((double)temp_subject->scheduled_time_unreachable*100.0)/(double)time_determinate);
 					percent_time_unreachable_unscheduled_known=percent_time_unreachable_known-percent_time_unreachable_scheduled_known;
-					}
 				}
+			}
 
 			if(content_type==HTML_CONTENT){
 
 				if(odd){
 					odd=0;
 					bgclass="Odd";
-					}
-				else{
+				}else{
 					odd=1;
 					bgclass="Even";
-					}
+				}
 
 				printf("<tr CLASS='data%s'><td CLASS='data%s'>",bgclass,bgclass);
 				host_report_url(temp_subject->host_name,temp_subject->host_name);
 				printf("</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_up,percent_time_up_known,percent_time_down,percent_time_down_known,percent_time_unreachable,percent_time_unreachable_known,bgclass,percent_time_indeterminate);
+			} else if(content_type==JSON_CONTENT){
+				if (json_start!=TRUE)
+					printf(",\n");
+
+				/* host name */
+				printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+
+	                        /* up times */
+				printf(" \"%s\": %lu, ",lower_header[1],temp_subject->scheduled_time_up);
+				printf(" \"%s\": %2.3f, ",lower_header[2],percent_time_up_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_up_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[4],temp_subject->time_up-temp_subject->scheduled_time_up);
+				printf(" \"%s\": %2.3f, ",lower_header[5],percent_time_up_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_up_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[7],temp_subject->time_up);
+				printf(" \"%s\": %2.3f, ",lower_header[8],percent_time_up);
+				printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_up_known);
+
+	                        /* down times */
+				printf(" \"%s\": %lu, ",lower_header[10],temp_subject->scheduled_time_down);
+				printf(" \"%s\": %2.3f, ",lower_header[11],percent_time_down_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_down_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[13],temp_subject->time_down-temp_subject->scheduled_time_down);
+				printf(" \"%s\": %2.3f, ",lower_header[14],percent_time_down_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_down_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[16],temp_subject->time_down);
+				printf(" \"%s\": %2.3f, ",lower_header[17],percent_time_down);
+				printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_down_known);
+
+	                        /* unreachable times */
+				printf(" \"%s\": %lu, ",lower_header[19],temp_subject->scheduled_time_unreachable);
+				printf(" \"%s\": %2.3f, ",lower_header[20],percent_time_unreachable_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unreachable_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[22],temp_subject->time_unreachable-temp_subject->scheduled_time_unreachable);
+				printf(" \"%s\": %2.3f, ",lower_header[23],percent_time_unreachable_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unreachable_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[25],temp_subject->time_unreachable);
+				printf(" \"%s\": %2.3f, ",lower_header[26],percent_time_unreachable);
+				printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unreachable_known);
+
+	                        /* indeterminate times */
+				printf(" \"%s\": %lu, ",lower_header[28],temp_subject->time_indeterminate_notrunning);
+				printf(" \"%s\": %2.3f, ",lower_header[29],percent_time_indeterminate_notrunning);
+				printf(" \"%s\": %lu, ",lower_header[30],temp_subject->time_indeterminate_nodata);
+				printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_indeterminate_nodata);
+				printf(" \"%s\": %lu, ",lower_header[32],time_indeterminate);
+				printf(" \"%s\": %2.3f} ",lower_header[33],percent_time_indeterminate);
+
+				json_start=FALSE;
+
 			} else if(content_type==CSV_CONTENT){
 
 				/* host name */
@@ -4763,7 +4994,7 @@ void display_host_availability(void){
 			get_running_average(&average_percent_time_unreachable,percent_time_unreachable,current_subject);
 			get_running_average(&average_percent_time_unreachable_known,percent_time_unreachable_known,current_subject);
 			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-			}
+		}
 
 		if(content_type==HTML_CONTENT){
 
@@ -4771,17 +5002,28 @@ void display_host_availability(void){
 			if(odd){
 				odd=0;
 				bgclass="Odd";
-				}
-			else{
+			}else{
 				odd=1;
 				bgclass="Even";
-				}
+			}
 			printf("<tr CLASS='data%s'><td CLASS='data%s'>Average</td><td CLASS='hostUP'>%2.3f%% (%2.3f%%)</td><td CLASS='hostDOWN'>%2.3f%% (%2.3f%%)</td><td CLASS='hostUNREACHABLE'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>",bgclass,bgclass,average_percent_time_up,average_percent_time_up_known,average_percent_time_down,average_percent_time_down_known,average_percent_time_unreachable,average_percent_time_unreachable_known,bgclass,average_percent_time_indeterminate);
 
-				printf("</table>\n");
-				printf("</DIV>\n");
-				}
-			}
+			printf("</table>\n");
+			printf("</DIV>\n");
+		}else if (content_type==JSON_CONTENT){
+			printf(",{ \"average_percent_time_up\": %2.3f, ",average_percent_time_up);
+			printf("\"average_percent_time_up_known\": %2.3f, ",average_percent_time_up_known);
+			printf("\"average_percent_time_down\": %2.3f, ",average_percent_time_down);
+			printf("\"average_percent_time_down_known\": %2.3f, ",average_percent_time_down_known);
+			printf("\"average_percent_time_unreachable\": %2.3f, ",average_percent_time_unreachable);
+			printf("\"average_percent_time_unreachable_known\": %2.3f, ",average_percent_time_unreachable_known);
+			printf("\"average_percent_time_indeterminate\": %2.3f }",average_percent_time_indeterminate);
+			printf(" ] }\n");
+		} else if(content_type==CSV_CONTENT){
+			/* average */
+			/* left for future rework */
+		}
+	}
 
 	return;
 }
@@ -4859,14 +5101,87 @@ void display_service_availability(void){
 	double percent_time_indeterminate_nodata=0.0;
 
 	int odd=1;
-	int i=0;
+	int i=0, j=0;
 	char *bgclass="";
 	char last_host[128]="";
-	char *csv_header[44];
+	char *header[44];
+	int json_start=TRUE;
+	char lower_header[44][100];
+	int len=0;
 
 
 	/* calculate total time during period based on timeperiod used for reporting */
 	total_time=calculate_total_time(t1,t2);
+
+	/* fields for csv and json output */
+	header[0] = "HOST_NAME";
+	header[1] = "SERVICE_DESCRIPTION";
+
+	/* ok times */
+	header[2] = "TIME_OK_SCHEDULED";
+	header[3] = "PERCENT_TIME_OK_SCHEDULED";
+	header[4] = "PERCENT_KNOWN_TIME_OK_SCHEDULED";
+	header[5] = "TIME_OK_UNSCHEDULED";
+	header[6] = "PERCENT_TIME_OK_UNSCHEDULED";
+	header[7] = "PERCENT_KNOWN_TIME_OK_UNSCHEDULED";
+	header[8] = "TOTAL_TIME_OK";
+	header[9] = "PERCENT_TOTAL_TIME_OK";
+	header[10] = "PERCENT_KNOWN_TIME_OK";
+
+	/* warning times */
+	header[11] = "TIME_WARNING_SCHEDULED";
+	header[12] = "PERCENT_TIME_WARNING_SCHEDULED";
+	header[13] = "PERCENT_KNOWN_TIME_WARNING_SCHEDULED";
+	header[14] = "TIME_WARNING_UNSCHEDULED";
+	header[15] = "PERCENT_TIME_WARNING_UNSCHEDULED";
+	header[16] = "PERCENT_KNOWN_TIME_WARNING_UNSCHEDULED";
+	header[17] = "TOTAL_TIME_WARNING";
+	header[18] = "PERCENT_TOTAL_TIME_WARNING";
+	header[19] = "PERCENT_KNOWN_TIME_WARNING";
+
+	/* unknown times */
+	header[20] = "TIME_UNKNOWN_SCHEDULED";
+	header[21] = "PERCENT_TIME_UNKNOWN_SCHEDULED";
+	header[22] = "PERCENT_KNOWN_TIME_UNKNOWN_SCHEDULED";
+	header[23] = "TIME_UNKNOWN_UNSCHEDULED";
+	header[24] = "PERCENT_TIME_UNKNOWN_UNSCHEDULED";
+	header[25] = "PERCENT_KNOWN_TIME_UNKNOWN_UNSCHEDULED";
+	header[26] = "TOTAL_TIME_UNKNOWN";
+	header[27] = "PERCENT_TOTAL_TIME_UNKNOWN";
+	header[28] = "PERCENT_KNOWN_TIME_UNKNOWN";
+
+	/* critical times */
+	header[29] = "TIME_CRITICAL_SCHEDULED";
+	header[30] = "PERCENT_TIME_CRITICAL_SCHEDULED";
+	header[31] = "PERCENT_KNOWN_TIME_CRITICAL_SCHEDULED";
+	header[32] = "TIME_CRITICAL_UNSCHEDULED";
+	header[33] = "PERCENT_TIME_CRITICAL_UNSCHEDULED";
+	header[34] = "PERCENT_KNOWN_TIME_CRITICAL_UNSCHEDULED";
+	header[35] = "TOTAL_TIME_CRITICAL";
+	header[36] = "PERCENT_TOTAL_TIME_CRITICAL";
+	header[37] = "PERCENT_KNOWN_TIME_CRITICAL";
+
+	/* indeterminate times */
+	header[38] = "TIME_UNDETERMINED_NOT_RUNNING";
+	header[39] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
+	header[40] = "TIME_UNDETERMINED_NO_DATA";
+	header[41] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
+	header[42] = "TOTAL_TIME_UNDETERMINED";
+	header[43] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+
+	if(content_type==JSON_CONTENT){
+		/* converting to lower case */
+		for(i=0;i<44;i++) {
+			len=(int)strlen(header[i]);
+			for(j=0;j<len;j++) {
+				if (header[i][j]=='_')
+					lower_header[i][j]=header[i][j];
+				else
+					lower_header[i][j]=header[i][j]+32;
+			}
+			lower_header[i][len]='\x0';
+		}
+	}
 
 	/* we're only getting data for one service */
 	if(show_all_services==FALSE){
@@ -5029,64 +5344,71 @@ void display_service_availability(void){
 			printf("</table>\n");
 			printf("</DIV>\n");
 
-                } else if(content_type==CSV_CONTENT){
-                        csv_header[0] = "HOST_NAME";
-                        csv_header[1] = "SERVICE_DESCRIPTION";
+		} else if(content_type==JSON_CONTENT){
+			printf("\"service_availability\": {\n");
+			printf("\"services\": [\n");
+
+                        /* host name and service description */
+			printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+			printf(" \"%s\": \"%s\", ",lower_header[1],json_encode(temp_subject->service_description));
 
                         /* ok times */
-                        csv_header[2] = "TIME_OK_SCHEDULED";
-                        csv_header[3] = "PERCENT_TIME_OK_SCHEDULED";
-                        csv_header[4] = "PERCENT_KNOWN_TIME_OK_SCHEDULED";
-                        csv_header[5] = "TIME_OK_UNSCHEDULED";
-                        csv_header[6] = "PERCENT_TIME_OK_UNSCHEDULED";
-                        csv_header[7] = "PERCENT_KNOWN_TIME_OK_UNSCHEDULED";
-                        csv_header[8] = "TOTAL_TIME_OK";
-                        csv_header[9] = "PERCENT_TOTAL_TIME_OK";
-                        csv_header[10] = "PERCENT_KNOWN_TIME_OK";
+			printf(" \"%s\": %lu, ",lower_header[2],temp_subject->scheduled_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_ok_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[4],percent_time_ok_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[5],temp_subject->time_ok-temp_subject->scheduled_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_ok_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[7],percent_time_ok_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[8],temp_subject->time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_ok);
+			printf(" \"%s\": %2.3f, ",lower_header[10],percent_time_ok_known);
 
                         /* warning times */
-                        csv_header[11] = "TIME_WARNING_SCHEDULED";
-                        csv_header[12] = "PERCENT_TIME_WARNING_SCHEDULED";
-                        csv_header[13] = "PERCENT_KNOWN_TIME_WARNING_SCHEDULED";
-                        csv_header[14] = "TIME_WARNING_UNSCHEDULED";
-                        csv_header[15] = "PERCENT_TIME_WARNING_UNSCHEDULED";
-                        csv_header[16] = "PERCENT_KNOWN_TIME_WARNING_UNSCHEDULED";
-                        csv_header[17] = "TOTAL_TIME_WARNING";
-                        csv_header[18] = "PERCENT_TOTAL_TIME_WARNING";
-                        csv_header[19] = "PERCENT_KNOWN_TIME_WARNING";
+			printf(" \"%s\": %lu, ",lower_header[11],temp_subject->scheduled_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_warning_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[13],percent_time_warning_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[14],temp_subject->time_warning-temp_subject->scheduled_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_warning_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[16],percent_time_warning_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[17],temp_subject->time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_warning);
+			printf(" \"%s\": %2.3f, ",lower_header[19],percent_time_warning_known);
 
                         /* unknown times */
-                        csv_header[20] = "TIME_UNKNOWN_SCHEDULED";
-                        csv_header[21] = "PERCENT_TIME_UNKNOWN_SCHEDULED";
-                        csv_header[22] = "PERCENT_KNOWN_TIME_UNKNOWN_SCHEDULED";
-                        csv_header[23] = "TIME_UNKNOWN_UNSCHEDULED";
-                        csv_header[24] = "PERCENT_TIME_UNKNOWN_UNSCHEDULED";
-                        csv_header[25] = "PERCENT_KNOWN_TIME_UNKNOWN_UNSCHEDULED";
-                        csv_header[26] = "TOTAL_TIME_UNKNOWN";
-                        csv_header[27] = "PERCENT_TOTAL_TIME_UNKNOWN";
-                        csv_header[28] = "PERCENT_KNOWN_TIME_UNKNOWN";
+			printf(" \"%s\": %lu, ",lower_header[20],temp_subject->scheduled_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unknown_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[22],percent_time_unknown_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[23],temp_subject->time_unknown-temp_subject->scheduled_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unknown_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[25],percent_time_unknown_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[26],temp_subject->time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unknown);
+			printf(" \"%s\": %2.3f, ",lower_header[28],percent_time_unknown_known);
 
                         /* critical times */
-                        csv_header[29] = "TIME_CRITICAL_SCHEDULED";
-                        csv_header[30] = "PERCENT_TIME_CRITICAL_SCHEDULED";
-                        csv_header[31] = "PERCENT_KNOWN_TIME_CRITICAL_SCHEDULED";
-                        csv_header[32] = "TIME_CRITICAL_UNSCHEDULED";
-                        csv_header[33] = "PERCENT_TIME_CRITICAL_UNSCHEDULED";
-                        csv_header[34] = "PERCENT_KNOWN_TIME_CRITICAL_UNSCHEDULED";
-                        csv_header[35] = "TOTAL_TIME_CRITICAL";
-                        csv_header[36] = "PERCENT_TOTAL_TIME_CRITICAL";
-                        csv_header[37] = "PERCENT_KNOWN_TIME_CRITICAL";
+			printf(" \"%s\": %lu, ",lower_header[29],temp_subject->scheduled_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[30],percent_time_critical_scheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_critical_scheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[32],temp_subject->time_critical-temp_subject->scheduled_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[33],percent_time_critical_unscheduled);
+			printf(" \"%s\": %2.3f, ",lower_header[34],percent_time_critical_unscheduled_known);
+			printf(" \"%s\": %lu, ",lower_header[35],temp_subject->time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[36],percent_time_critical);
+			printf(" \"%s\": %2.3f, ",lower_header[37],percent_time_critical_known);
+
 
                         /* indeterminate times */
-                        csv_header[38] = "TIME_UNDETERMINED_NOT_RUNNING";
-                        csv_header[39] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-                        csv_header[40] = "TIME_UNDETERMINED_NO_DATA";
-                        csv_header[41] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-                        csv_header[42] = "TOTAL_TIME_UNDETERMINED";
-                        csv_header[43] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+			printf(" \"%s\": %lu, ",lower_header[38],temp_subject->time_indeterminate_notrunning);
+			printf(" \"%s\": %2.3f, ",lower_header[39],percent_time_indeterminate_notrunning);
+			printf(" \"%s\": %lu, ",lower_header[40],temp_subject->time_indeterminate_nodata);
+			printf(" \"%s\": %2.3f, ",lower_header[41],percent_time_indeterminate_nodata);
+			printf(" \"%s\": %lu, ",lower_header[42],time_indeterminate);
+			printf(" \"%s\": %2.3f}\n]\n}",lower_header[43],percent_time_indeterminate);
+
+                } else if(content_type==CSV_CONTENT){
 
                         for(i=0;i<44;i++)
-                                printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+                                printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
                         printf("\n");
 
@@ -5152,7 +5474,7 @@ void display_service_availability(void){
 
 
 		write_log_entries(temp_subject);
-	        }
+	}
 
 
 	/* display data for all services */
@@ -5165,65 +5487,14 @@ void display_service_availability(void){
 			printf("<DIV ALIGN=CENTER>\n");
 			printf("<TABLE BORDER=0 CLASS='data'>\n");
 			printf("<TR><TH CLASS='data'>Host</TH><TH CLASS='data'>Service</TH><TH CLASS='data'>%% Time OK</TH><TH CLASS='data'>%% Time Warning</TH><TH CLASS='data'>%% Time Unknown</TH><TH CLASS='data'>%% Time Critical</TH><TH CLASS='data'>%% Time Undetermined</TH></TR>\n");
-			}
-		else if(content_type==CSV_CONTENT){
-			csv_header[0] = "HOST_NAME";
-			csv_header[1] = "SERVICE_DESCRIPTION";
 
-			/* ok times */
-			csv_header[2] = "TIME_OK_SCHEDULED";
-			csv_header[3] = "PERCENT_TIME_OK_SCHEDULED";
-			csv_header[4] = "PERCENT_KNOWN_TIME_OK_SCHEDULED";
-			csv_header[5] = "TIME_OK_UNSCHEDULED";
-			csv_header[6] = "PERCENT_TIME_OK_UNSCHEDULED";
-			csv_header[7] = "PERCENT_KNOWN_TIME_OK_UNSCHEDULED";
-			csv_header[8] = "TOTAL_TIME_OK";
-			csv_header[9] = "PERCENT_TOTAL_TIME_OK";
-			csv_header[10] = "PERCENT_KNOWN_TIME_OK";
-
-			/* warning times */
-			csv_header[11] = "TIME_WARNING_SCHEDULED";
-			csv_header[12] = "PERCENT_TIME_WARNING_SCHEDULED";
-			csv_header[13] = "PERCENT_KNOWN_TIME_WARNING_SCHEDULED";
-			csv_header[14] = "TIME_WARNING_UNSCHEDULED";
-			csv_header[15] = "PERCENT_TIME_WARNING_UNSCHEDULED";
-			csv_header[16] = "PERCENT_KNOWN_TIME_WARNING_UNSCHEDULED";
-			csv_header[17] = "TOTAL_TIME_WARNING";
-			csv_header[18] = "PERCENT_TOTAL_TIME_WARNING";
-			csv_header[19] = "PERCENT_KNOWN_TIME_WARNING";
-
-			/* unknown times */
-			csv_header[20] = "TIME_UNKNOWN_SCHEDULED";
-			csv_header[21] = "PERCENT_TIME_UNKNOWN_SCHEDULED";
-			csv_header[22] = "PERCENT_KNOWN_TIME_UNKNOWN_SCHEDULED";
-			csv_header[23] = "TIME_UNKNOWN_UNSCHEDULED";
-			csv_header[24] = "PERCENT_TIME_UNKNOWN_UNSCHEDULED";
-			csv_header[25] = "PERCENT_KNOWN_TIME_UNKNOWN_UNSCHEDULED";
-			csv_header[26] = "TOTAL_TIME_UNKNOWN";
-			csv_header[27] = "PERCENT_TOTAL_TIME_UNKNOWN";
-			csv_header[28] = "PERCENT_KNOWN_TIME_UNKNOWN";
-
-			/* critical times */
-			csv_header[29] = "TIME_CRITICAL_SCHEDULED";
-			csv_header[30] = "PERCENT_TIME_CRITICAL_SCHEDULED";
-			csv_header[31] = "PERCENT_KNOWN_TIME_CRITICAL_SCHEDULED";
-			csv_header[32] = "TIME_CRITICAL_UNSCHEDULED";
-			csv_header[33] = "PERCENT_TIME_CRITICAL_UNSCHEDULED";
-			csv_header[34] = "PERCENT_KNOWN_TIME_CRITICAL_UNSCHEDULED";
-			csv_header[35] = "TOTAL_TIME_CRITICAL";
-			csv_header[36] = "PERCENT_TOTAL_TIME_CRITICAL";
-			csv_header[37] = "PERCENT_KNOWN_TIME_CRITICAL";
-
-			/* indeterminate times */
-			csv_header[38] = "TIME_UNDETERMINED_NOT_RUNNING";
-			csv_header[39] = "PERCENT_TIME_UNDETERMINED_NOT_RUNNING";
-			csv_header[40] = "TIME_UNDETERMINED_NO_DATA";
-			csv_header[41] = "PERCENT_TIME_UNDETERMINED_NO_DATA";
-			csv_header[42] = "TOTAL_TIME_UNDETERMINED";
-			csv_header[43] = "PERCENT_TOTAL_TIME_UNDETERMINED";
+		}else if(content_type==JSON_CONTENT){
+			printf("\"service_availability\": {\n");
+			printf("\"services\": [\n");
+		}else if(content_type==CSV_CONTENT){
 
 			for(i=0;i<44;i++)
-				printf("%s%s%s%s",csv_data_enclosure,csv_header[i],csv_data_enclosure,csv_delimiter);
+				printf("%s%s%s%s",csv_data_enclosure,header[i],csv_data_enclosure,csv_delimiter);
 
 			printf("\n");
 		}
@@ -5332,8 +5603,71 @@ void display_service_availability(void){
 				printf("</td><td CLASS='data%s'>",bgclass);
 				service_report_url(temp_subject->host_name,temp_subject->service_description,temp_subject->service_description);
 				printf("</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",percent_time_ok,percent_time_ok_known,percent_time_warning,percent_time_warning_known,percent_time_unknown,percent_time_unknown_known,percent_time_critical,percent_time_critical_known,bgclass,percent_time_indeterminate);
-				}
-			else if(content_type==CSV_CONTENT){
+
+			} else if(content_type==JSON_CONTENT){
+				if (json_start!=TRUE)
+					printf(",\n");
+
+	                        /* host name and service description */
+				printf("{ \"%s\": \"%s\", ",lower_header[0],json_encode(temp_subject->host_name));
+				printf(" \"%s\": \"%s\", ",lower_header[1],json_encode(temp_subject->service_description));
+
+	                        /* ok times */
+				printf(" \"%s\": %lu, ",lower_header[2],temp_subject->scheduled_time_ok);
+				printf(" \"%s\": %2.3f, ",lower_header[3],percent_time_ok_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[4],percent_time_ok_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[5],temp_subject->time_ok-temp_subject->scheduled_time_ok);
+				printf(" \"%s\": %2.3f, ",lower_header[6],percent_time_ok_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[7],percent_time_ok_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[8],temp_subject->time_ok);
+				printf(" \"%s\": %2.3f, ",lower_header[9],percent_time_ok);
+				printf(" \"%s\": %2.3f, ",lower_header[10],percent_time_ok_known);
+
+	                        /* warning times */
+				printf(" \"%s\": %lu, ",lower_header[11],temp_subject->scheduled_time_warning);
+				printf(" \"%s\": %2.3f, ",lower_header[12],percent_time_warning_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[13],percent_time_warning_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[14],temp_subject->time_warning-temp_subject->scheduled_time_warning);
+				printf(" \"%s\": %2.3f, ",lower_header[15],percent_time_warning_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[16],percent_time_warning_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[17],temp_subject->time_warning);
+				printf(" \"%s\": %2.3f, ",lower_header[18],percent_time_warning);
+				printf(" \"%s\": %2.3f, ",lower_header[19],percent_time_warning_known);
+
+	                        /* unknown times */
+				printf(" \"%s\": %lu, ",lower_header[20],temp_subject->scheduled_time_unknown);
+				printf(" \"%s\": %2.3f, ",lower_header[21],percent_time_unknown_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[22],percent_time_unknown_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[23],temp_subject->time_unknown-temp_subject->scheduled_time_unknown);
+				printf(" \"%s\": %2.3f, ",lower_header[24],percent_time_unknown_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[25],percent_time_unknown_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[26],temp_subject->time_unknown);
+				printf(" \"%s\": %2.3f, ",lower_header[27],percent_time_unknown);
+				printf(" \"%s\": %2.3f, ",lower_header[28],percent_time_unknown_known);
+
+	                        /* critical times */
+				printf(" \"%s\": %lu, ",lower_header[29],temp_subject->scheduled_time_critical);
+				printf(" \"%s\": %2.3f, ",lower_header[30],percent_time_critical_scheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[31],percent_time_critical_scheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[32],temp_subject->time_critical-temp_subject->scheduled_time_critical);
+				printf(" \"%s\": %2.3f, ",lower_header[33],percent_time_critical_unscheduled);
+				printf(" \"%s\": %2.3f, ",lower_header[34],percent_time_critical_unscheduled_known);
+				printf(" \"%s\": %lu, ",lower_header[35],temp_subject->time_critical);
+				printf(" \"%s\": %2.3f, ",lower_header[36],percent_time_critical);
+				printf(" \"%s\": %2.3f, ",lower_header[37],percent_time_critical_known);
+
+
+	                        /* indeterminate times */
+				printf(" \"%s\": %lu, ",lower_header[38],temp_subject->time_indeterminate_notrunning);
+				printf(" \"%s\": %2.3f, ",lower_header[39],percent_time_indeterminate_notrunning);
+				printf(" \"%s\": %lu, ",lower_header[40],temp_subject->time_indeterminate_nodata);
+				printf(" \"%s\": %2.3f, ",lower_header[41],percent_time_indeterminate_nodata);
+				printf(" \"%s\": %lu, ",lower_header[42],time_indeterminate);
+				printf(" \"%s\": %2.3f} ",lower_header[43],percent_time_indeterminate);
+
+				json_start=FALSE;
+
+			}else if(content_type==CSV_CONTENT){
 
 				/* host name and service description */
 				printf("%s%s%s%s",csv_data_enclosure,temp_subject->host_name,csv_data_enclosure,csv_delimiter);
@@ -5406,7 +5740,7 @@ void display_service_availability(void){
 			get_running_average(&average_percent_time_critical,percent_time_critical,current_subject);
 			get_running_average(&average_percent_time_critical_known,percent_time_critical_known,current_subject);
 			get_running_average(&average_percent_time_indeterminate,percent_time_indeterminate,current_subject);
-			}
+		}
 
 		if(content_type==HTML_CONTENT){
 
@@ -5414,20 +5748,34 @@ void display_service_availability(void){
 			if(odd){
 				odd=0;
 				bgclass="Odd";
-				}
-			else{
+			}else{
 				odd=1;
 				bgclass="Even";
-				}
+			}
 			printf("<tr CLASS='data%s'><td CLASS='data%s' colspan='2'>Average</td><td CLASS='serviceOK'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceWARNING'>%2.3f%% (%2.3f%%)</td><td CLASS='serviceUNKNOWN'>%2.3f%% (%2.3f%%)</td><td class='serviceCRITICAL'>%2.3f%% (%2.3f%%)</td><td class='data%s'>%2.3f%%</td></tr>\n",bgclass,bgclass,average_percent_time_ok,average_percent_time_ok_known,average_percent_time_warning,average_percent_time_warning_known,average_percent_time_unknown,average_percent_time_unknown_known,average_percent_time_critical,average_percent_time_critical_known,bgclass,average_percent_time_indeterminate);
 
 			printf("</table>\n");
 			printf("</DIV>\n");
-			}
+		}else if (content_type==JSON_CONTENT){
+			printf(",{ \"average_percent_time_ok\": %2.3f, ",average_percent_time_ok);
+			printf("\"average_percent_time_ok_known\": %2.3f, ",average_percent_time_ok_known);
+			printf("\"average_percent_time_warning\": %2.3f, ",average_percent_time_warning);
+			printf("\"average_percent_time_warning_known\": %2.3f, ",average_percent_time_warning_known);
+			printf("\"average_percent_time_unknown\": %2.3f, ",average_percent_time_unknown);
+			printf("\"average_percent_time_unknown_known\": %2.3f, ",average_percent_time_unknown_known);
+			printf("\"average_percent_time_critical\": %2.3f, ",average_percent_time_critical);
+			printf("\"average_percent_time_critical_known\": %2.3f, ",average_percent_time_critical_known);
+			printf("\"average_percent_time_indeterminate\": %2.3f }",average_percent_time_indeterminate);
+			printf(" ] }\n");
+		} else if(content_type==CSV_CONTENT){
+			/* average */
+			/* left for future rework */
 		}
 
-	return;
 	}
+
+	return;
+}
 
 
 
@@ -5453,7 +5801,7 @@ void host_report_url(char *hn, char *label){
 	printf("'>%s</a>",label);
 
 	return;
-        }
+}
 
 
 void service_report_url(char *hn, char *sd, char *label){
@@ -5477,7 +5825,7 @@ void service_report_url(char *hn, char *sd, char *label){
 	printf("'>%s</a>",label);
 
 	return;
-        }
+}
 
 
 /* calculates running average */
@@ -5486,7 +5834,7 @@ void get_running_average(double *running_average, double new_value, int current_
 	*running_average=(((*running_average*((double)current_item-1.0))+new_value)/(double)current_item);
 
 	return;
-        }
+}
 
 
 /* used in reports where a timeperiod is selected */
@@ -5546,4 +5894,4 @@ unsigned long calculate_total_time(time_t start_time, time_t end_time){
 
 	/* no timeperiod was selected */
 	return end_time-start_time;
-        }
+}

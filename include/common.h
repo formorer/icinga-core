@@ -3,7 +3,8 @@
  * Icinga Common Header File
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -26,8 +27,8 @@
 #define PROGRAM_NAME "Icinga"
 #define PROGRAM_NAME_UC "ICINGA"
 #define PROGRAM_NAME_LC "icinga"
-#define PROGRAM_VERSION "1.3.0"
-#define PROGRAM_MODIFICATION_DATE "10-25-2010"
+#define PROGRAM_VERSION "1.5.0"
+#define PROGRAM_MODIFICATION_DATE "08-17-2011"
 
 /*#define DEBUG_CHECK_IPC 1 */
 /*#define DEBUG_CHECK_IPC2 1*/
@@ -306,6 +307,10 @@
 
 #define CMD_SYNC_STATE_INFORMATION                      170
 
+#define CMD_DEL_DOWNTIME_BY_HOST_NAME                   171
+#define CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME              172
+#define CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT          173
+
 /* custom command introduced in Nagios 3.x */
 #define CMD_CUSTOM_COMMAND                              999
 
@@ -442,8 +447,9 @@
 #define READ_HOSTEXTINFO                4096
 #define READ_SERVICEEXTINFO             8192
 #define READ_SERVICEGROUPS              16384
+#define READ_MODULES                    32768
 
-#define READ_ALL_OBJECT_DATA            READ_HOSTS | READ_HOSTGROUPS | READ_CONTACTS | READ_CONTACTGROUPS | READ_SERVICES | READ_COMMANDS | READ_TIMEPERIODS | READ_SERVICEESCALATIONS | READ_SERVICEDEPENDENCIES | READ_HOSTDEPENDENCIES | READ_HOSTESCALATIONS | READ_HOSTEXTINFO | READ_SERVICEEXTINFO | READ_SERVICEGROUPS
+#define READ_ALL_OBJECT_DATA            READ_HOSTS | READ_HOSTGROUPS | READ_CONTACTS | READ_CONTACTGROUPS | READ_SERVICES | READ_COMMANDS | READ_TIMEPERIODS | READ_SERVICEESCALATIONS | READ_SERVICEDEPENDENCIES | READ_HOSTDEPENDENCIES | READ_HOSTESCALATIONS | READ_HOSTEXTINFO | READ_SERVICEEXTINFO | READ_SERVICEGROUPS | READ_MODULES
 
 
 /************************** DATE RANGE TYPES ****************************/

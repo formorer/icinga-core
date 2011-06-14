@@ -2,19 +2,23 @@
  *
  * IDOMOD.H - IDO NEB Module Include File
  * Copyright (c) 2005-2006 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  ************************************************************************/
 
 #ifndef _NDBXT_IDOMOD_H
 #define _NDBXT_IDOMOD_H
 
+#define IDOMOD_VERSION "1.5.0"
+#define IDOMOD_NAME "IDOMOD"
+#define IDOMOD_DATE "08-17-2011"
+
 /************** misc definitions *************/
 
 /* this is needed for access to daemon's internal data */
 #define NSCORE 1
 
-#define IDOMOD_MAX_BUFLEN   16384
+#define IDOMOD_MAX_BUFLEN   49152
 
 /************** structures *******************/
 

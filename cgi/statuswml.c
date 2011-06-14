@@ -3,7 +3,7 @@
  * STATUSWML.C -  Icinga Status CGI for WAP-enabled devices
  *
  * Copyright (c) 2001-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -99,6 +99,7 @@ char *traceroute_address="";
 
 extern int daemon_check;
 
+char *dummy;	/* reduce compiler warnings */
 
 authdata current_authdata;
 
@@ -920,7 +921,9 @@ void display_host(void){
 	printf("<b>Host Commands</b><br/>\n");
 
 	printf("<b><anchor title='Ping Host'>Ping Host<go href='%s' method='post'><postfield name='ping' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address);
+	printf("<b><anchor title='Ping6 Host'>Ping6 Host<go href='%s' method='post'><postfield name='ping6' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address6);
 	printf("<b><anchor title='Traceroute'>Traceroute<go href='%s' method='post'><postfield name='traceroute' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address);
+	printf("<b><anchor title='Traceroute6'>Traceroute6<go href='%s' method='post'><postfield name='traceroute6' value='%s'/></go></anchor></b>\n",STATUSWML_CGI,temp_host->address6);
 
 	if(temp_hoststatus->status!=HOST_UP && temp_hoststatus->status!=HOST_PENDING)
 		printf("<b><anchor title='Acknowledge Problem'>Acknowledge Problem<go href='#card3'/></anchor></b>\n");
@@ -1259,7 +1262,7 @@ void display_ping(void){
 			fp=popen(buffer,"r");
 			if(fp){
 				while(1){
-					fgets(buffer,sizeof(buffer)-1,fp);
+					dummy=fgets(buffer,sizeof(buffer)-1,fp);
 					if(feof(fp))
 						break;
 
@@ -1328,7 +1331,7 @@ void display_traceroute(void){
 		fp=popen(buffer,"r");
 		if(fp){
 			while(1){
-				fgets(buffer,sizeof(buffer)-1,fp);
+				dummy=fgets(buffer,sizeof(buffer)-1,fp);
 				if(feof(fp))
 					break;
 

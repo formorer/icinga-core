@@ -3,7 +3,8 @@
  * LOGGING.C - Log file functions for use with Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -62,6 +63,8 @@ extern int      debug_level;
 extern int      debug_verbosity;
 extern unsigned long max_debug_file_size;
 FILE            *debug_file_fp=NULL;
+
+int dummy;	/* reduce compiler warnings */
 
 static pthread_mutex_t debug_fp_lock;
 
@@ -306,20 +309,20 @@ int log_service_event(service *svc){
 
 	/* grab service macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, temp_host);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, temp_host);
+	grab_service_macros_r(&mac, svc);
 
 	/* XXX: replace the macro madness with some simple helpers instead */
 	/* either log only the output, or if enabled, add long_output */
 	if(log_long_plugin_output==TRUE && svc->long_plugin_output!=NULL) {
-		asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\\n%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output,svc->long_plugin_output);
+		dummy=asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\\n%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output,svc->long_plugin_output);
 	} else {
-		asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output);
+		dummy=asprintf(&temp_buffer,"SERVICE ALERT: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",svc->host_name,svc->description,(svc->plugin_output==NULL)?"":svc->plugin_output);
 	}
 
 	process_macros_r(&mac, temp_buffer,&processed_buffer,0);
-	clear_host_macros(&mac);
-	clear_service_macros(&mac);
+	clear_host_macros_r(&mac);
+	clear_service_macros_r(&mac);
 
 	write_to_all_logs(processed_buffer,log_options);
 
@@ -339,7 +342,7 @@ int log_host_event(host *hst){
 
 	/* grab the host macros */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* get the log options */
 	if(hst->current_state==HOST_DOWN)
@@ -352,16 +355,16 @@ int log_host_event(host *hst){
 	/* XXX: replace the macro madness with some simple helpers instead */
 	/* either log only the output, or if enabled, add long_output */
 	if(log_long_plugin_output==TRUE && hst->long_plugin_output!=NULL) {
-		asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\\n%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output,hst->long_plugin_output);
+		dummy=asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\\n%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output,hst->long_plugin_output);
 	} else {
-		asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output);
+		dummy=asprintf(&temp_buffer,"HOST ALERT: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",hst->name,(hst->plugin_output==NULL)?"":hst->plugin_output);
 	}
 
 	process_macros_r(&mac, temp_buffer,&processed_buffer,0);
 
 	write_to_all_logs(processed_buffer,log_options);
 
-	clear_host_macros(&mac);
+	clear_host_macros_r(&mac);
 	my_free(temp_buffer);
 	my_free(processed_buffer);
 
@@ -385,14 +388,14 @@ int log_host_states(int type, time_t *timestamp){
 	for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 
 		/* grab the host macros */
-		grab_host_macros(&mac, temp_host);
+		grab_host_macros_r(&mac, temp_host);
 
-		asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
+		dummy=asprintf(&temp_buffer,"%s HOST STATE: %s;$HOSTSTATE$;$HOSTSTATETYPE$;$HOSTATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_host->name,(temp_host->plugin_output==NULL)?"":temp_host->plugin_output);
 		process_macros_r(&mac, temp_buffer,&processed_buffer,0);
 
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
 
-		clear_host_macros(&mac);
+		clear_host_macros_r(&mac);
 
 		my_free(temp_buffer);
 		my_free(processed_buffer);
@@ -423,17 +426,17 @@ int log_service_states(int type, time_t *timestamp){
 			continue;
 
 		/* grab service macros */
-		grab_host_macros(&mac, temp_host);
-		grab_service_macros(&mac, temp_service);
+		grab_host_macros_r(&mac, temp_host);
+		grab_service_macros_r(&mac, temp_service);
 
 		/* XXX: macro madness */
-		asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output);
+		dummy=asprintf(&temp_buffer,"%s SERVICE STATE: %s;%s;$SERVICESTATE$;$SERVICESTATETYPE$;$SERVICEATTEMPT$;%s\n",(type==INITIAL_STATES)?"INITIAL":"CURRENT",temp_service->host_name,temp_service->description,temp_service->plugin_output);
 		process_macros_r(&mac, temp_buffer,&processed_buffer,0);
 
 		write_to_all_logs_with_timestamp(processed_buffer,NSLOG_INFO_MESSAGE,timestamp);
 
-		clear_host_macros(&mac);
-		clear_service_macros(&mac);
+		clear_host_macros_r(&mac);
+		clear_service_macros_r(&mac);
 
 		my_free(temp_buffer);
 		my_free(processed_buffer);
@@ -476,7 +479,7 @@ int rotate_log_file(time_t rotation_time){
 	stat_result = stat(log_file, &log_file_stat);
 
 	/* get the archived filename to use */
-	asprintf(&log_archive,"%s%sicinga-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/", t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
+	dummy=asprintf(&log_archive,"%s%sicinga-%02d-%02d-%d-%02d.log", log_archive_path, (log_archive_path[strlen(log_archive_path)-1]=='/')?"":"/", t->tm_mon+1, t->tm_mday, t->tm_year+1900, t->tm_hour);
 
 	/* rotate the log file */
 	rename_result=my_rename(log_file,log_archive);
@@ -487,7 +490,7 @@ int rotate_log_file(time_t rotation_time){
 	        }
 
 	/* record the log rotation after it has been done... */
-	asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
+	dummy=asprintf(&temp_buffer,"LOG ROTATION: %s\n",method_string);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,&rotation_time);
 	my_free(temp_buffer);
 
@@ -496,7 +499,7 @@ int rotate_log_file(time_t rotation_time){
 
 	if(stat_result==0){
 		chmod(log_file, log_file_stat.st_mode);
-		chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
+		dummy=chown(log_file, log_file_stat.st_uid, log_file_stat.st_gid);
 		}
 
 	/* log current host and service state if activated*/
@@ -517,7 +520,7 @@ int write_log_file_info(time_t *timestamp){
 	char *temp_buffer=NULL;
 
 	/* write log version */
-	asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
+	dummy=asprintf(&temp_buffer,"LOG VERSION: %s\n",LOG_VERSION_2);
 	write_to_all_logs_with_timestamp(temp_buffer,NSLOG_PROCESS_INFO,timestamp);
 	my_free(temp_buffer);
 
@@ -598,7 +601,7 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 		close_debug_log();
 		
 		/* rotate the log file */
-		asprintf(&temp_path,"%s.old",debug_file);
+		dummy=asprintf(&temp_path,"%s.old",debug_file);
 		if(temp_path){
 
 			/* unlink the old debug file */

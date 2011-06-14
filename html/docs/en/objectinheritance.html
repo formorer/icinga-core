@@ -1,11 +1,11 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>Object Inheritance</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.1">
 <meta name="keywords" content="Supervision, Icinga, Nagios, Linux">
-<link rel="home" href="index.html" title="Icinga Version 1.2 Documentation">
-<link rel="up" href="ch07.html" title="ChapterÂ 7.Â Advanced Topics">
+<link rel="home" href="index.html" title="Icinga Version 1.4 Documentation">
+<link rel="up" href="ch07.html" title="Chapter 7. Advanced Topics">
 <link rel="prev" href="cgiincludes.html" title="Custom CGI Headers and Footers">
 <link rel="next" href="objecttricks.html" title="Time-Saving Tricks For Object Definitions">
 </head>
@@ -16,9 +16,9 @@
 <tr><th colspan="3" align="center">Object Inheritance</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="cgiincludes.html">Prev</a>Â </td>
-<th width="60%" align="center">ChapterÂ 7.Â Advanced Topics</th>
-<td width="20%" align="right">Â <a accesskey="n" href="objecttricks.html">Next</a>
+<a accesskey="p" href="cgiincludes.html">Prev</a> </td>
+<th width="60%" align="center">Chapter 7. Advanced Topics</th>
+<td width="20%" align="right"> <a accesskey="n" href="objecttricks.html">Next</a>
 </td>
 </tr>
 </table>
@@ -457,6 +457,20 @@ define service {
         ...
         }</pre>
 
+    <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>Please note that only one level of inheritance is possible using important values. That means that you cannot inherit 
+    the check_command from one template to another and from the latter to a service.
+    </p>
+<pre class="programlisting"> Template1 =&gt; Service1                &lt;== will work
+ Template1 =&gt; Template2 =&gt; Service1   &lt;== will NOT work</pre>
+</td></tr>
+</table></div>
+
     <p><a name="objectinheritance-multiple_templates"></a><span class="bold"><strong>Multiple Inheritance Sources</strong></span></p>
 
     <p>Thus far, all examples of inheritance have shown object definitions inheriting variables/values from just a single source. You are also able
@@ -545,38 +559,38 @@ define host{
 </table>
     </div>
 
-    <a class="indexterm" name="id4330836"></a>
+    <a class="indexterm" name="id5754423"></a>
 
-    <a class="indexterm" name="id4330932"></a>
+    <a class="indexterm" name="id5754450"></a>
 
-    <a class="indexterm" name="id4330945"></a>
+    <a class="indexterm" name="id5754462"></a>
 
-    <a class="indexterm" name="id4330957"></a>
+    <a class="indexterm" name="id5754474"></a>
 
-    <a class="indexterm" name="id4330970"></a>
+    <a class="indexterm" name="id5754488"></a>
 
-    <a class="indexterm" name="id4330984"></a>
+    <a class="indexterm" name="id5754502"></a>
 
-    <a class="indexterm" name="id4330971"></a>
+    <a class="indexterm" name="id5754515"></a>
 </div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="cgiincludes.html">Prev</a>Â </td>
+<a accesskey="p" href="cgiincludes.html">Prev</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch07.html">Up</a></td>
-<td width="40%" align="right">Â <a accesskey="n" href="objecttricks.html">Next</a>
+<td width="40%" align="right"> <a accesskey="n" href="objecttricks.html">Next</a>
 </td>
 </tr>
 <tr>
 <td width="40%" align="left" valign="top">Custom CGI Headers and
-  FootersÂ </td>
+  Footers </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
-<td width="40%" align="right" valign="top">Â Time-Saving Tricks For Object Definitions</td>
+<td width="40%" align="right" valign="top"> Time-Saving Tricks For Object Definitions</td>
 </tr>
 </table>
 </div>
-<P class="copyright">Â© 2009-2010 Icinga Development Team, http://www.icinga.org</P>
+<P class="copyright">© 2009-2011 Icinga Development Team, http://www.icinga.org</P>
 </body>
 </html>

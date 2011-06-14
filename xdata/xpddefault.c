@@ -3,7 +3,8 @@
  * XPDDEFAULT.C - Default performance data routines
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -62,6 +63,9 @@ char    *xpddefault_host_perfdata_file_processing_command=NULL;
 char    *xpddefault_service_perfdata_file_processing_command=NULL;
 command *xpddefault_host_perfdata_file_processing_command_ptr=NULL;
 command *xpddefault_service_perfdata_file_processing_command_ptr=NULL;
+
+int     xpddefault_host_perfdata_process_empty_results=DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS;
+int     xpddefault_service_perfdata_process_empty_results=DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS;
 
 FILE    *xpddefault_host_perfdata_fp=NULL;
 FILE    *xpddefault_service_perfdata_fp=NULL;
@@ -191,6 +195,12 @@ int xpddefault_grab_config_directives(char *input){
 
 	else if(!strcmp(varname,"service_perfdata_file_processing_command"))
 		xpddefault_service_perfdata_file_processing_command=(char *)strdup(varvalue);
+
+	else if(!strcmp(varname,"host_perfdata_process_empty_results"))
+		xpddefault_host_perfdata_process_empty_results=(atoi(varvalue)>0)?TRUE:FALSE;
+
+	else if(!strcmp(varname,"service_perfdata_process_empty_results"))
+		xpddefault_service_perfdata_process_empty_results=(atoi(varvalue)>0)?TRUE:FALSE;
 
 	/* free memory */
 	my_free(varname);
@@ -385,12 +395,16 @@ int xpddefault_update_service_performance_data(service *svc){
 	/*
 	 * bail early if we've got nothing to do so we don't spend a lot
 	 * of time calculating macros that never get used
+	 * on distributed setups, empty perfdata results are required, so
+	 * only drop out if demanded via configs.
 	 */
-	if (!svc || !svc->perf_data || !*svc->perf_data) {
-		return OK;
-	}
-	if ((!xpddefault_service_perfdata_fp || !xpddefault_service_perfdata_file_template) && !xpddefault_service_perfdata_command) {
-		return OK;
+	if(xpddefault_service_perfdata_process_empty_results==FALSE){
+		if (!svc || !svc->perf_data || !*svc->perf_data){
+			return OK;
+		}
+		if ((!xpddefault_service_perfdata_fp || !xpddefault_service_perfdata_file_template) && !xpddefault_service_perfdata_command){
+			return OK;
+		}
 	}
 
 	/*
@@ -399,20 +413,20 @@ int xpddefault_update_service_performance_data(service *svc){
 	 */
 	memset(&mac, 0, sizeof(mac));
 	hst = find_host(svc->host_name);
-	grab_host_macros(&mac, hst);
-	grab_service_macros(&mac, svc);
+	grab_host_macros_r(&mac, hst);
+	grab_service_macros_r(&mac, svc);
 
 	/* run the performance data command */
 	xpddefault_run_service_performance_data_command(&mac, svc);
 
 	/* get rid of used memory we won't need anymore */
-	clear_argv_macros(&mac);
+	clear_argv_macros_r(&mac);
 
 	/* update the performance data file */
 	xpddefault_update_service_performance_data_file(&mac, svc);
 
 	/* now free() it all */
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	return OK;
 }
@@ -426,29 +440,33 @@ int xpddefault_update_host_performance_data(host *hst){
 	/*
 	 * bail early if we've got nothing to do so we don't spend a lot
 	 * of time calculating macros that never get used
+	 * on distributed setups, empty perfdata results are required, so
+	 * only drop out if demanded via configs.
 	 */
-	if (!hst || !hst->perf_data || !*hst->perf_data) {
-		return OK;
-	}
-	if ((!xpddefault_host_perfdata_fp || !xpddefault_host_perfdata_file_template) && !xpddefault_host_perfdata_command) {
-		return OK;
+        if(xpddefault_host_perfdata_process_empty_results==FALSE){
+		if (!hst || !hst->perf_data || !*hst->perf_data) {
+			return OK;
+		}
+		if ((!xpddefault_host_perfdata_fp || !xpddefault_host_perfdata_file_template) && !xpddefault_host_perfdata_command) {
+			return OK;
+		}
 	}
 
 	/* set up macros and get to work */
 	memset(&mac, 0, sizeof(mac));
-	grab_host_macros(&mac, hst);
+	grab_host_macros_r(&mac, hst);
 
 	/* run the performance data command */
 	xpddefault_run_host_performance_data_command(&mac, hst);
 
 	/* no more commands to run, so we won't need this any more */
-	clear_argv_macros(&mac);
+	clear_argv_macros_r(&mac);
 
 	/* update the performance data file */
 	xpddefault_update_host_performance_data_file(&mac, hst);
 
 	/* free() all */
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	return OK;
 }
@@ -788,7 +806,7 @@ int xpddefault_process_host_perfdata_file(void){
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, xpddefault_host_perfdata_file_processing_command_ptr,xpddefault_host_perfdata_file_processing_command,&raw_command_line,macro_options);
 	if(raw_command_line==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -797,7 +815,7 @@ int xpddefault_process_host_perfdata_file(void){
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command_line,&processed_command_line,macro_options);
 	if(processed_command_line==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -809,7 +827,7 @@ int xpddefault_process_host_perfdata_file(void){
 
 	/* run the command */
 	my_system_r(&mac, processed_command_line,xpddefault_perfdata_timeout,&early_timeout,&exectime,NULL,0);
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* re-open and unlock the performance data file */
 	xpddefault_open_host_perfdata_file();
@@ -849,7 +867,7 @@ int xpddefault_process_service_perfdata_file(void){
 	/* get the raw command line */
 	get_raw_command_line_r(&mac, xpddefault_service_perfdata_file_processing_command_ptr,xpddefault_service_perfdata_file_processing_command,&raw_command_line,macro_options);
 	if(raw_command_line==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -858,7 +876,7 @@ int xpddefault_process_service_perfdata_file(void){
 	/* process any macros in the raw command line */
 	process_macros_r(&mac, raw_command_line,&processed_command_line,macro_options);
 	if(processed_command_line==NULL) {
-		clear_volatile_macros(&mac);
+		clear_volatile_macros_r(&mac);
 		return ERROR;
 	}
 
@@ -875,14 +893,11 @@ int xpddefault_process_service_perfdata_file(void){
 	xpddefault_open_service_perfdata_file();
 	pthread_mutex_unlock(&xpddefault_service_perfdata_fp_lock);
 
-	clear_volatile_macros(&mac);
+	clear_volatile_macros_r(&mac);
 
 	/* check to see if the command timed out */
 	if(early_timeout==TRUE)
 		logit(NSLOG_RUNTIME_WARNING,TRUE,"Warning: Service performance data file processing command '%s' timed out after %d seconds\n",processed_command_line,xpddefault_perfdata_timeout);
-
-	/* re-open the performance data file */
-	xpddefault_open_service_perfdata_file();
 
 	/* free memory */
 	my_free(raw_command_line);

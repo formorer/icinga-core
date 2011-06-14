@@ -221,7 +221,7 @@ char            *use_timezone=NULL;
 int             command_file_fd;
 FILE            *command_file_fp;
 int             command_file_created=FALSE;
-int		allow_empty_hostgroup_assignment;
+int		allow_empty_hostgroup_assignment=DEFAULT_ALLOW_EMPTY_HOSTGROUP_ASSIGNMENT;
 
 extern contact	       *contact_list;
 extern contactgroup    *contactgroup_list;
@@ -311,6 +311,11 @@ int update_service_status(service *svc,int aggregated_dump){}
 time_t get_next_host_notification_time(host *temp_host,time_t time_t1) {}
 void check_for_host_flapping(host *hst, int update, int actual_check, int allow_flapstart_notification){}
 int service_notification(service *svc, int type, char *not_author, char *not_data, int options){}
+
+
+/* Icinga special */
+int     event_profiling_enabled=FALSE;
+void    profiler_update(int event, struct timeval start){}
 
 
 int main(int argc, char **argv){

@@ -2,7 +2,7 @@
  * DBHANDLERS.C - Data handler routines for IDO2DB daemon
  *
  * Copyright (c) 2005-2007 Ethan Galstad
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  **************************************************************/
 
@@ -27,6 +27,8 @@ extern int errno;
 extern char *ido2db_db_tablenames[IDO2DB_MAX_DBTABLES];
 
 extern ido2db_dbconfig ido2db_db_settings; /* for tables cleanup settings */
+
+int dummy;	/* reduce compiler warnings */
 
 /****************************************************************************/
 /* OBJECT ROUTINES                                                          */
@@ -148,7 +150,7 @@ int ido2db_get_object_id(ido2db_idi *idi, int object_type, char *n1, char *n2, u
 	if ((result = ido2db_db_query(idi, buf)) == IDO_OK) {
 		if (idi->dbinfo.dbi_result != NULL) {
 			if (dbi_result_next_row(idi->dbinfo.dbi_result)) {
-				*object_id = dbi_result_get_ulong(idi->dbinfo.dbi_result, "object_id");
+				*object_id = dbi_result_get_ulonglong(idi->dbinfo.dbi_result, "object_id");
 			} else {
 				result = IDO_ERROR;
 			}
@@ -171,6 +173,10 @@ int ido2db_get_object_id(ido2db_idi *idi, int object_type, char *n1, char *n2, u
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	/* above code for other rdbms is real bullshit and not even modular for prepared statements ... */
 	/* ......... db.c ......... */
@@ -393,23 +399,23 @@ int ido2db_get_object_id_with_insert(ido2db_idi *idi, int object_type, char *n1,
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	if (name1 != NULL) {
 		tmp = ido2db_db_escape_string(idi, name1);
-		asprintf(&es[0], "'%s'", tmp);
+		dummy=asprintf(&es[0], "'%s'", tmp);
 		if (tmp) {
 			free(tmp);
 			tmp = NULL;
 		}
 	} else
-		asprintf(&es[0],"NULL");
+		dummy=asprintf(&es[0],"NULL");
 
 	if (name2 != NULL) {
 		tmp = ido2db_db_escape_string(idi, name2);
-		asprintf(&es[1], "'%s'", tmp);
+		dummy=asprintf(&es[1], "'%s'", tmp);
 		if (tmp) {
 			free(tmp);
 			tmp = NULL;
 		}
 	} else
-		asprintf(&es[1], "NULL");
+		dummy=asprintf(&es[1], "NULL");
 
 	if (asprintf(&buf,
 			"INSERT INTO %s (instance_id, objecttype_id, name1, name2) VALUES (%lu, %d, %s, %s)",
@@ -463,6 +469,10 @@ int ido2db_get_object_id_with_insert(ido2db_idi *idi, int object_type, char *n1,
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	es[0] = ido2db_db_escape_string(idi, name1);
 	es[1] = ido2db_db_escape_string(idi, name2);
@@ -567,15 +577,15 @@ int ido2db_get_cached_object_ids(ido2db_idi *idi) {
 
 	/* find all the object definitions we already have */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "SELECT object_id, objecttype_id, name1, name2 FROM %s WHERE instance_id='%lu'", ido2db_db_tablenames[IDO2DB_DBTABLE_OBJECTS], idi->dbinfo.instance_id) == -1)
+	if (asprintf(&buf, "SELECT object_id, objecttype_id, name1, name2 FROM %s WHERE instance_id=%lu", ido2db_db_tablenames[IDO2DB_DBTABLE_OBJECTS], idi->dbinfo.instance_id) == -1)
 		buf = NULL;
 
 	if ((result = ido2db_db_query(idi, buf)) == IDO_OK) {
 		while (idi->dbinfo.dbi_result) {
 			if (dbi_result_next_row(idi->dbinfo.dbi_result)) {
-				object_id = dbi_result_get_uint(idi->dbinfo.dbi_result,
+				object_id = dbi_result_get_ulonglong(idi->dbinfo.dbi_result,
 						"object_id");
-				objecttype_id = dbi_result_get_int(idi->dbinfo.dbi_result,
+				objecttype_id = dbi_result_get_ulonglong(idi->dbinfo.dbi_result,
 						"objecttype_id");
 				ido2db_add_cached_object_id(idi, objecttype_id,
 						dbi_result_get_string_copy(idi->dbinfo.dbi_result,
@@ -595,6 +605,11 @@ int ido2db_get_cached_object_ids(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 
@@ -872,7 +887,7 @@ int ido2db_set_all_objects_as_inactive(ido2db_idi *idi) {
 
 	/* mark all objects as being inactive */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "UPDATE %s SET is_active='0' WHERE instance_id='%lu'",
+	if (asprintf(&buf, "UPDATE %s SET is_active='0' WHERE instance_id=%lu",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_OBJECTS],
 			idi->dbinfo.instance_id) == -1)
 		buf = NULL;
@@ -936,7 +951,7 @@ int ido2db_set_object_as_active(ido2db_idi *idi, int object_type,
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	if (asprintf(
 			&buf,
-			"UPDATE %s SET is_active='1' WHERE instance_id='%lu' AND objecttype_id='%d' AND object_id='%lu'",
+			"UPDATE %s SET is_active='1' WHERE instance_id=%lu AND objecttype_id=%d AND object_id=%lu",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_OBJECTS],
 			idi->dbinfo.instance_id, object_type, object_id) == -1)
 		buf = NULL;
@@ -953,6 +968,10 @@ int ido2db_set_object_as_active(ido2db_idi *idi, int object_type,
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &is_active;
         data[1] = (void *) &idi->dbinfo.instance_id;
@@ -1042,7 +1061,7 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 	/* make sure we aren't importing a duplicate log entry... */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-	if (asprintf(&buf, "SELECT logentry_id FROM %s WHERE instance_id='%lu' AND logentry_time=%s AND logentry_data='%s'", ido2db_db_tablenames[IDO2DB_DBTABLE_LOGENTRIES], idi->dbinfo.instance_id, ts[0], es[0]) == -1)
+	if (asprintf(&buf, "SELECT logentry_id FROM %s WHERE instance_id=%lu AND logentry_time=%s AND logentry_data='%s'", ido2db_db_tablenames[IDO2DB_DBTABLE_LOGENTRIES], idi->dbinfo.instance_id, ts[0], es[0]) == -1)
 		buf = NULL;
 
 	if ((result = ido2db_db_query(idi, buf)) == IDO_OK) {
@@ -1062,6 +1081,10 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &etime;
@@ -1113,7 +1136,7 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 	/* save entry to db */
 	if (asprintf(
 			&buf,
-			"INSERT INTO %s (instance_id, logentry_time, entry_time, entry_time_usec, logentry_type, logentry_data, realtime_data, inferred_data_extracted) VALUES ('%lu', %s, %s, '0', '%lu', '%s', '0', '0')",
+			"INSERT INTO %s (instance_id, logentry_time, entry_time, entry_time_usec, logentry_type, logentry_data, realtime_data, inferred_data_extracted) VALUES (%lu, %s, %s, '0', %lu, '%s', '0', '0')",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_LOGENTRIES],
 			idi->dbinfo.instance_id, ts[0], ts[0], type, (es[0] == NULL) ? ""
 					: es[0]) == -1)
@@ -1128,6 +1151,10 @@ int ido2db_handle_logentry(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	/* set only values needed */
 	n_zero = 0;
@@ -1250,7 +1277,7 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 
 	/* save entry to db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "INSERT INTO %s (instance_id, event_type, event_time, event_time_usec, process_id, program_name, program_version, program_date) VALUES ('%lu', '%d', %s, '%lu', '%lu', '%s', '%s', '%s')",
+	if (asprintf(&buf, "INSERT INTO %s (instance_id, event_type, event_time, event_time_usec, process_id, program_name, program_version, program_date) VALUES (%lu, %d, %s, %lu, %lu, '%s', '%s', '%s')",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_PROCESSEVENTS],
 			idi->dbinfo.instance_id, type, ts[0], tstamp.tv_usec, process_id,
 			es[0], es[1], es[2]) == -1)
@@ -1265,6 +1292,10 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &type;
@@ -1323,13 +1354,15 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 		if(ido2db_db_settings.clean_realtime_tables_on_core_startup==IDO_TRUE){ /* only if desired */
 
 			/* clear realtime data */
+			/* don't clear necessary status tables on restart/reload of the core, as Icinga Web
+			   won't show any data then */
+			/* ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTSTATUS]); */
+			/* ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICESTATUS]); */
+			/* ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_SCHEDULEDDOWNTIME]); */
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_PROGRAMSTATUS]);
-			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTSTATUS]);
-			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICESTATUS]);
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_CONTACTSTATUS]);
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_TIMEDEVENTQUEUE]);
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_COMMENTS]);
-			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_SCHEDULEDDOWNTIME]);
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_RUNTIMEVARIABLES]);
 			ido2db_db_clear_table(idi, ido2db_db_tablenames[IDO2DB_DBTABLE_CUSTOMVARIABLESTATUS]);
 		}
@@ -1410,7 +1443,7 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 			&& tstamp.tv_sec >= idi->dbinfo.latest_realtime_data_time) {
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-		if (asprintf(&buf, "UPDATE %s SET program_end_time=%s, is_currently_running='0' WHERE instance_id='%lu'",
+		if (asprintf(&buf, "UPDATE %s SET program_end_time=%s, is_currently_running='0' WHERE instance_id=%lu",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_PROGRAMSTATUS], ts[0],
 				idi->dbinfo.instance_id) == -1)
 			buf = NULL;
@@ -1425,6 +1458,10 @@ int ido2db_handle_processdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &is_currently_running;
@@ -1584,7 +1621,7 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 
 		/* save entry to db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-		if (asprintf(&buf, "UPDATE %s SET deletion_time=%s, deletion_time_usec='%lu' WHERE instance_id='%lu' AND event_type='%d' AND scheduled_time=%s AND recurring_event='%d' AND object_id='%lu'",
+		if (asprintf(&buf, "UPDATE %s SET deletion_time=%s, deletion_time_usec=%lu WHERE instance_id=%lu AND event_type=%d AND scheduled_time=%s AND recurring_event=%d AND object_id=%lu",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_TIMEDEVENTS], ts[0],
 				tstamp.tv_usec, idi->dbinfo.instance_id, event_type, ts[1],
 				recurring_event, object_id) == -1)
@@ -1601,6 +1638,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
@@ -1658,7 +1699,7 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 		/* clear old entries from db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-		if (asprintf(&buf, "DELETE FROM %s WHERE instance_id='%lu' AND scheduled_time<=%s",
+		if (asprintf(&buf, "DELETE FROM %s WHERE instance_id=%lu AND scheduled_time<=%s",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_TIMEDEVENTQUEUE],
 				idi->dbinfo.instance_id, ts[0]) == -1)
 			buf = NULL;
@@ -1673,6 +1714,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
                 data[0] = (void *) &idi->dbinfo.instance_id;
                 data[1] = (void *) &tstamp.tv_sec;
@@ -1741,7 +1786,7 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 		/* clear entry from db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-		if (asprintf(&buf, "DELETE FROM %s WHERE instance_id='%lu' AND event_type='%d' AND scheduled_time=%s AND recurring_event='%d' AND object_id='%lu'",
+		if (asprintf(&buf, "DELETE FROM %s WHERE instance_id=%lu AND event_type=%d AND scheduled_time=%s AND recurring_event=%d AND object_id=%lu",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_TIMEDEVENTQUEUE],
 				idi->dbinfo.instance_id, event_type, ts[1], recurring_event,
 				object_id) == -1)
@@ -1758,6 +1803,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &event_type;
@@ -1802,7 +1851,7 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 			/* clear entries from db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
-			if (asprintf(&buf, "DELETE FROM %s WHERE instance_id='%lu' AND scheduled_time<%s",
+			if (asprintf(&buf, "DELETE FROM %s WHERE instance_id=%lu AND scheduled_time<%s",
 					ido2db_db_tablenames[IDO2DB_DBTABLE_TIMEDEVENTQUEUE],
 					idi->dbinfo.instance_id, ts[1]) == -1)
 				buf = NULL;
@@ -1817,6 +1866,10 @@ int ido2db_handle_timedeventdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
                 data[0] = (void *) &idi->dbinfo.instance_id;
                 data[1] = (void *) &run_time;
@@ -1902,7 +1955,7 @@ int ido2db_handle_logdata(ido2db_idi *idi) {
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	/* save entry to db */
-	if (asprintf(&buf, "INSERT INTO %s (instance_id, logentry_time, entry_time, entry_time_usec, logentry_type, logentry_data, realtime_data, inferred_data_extracted) VALUES ('%lu', %s, %s, '%lu', '%lu', '%s', '1', '1')",
+	if (asprintf(&buf, "INSERT INTO %s (instance_id, logentry_time, entry_time, entry_time_usec, logentry_type, logentry_data, realtime_data, inferred_data_extracted) VALUES (%lu, %s, %s, %lu, %lu, '%s', '1', '1')",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_LOGENTRIES],
 			idi->dbinfo.instance_id, ts[1], ts[0], tstamp.tv_usec, letype,
 			es[0]) == -1)
@@ -1917,6 +1970,10 @@ int ido2db_handle_logdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &etime;
@@ -2570,9 +2627,12 @@ int ido2db_handle_servicecheckdata(ido2db_idi *idi) {
 	result = ido2db_convert_standard_data_elements(idi, &type, &flags, &attr,
 			&tstamp);
 
+        /* only process finished service checks... */
+         if(type!=NEBTYPE_SERVICECHECK_PROCESSED)
+                return IDO_OK;
+
 	/* only process some types of service checks... */
-	if (type != NEBTYPE_SERVICECHECK_INITIATE && type
-			!= NEBTYPE_SERVICECHECK_PROCESSED)
+	if (type != NEBTYPE_SERVICECHECK_INITIATE && type != NEBTYPE_SERVICECHECK_PROCESSED)
 		return IDO_OK;
 
 	/* skip precheck events - they aren't useful to us */
@@ -2640,7 +2700,7 @@ int ido2db_handle_servicecheckdata(ido2db_idi *idi) {
 	data[22] = (void *) &start_time.tv_sec;
         data[23] = (void *) &end_time.tv_sec;
 
-	result = ido2db_query_insert_or_update_servicecheckdata_add(idi, data);
+	result = ido2db_query_insert_servicecheckdata_add(idi, data);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	dbi_result_free(idi->dbinfo.dbi_result);
@@ -2701,10 +2761,8 @@ int ido2db_handle_hostcheckdata(ido2db_idi *idi) {
 			&tstamp);
 
 	/* only process finished host checks... */
-	/*
 	 if(type!=NEBTYPE_HOSTCHECK_PROCESSED)
-	 return IDO_OK;
-	 */
+		return IDO_OK;
 
 	/* skip precheck events - they aren't useful to us */
 	if (type == NEBTYPE_HOSTCHECK_ASYNC_PRECHECK || type == NEBTYPE_HOSTCHECK_SYNC_PRECHECK)
@@ -2776,7 +2834,7 @@ int ido2db_handle_hostcheckdata(ido2db_idi *idi) {
         data[23] = (void *) &start_time.tv_sec;
         data[24] = (void *) &end_time.tv_sec;
 
-        result = ido2db_query_insert_or_update_hostcheckdata_add(idi, data);
+        result = ido2db_query_insert_hostcheckdata_add(idi, data);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	dbi_result_free(idi->dbinfo.dbi_result);
@@ -2906,7 +2964,7 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 
 		if (asprintf(
 				&buf,
-				"UPDATE %s SET deletion_time=%s, deletion_time_usec='%lu' WHERE instance_id='%lu' AND comment_time=%s AND internal_comment_id='%lu'",
+				"UPDATE %s SET deletion_time=%s, deletion_time_usec=%lu WHERE instance_id=%lu AND comment_time=%s AND internal_comment_id=%lu",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_COMMENTHISTORY], ts[0],
 				tstamp.tv_usec, idi->dbinfo.instance_id, ts[1],
 				internal_comment_id) == -1)
@@ -2925,6 +2983,11 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
         void *data[5];
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &tstamp.tv_sec;
         data[1] = (void *) &tstamp.tv_usec;
         data[2] = (void *) &idi->dbinfo.instance_id;
@@ -3013,7 +3076,7 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 
 		if (asprintf(
 				&buf,
-				"DELETE FROM %s WHERE instance_id='%lu' AND comment_time=%s AND internal_comment_id='%lu'",
+				"DELETE FROM %s WHERE instance_id=%lu AND comment_time=%s AND internal_comment_id=%lu",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_COMMENTS],
 				idi->dbinfo.instance_id, ts[1], internal_comment_id) == -1)
 			buf = NULL;
@@ -3030,6 +3093,10 @@ int ido2db_handle_commentdata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
         void *data[3];
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &comment_time;
         data[2] = (void *) &internal_comment_id;
@@ -3179,7 +3246,7 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
 		if (asprintf(&buf,
-				"UPDATE %s SET actual_start_time=%s, actual_start_time_usec='%lu', was_started='%d' WHERE instance_id='%lu' AND downtime_type='%d' AND object_id='%lu' AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
+				"UPDATE %s SET actual_start_time=%s, actual_start_time_usec=%lu, was_started=%d WHERE instance_id=%lu AND downtime_type=%d AND object_id=%lu AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_DOWNTIMEHISTORY], ts[0],
 				tstamp.tv_usec, 1, idi->dbinfo.instance_id, downtime_type,
 				object_id, ts[1], ts[2], ts[3]) == -1)
@@ -3196,6 +3263,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	was_started = 1;
         data[0] = (void *) &tstamp.tv_sec;
@@ -3260,7 +3331,7 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 
 		if (asprintf(
 				&buf,
-				"UPDATE %s SET actual_end_time=%s, actual_end_time_usec='%lu', was_cancelled='%d' WHERE instance_id='%lu' AND downtime_type='%d' AND object_id='%lu' AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
+				"UPDATE %s SET actual_end_time=%s, actual_end_time_usec=%lu, was_cancelled=%d WHERE instance_id=%lu AND downtime_type=%d AND object_id=%lu AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_DOWNTIMEHISTORY], ts[0],
 				tstamp.tv_usec, (attr == NEBATTR_DOWNTIME_STOP_CANCELLED) ? 1
 						: 0, idi->dbinfo.instance_id, downtime_type, object_id,
@@ -3280,6 +3351,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
 	int was_cancelled;
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	if(attr == NEBATTR_DOWNTIME_STOP_CANCELLED) {
 		was_cancelled = 1;
@@ -3389,7 +3464,7 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
 		if (asprintf(&buf,
-				"UPDATE %s SET actual_start_time=%s, actual_start_time_usec='%lu', was_started='%d' WHERE instance_id='%lu' AND downtime_type='%d' AND object_id='%lu' AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
+				"UPDATE %s SET actual_start_time=%s, actual_start_time_usec=%lu, was_started=%d WHERE instance_id=%lu AND downtime_type=%d AND object_id=%lu AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_SCHEDULEDDOWNTIME], ts[0],
 				tstamp.tv_usec, 1, idi->dbinfo.instance_id, downtime_type,
 				object_id, ts[1], ts[2], ts[3]) == -1)
@@ -3407,6 +3482,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         was_started = 1;
         data[0] = (void *) &tstamp.tv_sec;
@@ -3472,7 +3551,7 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
 		if (asprintf(&buf,
-				"DELETE FROM %s WHERE instance_id='%lu' AND downtime_type='%d' AND object_id='%lu' AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
+				"DELETE FROM %s WHERE instance_id=%lu AND downtime_type=%d AND object_id=%lu AND entry_time=%s AND scheduled_start_time=%s AND scheduled_end_time=%s",
 				ido2db_db_tablenames[IDO2DB_DBTABLE_SCHEDULEDDOWNTIME],
 				idi->dbinfo.instance_id, downtime_type, object_id, ts[1],
 				ts[2], ts[3]) == -1)
@@ -3489,6 +3568,10 @@ int ido2db_handle_downtimedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
         data[0] = (void *) &idi->dbinfo.instance_id;
         data[1] = (void *) &downtime_type;
@@ -3595,7 +3678,7 @@ int ido2db_handle_flappingdata(ido2db_idi *idi) {
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	if (asprintf(
 			&buf,
-			"INSERT INTO %s (instance_id, event_time, event_time_usec, event_type, reason_type, flapping_type, object_id, percent_state_change, low_threshold, high_threshold, comment_time, internal_comment_id) VALUES ('%lu', %s, '%lu', '%d', '%d', '%d', '%lu', '%lf', '%lf', '%lf', %s, '%lu')",
+			"INSERT INTO %s (instance_id, event_time, event_time_usec, event_type, reason_type, flapping_type, object_id, percent_state_change, low_threshold, high_threshold, comment_time, internal_comment_id) VALUES (%lu, %s, %lu, %d, %d, %d, %lu, '%lf', '%lf', '%lf', %s, %lu)",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_FLAPPINGHISTORY],
 			idi->dbinfo.instance_id, ts[0], tstamp.tv_usec, type, attr,
 			flapping_type, object_id, percent_state_change, low_threshold,
@@ -3611,6 +3694,10 @@ int ido2db_handle_flappingdata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
@@ -4426,7 +4513,7 @@ int ido2db_handle_externalcommanddata(ido2db_idi *idi) {
 
 	/* save entry to db */
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-	if (asprintf(&buf, "INSERT INTO %s (instance_id, command_type, entry_time, command_name, command_args) VALUES ('%lu', '%d', %s, '%s', '%s')",
+	if (asprintf(&buf, "INSERT INTO %s (instance_id, command_type, entry_time, command_name, command_args) VALUES (%lu, %d, %s, '%s', '%s')",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_EXTERNALCOMMANDS],
 			idi->dbinfo.instance_id, command_type, ts, es[0], es[1]) == -1)
 		buf = NULL;
@@ -4440,6 +4527,10 @@ int ido2db_handle_externalcommanddata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &command_type;
@@ -4616,6 +4707,10 @@ int ido2db_handle_acknowledgementdata(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
+
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
 	data[2] = (void *) &tstamp.tv_usec;
@@ -4761,7 +4856,7 @@ int ido2db_handle_statechangedata(ido2db_idi *idi) {
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 	if (asprintf(
 			&buf,
-			"INSERT INTO %s (instance_id, state_time, state_time_usec, object_id, state_change, state, state_type, current_check_attempt, max_check_attempts, last_state, last_hard_state, output, long_output) VALUES ('%lu', %s, '%lu', '%lu', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s', '%s')",
+			"INSERT INTO %s (instance_id, state_time, state_time_usec, object_id, state_change, state, state_type, current_check_attempt, max_check_attempts, last_state, last_hard_state, output, long_output) VALUES (%lu, %s, %lu, %lu, %d, %d, %d, %d, %d, %d, %d, '%s', '%s')",
 			ido2db_db_tablenames[IDO2DB_DBTABLE_STATEHISTORY],
 			idi->dbinfo.instance_id, ts[0], tstamp.tv_usec, object_id,
 			state_change_occurred, state, state_type, current_attempt,
@@ -4778,6 +4873,10 @@ int ido2db_handle_statechangedata(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 	data[0] = (void *) &idi->dbinfo.instance_id;
 	data[1] = (void *) &tstamp.tv_sec;
@@ -5004,7 +5103,7 @@ int ido2db_handle_configfilevariables(ido2db_idi *idi, int configfile_type) {
 		es[2] = ido2db_db_escape_string(idi, varvalue);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-		if (asprintf(&buf,"(instance_id, configfile_id, varname, varvalue) VALUES ('%lu', '%lu', '%s', '%s')",
+		if (asprintf(&buf,"(instance_id, configfile_id, varname, varvalue) VALUES (%lu, %lu, '%s', '%s')",
 				idi->dbinfo.instance_id, configfile_id, es[1], es[2]) == -1)
 			buf = NULL;
 
@@ -5025,6 +5124,10 @@ int ido2db_handle_configfilevariables(ido2db_idi *idi, int configfile_type) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	/* check if we lost connection, and reconnect */
+        if(ido2db_db_reconnect(idi)==IDO_ERROR)
+		return IDO_ERROR;
 
 		data[0] = (void *) &idi->dbinfo.instance_id;
 		data[1] = (void *) &configfile_id;
@@ -5230,18 +5333,19 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
 	unsigned long host_id = 0L;
 	unsigned long member_id = 0L;
 	int result = IDO_OK;
-	char *es[13];
+	char *es[14];
 	int x = 0;
-#ifdef USE_LIBDBI
 	char *buf = NULL;
-#endif
+	char *buf1 = NULL;
+
 	ido2db_mbuf mbuf;
 	char *cmdptr = NULL;
 	char *argptr = NULL;
 #ifdef USE_ORACLE
         char *seq_name = NULL;
 #endif
-        void *data[57];
+        void *data[58];
+	int first;
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_hostdefinition() start\n");
 
@@ -5319,6 +5423,7 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
 	es[10] = ido2db_db_escape_string(idi, idi->buffered_input[IDO_DATA_STATUSMAPIMAGE]);
 	es[11] = ido2db_db_escape_string(idi, idi->buffered_input[IDO_DATA_DISPLAYNAME]);
 	es[12] = ido2db_db_escape_string(idi, idi->buffered_input[IDO_DATA_HOSTALIAS]);
+	es[13] = ido2db_db_escape_string(idi, idi->buffered_input[IDO_DATA_HOSTADDRESS6]);
 
 	/* get the object id */
 	result = ido2db_get_object_id_with_insert(idi, IDO2DB_OBJECTTYPE_HOST, idi->buffered_input[IDO_DATA_HOSTNAME], NULL, &object_id);
@@ -5390,6 +5495,7 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
         data[54] = (void *) &x_3d;
         data[55] = (void *) &y_3d;
         data[56] = (void *) &z_3d;
+        data[57] = (void *) &es[13]; /* HOSTADDRESS6 */
 
         result = ido2db_query_insert_or_update_hostdefinition_definition_add(idi, data);
 
@@ -5532,6 +5638,29 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
 	}
 
 	/* save contacts to db */
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_hostdefinition() host_contacts start\n");
+
+#ifdef USE_LIBDBI
+	/* build a multiple insert value array */
+	if(asprintf(&buf1, "INSERT INTO %s (instance_id,host_id,contact_object_id) VALUES ",
+			ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS]
+			)==-1)
+		buf1=NULL;
+#endif
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+
+        /* build a multiple insert value array */
+        if(asprintf(&buf1, "INSERT INTO %s (id, instance_id,host_id,contact_object_id) SELECT seq_%s.nextval, x1, x2, x3 from (",
+                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS],
+                        ido2db_db_tablenames[IDO2DB_DBTABLE_HOSTCONTACTS]
+                        )==-1)
+                buf1=NULL;
+
+#endif /* Oracle ocilib specific */
+
+	first=1;
+
 	mbuf = idi->mbuf[IDO2DB_MBUF_CONTACT];
 	for (x = 0; x < mbuf.used_lines; x++) {
 
@@ -5539,18 +5668,57 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
 			continue;
 
 		/* get the object id of the member */
-		result = ido2db_get_object_id_with_insert(idi,
-				IDO2DB_OBJECTTYPE_CONTACT, mbuf.buffer[x], NULL, &member_id);
+		result = ido2db_get_object_id_with_insert(idi, IDO2DB_OBJECTTYPE_CONTACT, mbuf.buffer[x], NULL, &member_id);
 
-                /* save entry to db */
-                data[0] = (void *) &idi->dbinfo.instance_id;
-                data[1] = (void *) &host_id;
-                data[2] = (void *) &member_id;
+		buf=buf1; /* save this pointer for later free'ing */
 
-		result = ido2db_query_insert_or_update_hostdefinition_contacts_add(idi, data);
+#ifdef USE_LIBDBI
+		if(asprintf(&buf1, "%s%s(%lu,%lu,%lu)",
+				buf1,
+				(first==1?"":","),
+				idi->dbinfo.instance_id,
+				host_id,
+				member_id
+				)==-1)
+			buf1=NULL;
+#endif
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+		if(first==1) {
+	                if(asprintf(&buf1, "%s SELECT %lu as x1, %lu as x2, %lu as x3 FROM DUAL ",
+        	                        buf1,
+                        	        idi->dbinfo.instance_id,
+                                	host_id,
+	                                member_id
+        	                        )==-1)
+                	        buf1=NULL;
+		} else {
+                        if(asprintf(&buf1, "%s UNION ALL SELECT %lu, %lu, %lu FROM DUAL ",
+                                        buf1,
+                                        idi->dbinfo.instance_id,
+                                        host_id,
+                                        member_id
+                                        )==-1)
+                                buf1=NULL;
+		}
+#endif /* Oracle ocilib specific */
+
+		free(buf);
+		first=0;
+	}
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+
+	if(asprintf(&buf1, "%s)", buf1)==-1)
+		buf1=NULL;
+
+#endif /* Oracle ocilib specific */
+
+	if(first==0){
+		result=ido2db_db_query(idi, buf1);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
-		dbi_result_free(idi->dbinfo.dbi_result);
+        	dbi_result_free(idi->dbinfo.dbi_result);
 #endif
 
 #ifdef USE_PGSQL /* pgsql */
@@ -5559,10 +5727,16 @@ int ido2db_handle_hostdefinition(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+	/* statement handle not re-binded */
+	OCI_StatementFree(idi->dbinfo.oci_statement);
 
 #endif /* Oracle ocilib specific */
 
 	}
+
+	free(buf1);
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_hostdefinition() host_contacts end\n");
 
 	/* save custom variables to db */
 	result=ido2db_save_custom_variables(idi,IDO2DB_DBTABLE_CUSTOMVARIABLES,object_id,NULL, -1);
@@ -5772,9 +5946,9 @@ int ido2db_handle_servicedefinition(ido2db_idi *idi) {
 	int result = IDO_OK;
 	char *es[9];
 	int x = 0;
-#ifdef USE_LIBDBI
 	char *buf = NULL;
-#endif
+	char *buf1 = NULL;
+
 	ido2db_mbuf mbuf;
 	char *cmdptr = NULL;
 	char *argptr = NULL;
@@ -5782,6 +5956,7 @@ int ido2db_handle_servicedefinition(ido2db_idi *idi) {
         char *seq_name = NULL;
 #endif
         void *data[51];
+	int first;
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_servicedefinition() start\n");
 
@@ -6029,6 +6204,29 @@ int ido2db_handle_servicedefinition(ido2db_idi *idi) {
 	}
 
 	/* save contacts to db */
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_servicedefinition() service_contacts start\n");
+
+#ifdef USE_LIBDBI
+	/* build a multiple insert value array */
+	if(asprintf(&buf1, "INSERT INTO %s (instance_id,service_id,contact_object_id) VALUES ",
+			ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS]
+			)==-1)
+		buf1=NULL;
+#endif
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+
+        /* build a multiple insert value array */
+        if(asprintf(&buf1, "INSERT INTO %s (id, instance_id,service_id,contact_object_id) SELECT seq_%s.nextval, x1, x2, x3 from (",
+                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS],
+                        ido2db_db_tablenames[IDO2DB_DBTABLE_SERVICECONTACTS]
+                        )==-1)
+                buf1=NULL;
+
+#endif /* Oracle ocilib specific */
+
+	first=1;
+
 	mbuf = idi->mbuf[IDO2DB_MBUF_CONTACT];
 	for (x = 0; x < mbuf.used_lines; x++) {
 
@@ -6036,15 +6234,54 @@ int ido2db_handle_servicedefinition(ido2db_idi *idi) {
 			continue;
 
 		/* get the object id of the member */
-		result = ido2db_get_object_id_with_insert(idi,
-				IDO2DB_OBJECTTYPE_CONTACT, mbuf.buffer[x], NULL, &member_id);
+		result = ido2db_get_object_id_with_insert(idi, IDO2DB_OBJECTTYPE_CONTACT, mbuf.buffer[x], NULL, &member_id);
 
-		/* save entry to db */
-	        data[0] = (void *) &idi->dbinfo.instance_id;
-	        data[1] = (void *) &service_id;
-	        data[2] = (void *) &member_id;
+		buf=buf1; /* save this pointer for later free'ing */
 
-		result = ido2db_query_insert_or_update_servicedefinition_contacts_add(idi, data);
+#ifdef USE_LIBDBI
+		if(asprintf(&buf1, "%s%s(%lu,%lu,%lu)",
+				buf1,
+				(first==1?"":","),
+				idi->dbinfo.instance_id,
+				service_id,
+				member_id
+				)==-1)
+			buf1=NULL;
+#endif
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+                if(first==1) {
+                        if(asprintf(&buf1, "%s SELECT %lu as x1, %lu as x2, %lu as x3 FROM DUAL ",
+                                        buf1,
+                                        idi->dbinfo.instance_id,
+                                        service_id,
+                                        member_id
+                                        )==-1)
+                                buf1=NULL;
+                } else {
+                        if(asprintf(&buf1, "%s UNION ALL SELECT %lu, %lu, %lu FROM DUAL ",
+                                        buf1,
+                                        idi->dbinfo.instance_id,
+                                        service_id,
+                                        member_id
+                                        )==-1)
+                                buf1=NULL;
+                }
+#endif /* Oracle ocilib specific */
+
+		free(buf);
+		first=0;
+	}
+
+#ifdef USE_ORACLE /* Oracle ocilib specific */
+
+        if(asprintf(&buf1, "%s)", buf1)==-1)
+                buf1=NULL;
+
+#endif /* Oracle ocilib specific */
+
+	if(first==0){
+		result=ido2db_db_query(idi, buf1);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 		dbi_result_free(idi->dbinfo.dbi_result);
@@ -6056,10 +6293,15 @@ int ido2db_handle_servicedefinition(ido2db_idi *idi) {
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
 
+        /* statement handle not re-binded */
+        OCI_StatementFree(idi->dbinfo.oci_statement);
 
 #endif /* Oracle ocilib specific */
 
 	}
+
+	free(buf1);
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_servicedefinition() service_contacts end\n");
 
 	/* save custom variables to db */
 	result=ido2db_save_custom_variables(idi,IDO2DB_DBTABLE_CUSTOMVARIABLES,object_id,NULL, -1);
@@ -7530,7 +7772,7 @@ int ido2db_handle_contactgroupdefinition(ido2db_idi *idi) {
 #endif
 
 #ifdef USE_ORACLE /* Oracle ocilib specific */
-                asprintf(&seq_name, "seq_contactgroups");
+                dummy=asprintf(&seq_name, "seq_contactgroups");
                 group_id = ido2db_ocilib_insert_id(idi, seq_name);
 		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_contactgroupdefinition(%lu) group_id\n", group_id);
                 free(seq_name);

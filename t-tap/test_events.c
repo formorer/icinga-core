@@ -143,6 +143,11 @@ int log_debug_info(int level, int verbosity, const char *fmt, ...){
 }
 int update_host_status(host *hst,int aggregated_dump){}
 
+/* Icinga special */
+int     event_profiling_enabled=FALSE;
+void    profiler_update(int event, struct timeval start){}
+
+
 /* Test variables */
 service *svc1=NULL, *svc2=NULL, *svc3=NULL;
 host *host1=NULL;
@@ -230,6 +235,7 @@ setup_events_with_host(time_t time) {
 		host1=(host *)malloc(sizeof(host));
 	host1->name=strdup("Host1");
 	host1->address=strdup("127.0.0.1");
+	host1->address=strdup("::1");
 	host1->retry_interval=1;
 	host1->check_interval=5;
 	host1->check_options=0;

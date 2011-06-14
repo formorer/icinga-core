@@ -3,7 +3,7 @@
  * CGIUTILS.H - Header file for common CGI functions
  *
  * Copyright (c) 1999-2008  Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org) 
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org) 
  *
  * License:
  * 
@@ -28,6 +28,7 @@
 #include "logging.h"
 #include "objects.h"
 #include "cgiauth.h"
+#include "readlogs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -88,6 +89,17 @@ extern "C" {
 #define CHECKSANITY_CGI_ID	18
 #define MINISTATUS_CGI_ID	19
 
+/* for error msg */
+#define ERROR_CGI_ID	20
+
+
+/******************************* ERROR CGI IDS **********************************/
+
+#define ERROR_CGI_STATUS_DATA	1
+#define ERROR_CGI_OBJECT_DATA	2
+#define ERROR_CGI_CFG_FILE	3
+#define ERROR_CGI_MAIN_CFG	4
+
 
 /**************************** STYLE SHEET NAMES ******************************/
 
@@ -107,6 +119,7 @@ extern "C" {
 #define STATUSMAP_CSS		"statusmap.css"
 #define SUMMARY_CSS		"summary.css"
 #define TAC_CSS			"tac.css"
+#define TAC_HEADER_CSS		"tacheader.css"
 #define TRENDS_CSS		"trends.css"
 
 /* Are these ones still in use??? */
@@ -223,6 +236,19 @@ extern "C" {
 #define SPLUNK_SMALL_WHITE_ICON		"splunk1.gif"
 #define SPLUNK_SMALL_BLACK_ICON		"splunk2.gif"
 
+#define DATABASE_ICON			"database.gif"
+#define AUTOSAVE_ICON			"save.gif"
+#define DAEMON_WARNING_ICON		"warning_triangle.gif"
+#define STATS_ICON			"stats.gif"
+
+#define TAC_HEADER_DEFAULT_LOGO		"Icinga_Header_Webinterface.jpg"
+#define TAC_HEADER_DEFAULT_LOGO_ALT	"Icinga"
+#define TAC_HEADER_LOGO			"Icinga_TAC_Header_Webinterface.jpg"
+#define TAC_HEADER_HOST_ICON		"server.png"
+#define TAC_HEADER_SERVICE_ICON		"application-monitor.png"
+#define TAC_HEADER_EXECUTION_ICON	"hourglass-exclamation.png"
+#define TAC_HEADER_LATENCY_ICON		"hourglass-arrow.png"
+
 
 /************************** PLUGIN RETURN VALUES ****************************/
 
@@ -257,6 +283,7 @@ extern "C" {
 #define WML_CONTENT		1
 #define IMAGE_CONTENT		2
 #define CSV_CONTENT		3
+#define JSON_CONTENT		4
 
 
 /************************ CSV OUTPUT CHARACTERS ****************************/
@@ -340,6 +367,8 @@ extern "C" {
 #define HOST_ACTIVE_CHECK		131072
 #define HOST_HARD_STATE			262144
 #define HOST_SOFT_STATE			524288
+#define HOST_STATE_HANDLED		1048576
+#define HOST_NOT_ALL_CHECKS_DISABLED	2097152	
 
 
 #define SERVICE_SCHEDULED_DOWNTIME	1
@@ -362,6 +391,8 @@ extern "C" {
 #define SERVICE_ACTIVE_CHECK		131072
 #define SERVICE_HARD_STATE		262144
 #define SERVICE_SOFT_STATE		524288
+#define SERVICE_STATE_HANDLED		1048576
+#define SERVICE_NOT_ALL_CHECKS_DISABLED	2097152
 
 
 /****************************** SSI TYPES  ********************************/
@@ -458,13 +489,32 @@ extern "C" {
 #define CONTEXTHELP_SUMMARY_ALERT_PRODUCERS		"N7"
 #define CONTEXTHELP_SUMMARY_SERVICEGROUP_ALERT_TOTALS	"N8"
 
+/************************** TAC TITLES ****************************/
 
-/************************** LIFO RETURN CODES  ****************************/
+#define TAC_TITLE_HOST_NOT_DISABLED			"Hosts Not Disabled"
+#define TAC_TITLE_HOST_DISABLED				"Hosts Disabled"
+#define TAC_TITLE_HOST_UNACK_HOSTS			"Unacknowledged Hosts"
+#define TAC_TITLE_HOST_ACK_HOSTS			"Acknowledged Hosts"
+#define TAC_TITLE_HOST_NON_URGENT			"Handled Hosts"
+#define TAC_TITLE_HOST_PROBLEM_ALL			"All Problem Hosts"
+#define TAC_TITLE_HOST_ALL				"All Hosts"
 
-#define LIFO_OK			0
-#define LIFO_ERROR_MEMORY	1
-#define LIFO_ERROR_FILE		2
-#define LIFO_ERROR_DATA		3
+#define TAC_TITLE_SVC_NOT_DISABLED			"Services Not Disabled"
+#define TAC_TITLE_SVC_DISABLED				"Services Disabled"
+#define TAC_TITLE_SVC_UNACK_SERVICES			"Unacknowledged Services"
+#define TAC_TITLE_SVC_ACK_SERVICES			"Acknowledged Services"
+#define TAC_TITLE_SVC_NON_URGENT			"Handled Services"
+#define TAC_TITLE_SVC_PROBLEM_ALL			"All Problem Services"
+#define TAC_TITLE_SVC_ALL				"All Services"
+
+
+/************************** HTTP CHARSET ****************************/
+
+#define DEFAULT_HTTP_CHARSET "utf-8"
+
+/************************** JSON OUTPUT VERSION ************************/
+
+#define JSON_OUTPUT_VERSION "1.4.1"
 
 
 /************************** BUFFER  ***************************************/
@@ -488,6 +538,8 @@ extern "C" {
 #define DISPLAY_SERVICEESCALATIONS      10
 #define DISPLAY_HOSTDEPENDENCIES        11
 #define DISPLAY_HOSTESCALATIONS         12
+#define DISPLAY_ALL			13
+#define DISPLAY_MODULES			14
 #define DISPLAY_COMMAND_EXPANSION       16211
 
 #define STYLE_OVERVIEW                  0
@@ -511,16 +563,24 @@ extern "C" {
 #define STATE_SOFT                      1
 #define STATE_HARD                      2
 
+/********************* standard report times ****************************/
 
-
-/*************************** DATA STRUCTURES  *****************************/
-
-/* LIFO data structure */
-typedef struct lifo_struct{
-	char *data;
-	struct lifo_struct *next;
-        }lifo;
-
+#define TIMEPERIOD_CUSTOM	0
+#define TIMEPERIOD_TODAY	1
+#define TIMEPERIOD_YESTERDAY	2
+#define TIMEPERIOD_THISWEEK	3
+#define TIMEPERIOD_LASTWEEK	4
+#define TIMEPERIOD_THISMONTH	5
+#define TIMEPERIOD_LASTMONTH	6
+#define TIMEPERIOD_THISQUARTER	7
+#define TIMEPERIOD_LASTQUARTER	8
+#define TIMEPERIOD_THISYEAR	9
+#define TIMEPERIOD_LASTYEAR	10
+#define TIMEPERIOD_LAST24HOURS	11
+#define TIMEPERIOD_LAST7DAYS	12
+#define TIMEPERIOD_LAST31DAYS	13
+#define TIMEPERIOD_SINGLE_DAY	14
+#define TIMEPERIOD_NEXTPROBLEM	15
 
 /******************************** FUNCTIONS *******************************/
 
@@ -547,10 +607,6 @@ char * url_encode(char *);					/* encodes a string in proper URL format */
 char * html_encode(char *,int);					/* encodes a string in HTML format (for what the user sees) */
 char * escape_string(char *);					/* escape string for html form usage */
 
-void get_log_archive_to_use(int,char *,int);			/* determines the name of the log archive to use */
-void determine_log_rotation_times(int);
-int determine_archive_to_use_from_time(time_t);
-
 void print_extra_hostgroup_url(char *,char *);
 void print_extra_servicegroup_url(char *,char *);
 
@@ -569,13 +625,9 @@ void cgi_config_file_error(char *);
 void main_config_file_error(char *);
 void object_data_error(void);
 void status_data_error(void);
+void print_error(char*, int);
 
 void display_context_help(char *);				/* displays context-sensitive help window */
-
-int read_file_into_lifo(char *);				/* LIFO functions */
-void free_lifo_memory(void);
-int push_lifo(char *);
-char *pop_lifo(void);
 
 void document_header(int,int);					/* print document header */
 void document_footer(int);					/* print document footer */
@@ -583,6 +635,21 @@ void document_footer(int);					/* print document footer */
 void write_popup_code(int);					/* PopUp's for graphics */
 int check_daemon_running(void);
 
+void print_generic_error_message(char *, char *, int);
+
+char *get_export_csv_link(char *);				/* function to make export csv link XSS save #1275 */
+
+int write_to_cgi_log(char *);
+int rotate_cgi_log_file(void);
+int my_rename(char *,char *);					/* renames a file - works across filesystems */
+int my_fcopy(char *,char *);					/* copies a file - works across filesystems */
+int my_fdcopy(char *, char *, int);				/* copies a named source to an already opened destination file */
+
+void convert_timeperiod_to_times(int, time_t *, time_t *);	/* converts time period to start and end unix timestamps */
+int string_to_time(char *, time_t *);				/* converts a defined formated string to unix timestamp */
+
+int is_dlst_time(time_t *);
+char *json_encode(char *);
 
 /******************************** MULTIURL PATCH *******************************/
 

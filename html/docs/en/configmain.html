@@ -1,11 +1,11 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>Main Configuration File Options</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.75.1">
 <meta name="keywords" content="Supervision, Icinga, Nagios, Linux">
-<link rel="home" href="index.html" title="Icinga Version 1.2 Documentation">
-<link rel="up" href="ch03.html" title="ChapterÂ 3.Â Configuring Icinga">
+<link rel="home" href="index.html" title="Icinga Version 1.4 Documentation">
+<link rel="up" href="ch03.html" title="Chapter 3. Configuring Icinga">
 <link rel="prev" href="config.html" title="Configuration Overview">
 <link rel="next" href="configobject.html" title="Object Configuration Overview">
 </head>
@@ -16,9 +16,9 @@
 <tr><th colspan="3" align="center">Main Configuration File Options</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="config.html">Prev</a>Â </td>
-<th width="60%" align="center">ChapterÂ 3.Â Configuring Icinga</th>
-<td width="20%" align="right">Â <a accesskey="n" href="configobject.html">Next</a>
+<a accesskey="p" href="config.html">Prev</a> </td>
+<th width="60%" align="center">Chapter 3. Configuring Icinga</th>
+<td width="20%" align="right"> <a accesskey="n" href="configobject.html">Next</a>
 </td>
 </tr>
 </table>
@@ -511,6 +511,18 @@
     </li>
 </ul></div>
 
+  <div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+      <p><a class="link" href="configmain.html#configmain-allow_empty_hostgroup_assignment">Allow empty hostgroup assignment</a></p>
+    </li>
+<li class="listitem">
+      <p><a class="link" href="configmain.html#configmain-process_empty_results">Process empty host performance results</a></p>
+    </li>
+<li class="listitem">
+      <p><a class="link" href="configmain.html#configmain-process_empty_results">Process empty service performance results</a></p>
+    </li>
+</ul></div>
+
   <p>Below you will find descriptions of each main Icinga configuration file option...</p>
 
   <p><a name="configmain-log_file"></a> <span class="bold"><strong>Log File</strong></span></p>
@@ -528,8 +540,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_file=/usr/local/icinga/var/icinga.log</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_file=/usr/local/icinga/var/icinga.log</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -559,37 +571,37 @@
 <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_file=/usr/local/icinga/etc/hosts.cfg</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_file=/usr/local/icinga/etc/services.cfg</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_file=/usr/local/icinga/etc/commands.cfg</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p>
@@ -623,37 +635,37 @@
 <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_dir=/usr/local/icinga/etc/commands</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_dir=/usr/local/icinga/etc/services</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>cfg_dir=/usr/local/icinga/etc/hosts</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p>
@@ -684,7 +696,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>object_cache_file=/usr/local/icinga/var/objects.cache</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>object_cache_file=/usr/local/icinga/var/objects.cache</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -710,7 +722,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>precached_object_file=/usr/local/icinga/var/objects.precache</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>precached_object_file=/usr/local/icinga/var/objects.precache</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -735,7 +747,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>resource_file=/usr/local/icinga/etc/resource.cfg</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>resource_file=/usr/local/icinga/etc/resource.cfg</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -763,8 +775,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>temp_file=/usr/local/icinga/var/icinga.tmp</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>temp_file=/usr/local/icinga/var/icinga.tmp</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -788,7 +800,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>temp_path=/tmp</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>temp_path=/tmp</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -813,7 +825,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>status_file=/usr/local/icinga/var/status.dat</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>status_file=/usr/local/icinga/var/status.dat</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -838,7 +850,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>status_update_interval=15</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>status_update_interval=15</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -862,7 +874,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>icinga_user=icinga</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>icinga_user=icinga</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -888,7 +900,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>icinga_group=icinga</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>icinga_group=icinga</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -914,7 +926,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_notifications=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_notifications=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -963,7 +975,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>execute_service_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>execute_service_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1014,7 +1026,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>accept_passive_service_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>accept_passive_service_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1063,7 +1075,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>execute_host_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>execute_host_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1114,7 +1126,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>accept_passive_host_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>accept_passive_host_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1163,7 +1175,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_event_handlers=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_event_handlers=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1212,7 +1224,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_rotation_method=d</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_rotation_method=d</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1254,7 +1266,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_archive_path=/usr/local/icinga/var/archives/</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_archive_path=/usr/local/icinga/var/archives/</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1278,7 +1290,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_external_commands=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_external_commands=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1313,7 +1325,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>command_check_interval=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>command_check_interval=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1352,7 +1364,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>command_file=/usr/local/icinga/var/rw/icinga.cmd</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>command_file=/usr/local/icinga/var/rw/icinga.cmd</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1378,8 +1390,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>external_command_buffer_slots=512</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>external_command_buffer_slots=512</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1395,8 +1407,8 @@
     that have been read from the external command file by a worker thread, but have not yet been processed by the main thread of the
     Icinga deamon. Each slot can hold one external command, so this option essentially determines how many commands can be buffered.
     For installations where you process a large number of passive checks (e.g. <a class="link" href="distributed.html" title="Distributed Monitoring">distributed setups</a>), you
-    may need to increase this number. You should consider using MRTG to graph Icinga's usage of external command buffers. You can
-    read more on how to configure graphing <a class="link" href="mrtggraphs.html" title="Graphing Performance Info With MRTG">here</a>.</p>
+    may need to increase this number. You should consider using PNP4Nagios to graph Icinga's usage of external command buffers. You can
+    read more on how to configure graphing <a class="link" href="perfgraphs.html" title="Graphing Performance Info With PNP4Nagios">here</a>.</p>
   </td></tr>
 </table></div>
 
@@ -1415,7 +1427,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p><span class="color"> <span class="bold"><strong>check_for_updates=1</strong></span> </span>
+<td><p><span class="color"><font color="red"> <span class="bold"><strong>check_for_updates=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1441,7 +1453,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p><span class="color"> <span class="bold"><strong>bare_update_checks=0</strong></span> </span>
+<td><p><span class="color"><font color="red"> <span class="bold"><strong>bare_update_checks=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1467,7 +1479,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>lock_file=/tmp/icinga.lock</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>lock_file=/tmp/icinga.lock</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1492,7 +1504,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>retain_state_information=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>retain_state_information=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1528,7 +1540,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>state_retention_file=/usr/local/icinga/var/retention.dat</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>state_retention_file=/usr/local/icinga/var/retention.dat</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1553,7 +1565,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>sync_retention_file=/usr/local/icinga/var/sync.dat</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>sync_retention_file=/usr/local/icinga/var/sync.dat</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1582,7 +1594,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>retention_update_interval=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>retention_update_interval=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1608,7 +1620,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_retained_program_state=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_retained_program_state=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1644,7 +1656,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_retained_scheduling_info=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_retained_scheduling_info=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1700,25 +1712,25 @@
 <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_host_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_service_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p>
@@ -1770,25 +1782,25 @@
 <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_process_host_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_process_service_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p>
@@ -1841,25 +1853,25 @@
 <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_contact_host_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p> <p>
                
 
-              <span class="color">
+              <span class="color"><font color="red">
                  
 
                 <span class="bold"><strong>retained_contact_service_attribute_mask=0</strong></span>
 
                  
-              </span>
+              </font></span>
 
                
             </p>
@@ -1890,7 +1902,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_syslog=1</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_syslog=1</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -1922,7 +1934,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_syslog_local_facility=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_syslog_local_facility=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1957,7 +1969,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>syslog_local_facility=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>syslog_local_facility=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -1982,7 +1994,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_notifications=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_notifications=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2016,7 +2028,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_service_retries=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_service_retries=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2052,7 +2064,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_host_retries=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_host_retries=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2086,7 +2098,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_event_handlers=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_event_handlers=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2121,7 +2133,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_initial_states=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_initial_states=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2157,7 +2169,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_external_commands=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_external_commands=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2203,7 +2215,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_external_commands_user=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_external_commands_user=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2248,7 +2260,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_passive_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_passive_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2283,7 +2295,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_current_states=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_current_states=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2327,7 +2339,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>log_current_states=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>log_current_states=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2371,7 +2383,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>global_host_event_handler=log-host-event-to-db</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>global_host_event_handler=log-host-event-to-db</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2398,7 +2410,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>global_service_event_handler=log-service-event-to-db</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>global_service_event_handler=log-service-event-to-db</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2442,8 +2454,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>stalking_event_handlers_for_hosts=1</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>stalking_event_handlers_for_hosts=1</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2486,7 +2498,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>sleep_time=1</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>sleep_time=1</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2512,8 +2524,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_inter_check_delay_method=s</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_inter_check_delay_method=s</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2556,7 +2568,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_service_check_spread=30</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_service_check_spread=30</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2583,7 +2595,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_interleave_factor=s</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_interleave_factor=s</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2623,7 +2635,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_concurrent_checks=20</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_concurrent_checks=20</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2651,7 +2663,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_result_reaper_frequency=5</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_result_reaper_frequency=5</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2677,7 +2689,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_check_result_reaper_time=30</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_check_result_reaper_time=30</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2705,7 +2717,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_result_path=/var/spool/icinga/checkresults</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_result_path=/var/spool/icinga/checkresults</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -2742,7 +2754,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_check_result_file_age=3600</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_check_result_file_age=3600</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2768,7 +2780,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_inter_check_delay_method=s</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_inter_check_delay_method=s</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2811,7 +2823,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_host_check_spread=30</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_host_check_spread=30</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2838,7 +2850,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>interval_length=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>interval_length=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2867,7 +2879,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>auto_reschedule_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>auto_reschedule_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2896,7 +2908,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>auto_rescheduling_interval=30</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>auto_rescheduling_interval=30</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2925,7 +2937,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>auto_rescheduling_window=180</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>auto_rescheduling_window=180</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2957,7 +2969,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_aggressive_host_checking=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_aggressive_host_checking=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -2994,7 +3006,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>translate_passive_host_checks=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>translate_passive_host_checks=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3030,7 +3042,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>passive_host_checks_are_soft=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>passive_host_checks_are_soft=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3066,8 +3078,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_predictive_host_dependency_checks=1</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_predictive_host_dependency_checks=1</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3102,7 +3114,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_predictive_service_dependency_checks=1</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_predictive_service_dependency_checks=1</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3137,7 +3149,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>cached_host_check_horizon=15</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>cached_host_check_horizon=15</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3165,7 +3177,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>cached_service_check_horizon=15</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>cached_service_check_horizon=15</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3194,7 +3206,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_large_installation_tweaks=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_large_installation_tweaks=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3229,7 +3241,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>free_child_process_memory=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>free_child_process_memory=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3264,7 +3276,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>child_processes_fork_twice=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>child_processes_fork_twice=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3299,7 +3311,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_environment_macros=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_environment_macros=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3335,7 +3347,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_flap_detection=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_flap_detection=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3385,7 +3397,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>low_service_flap_threshold=25.0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>low_service_flap_threshold=25.0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3410,8 +3422,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>high_service_flap_threshold=50.0</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>high_service_flap_threshold=50.0</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3435,7 +3447,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>low_host_flap_threshold=25.0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>low_host_flap_threshold=25.0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3460,7 +3472,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>high_host_flap_threshold=50.0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>high_host_flap_threshold=50.0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3485,7 +3497,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>soft_state_dependencies=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>soft_state_dependencies=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3521,7 +3533,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_check_timeout=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_check_timeout=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3551,7 +3563,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_check_timeout_state=u</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_check_timeout_state=u</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3577,7 +3589,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_check_timeout=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_check_timeout=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3607,7 +3619,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>event_handler_timeout=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>event_handler_timeout=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3637,7 +3649,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>notification_timeout=60</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>notification_timeout=60</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3667,7 +3679,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>ocsp_timeout=5</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>ocsp_timeout=5</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3691,7 +3703,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>ochp_timeout=5</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>ochp_timeout=5</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3715,7 +3727,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>perfdata_timeout=5</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>perfdata_timeout=5</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3741,7 +3753,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>obsess_over_services=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>obsess_over_services=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3776,8 +3788,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>ocsp_command=obsessive_service_handler</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>ocsp_command=obsessive_service_handler</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3805,7 +3817,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>obsess_over_hosts=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>obsess_over_hosts=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3840,8 +3852,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>ochp_command=obsessive_host_handler</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>ochp_command=obsessive_host_handler</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3868,7 +3880,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>process_performance_data=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>process_performance_data=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -3903,8 +3915,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_command=process-host-perfdata</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_command=process-host-perfdata</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3932,7 +3944,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_command=process-service-perfdata</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_command=process-service-perfdata</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3959,7 +3971,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_file=/usr/local/icinga/var/host-perfdata.dat</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_file=/usr/local/icinga/var/host-perfdata.dat</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -3985,7 +3997,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_file=/usr/local/icinga/var/service-perfdata.dat</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_file=/usr/local/icinga/var/service-perfdata.dat</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4013,8 +4025,9 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_file_template=[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_file_template=[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$ \
+   \t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4040,8 +4053,10 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_file_template=[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$ \
+   \t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$ \
+   \t$SERVICEOUTPUT$\t$SERVICEPERFDATA$</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4066,7 +4081,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_file_mode=a</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_file_mode=a</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4103,7 +4118,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_file_mode=a</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_file_mode=a</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4141,8 +4156,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_file_processing_interval=0</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_file_processing_interval=0</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4168,8 +4183,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_file_processing_interval=0</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_file_processing_interval=0</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4196,7 +4211,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_perfdata_file_processing_command=process-host-perfdata-file</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_file_processing_command=process-host-perfdata-file</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4222,7 +4237,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_perfdata_file_processing_command=process-service-perfdata-file</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_file_processing_command=process-service-perfdata-file</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4247,7 +4262,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_for_orphaned_services=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_for_orphaned_services=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4286,7 +4301,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_for_orphaned_hosts=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_for_orphaned_hosts=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4325,7 +4340,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_service_freshness=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_service_freshness=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4361,8 +4376,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>service_freshness_check_interval=60</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>service_freshness_check_interval=60</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4387,7 +4402,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>check_host_freshness=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>check_host_freshness=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4422,8 +4437,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>host_freshness_check_interval=60</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>host_freshness_check_interval=60</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4449,7 +4464,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>additional_freshness_latency=15</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>additional_freshness_latency=15</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4474,7 +4489,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>enable_embedded_perl=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>enable_embedded_perl=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4501,7 +4516,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_embedded_perl_implicitly=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_embedded_perl_implicitly=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4527,7 +4542,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>date_format=us</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>date_format=us</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4587,7 +4602,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_timezone=US/Mountain</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_timezone=US/Mountain</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4632,7 +4647,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>illegal_object_name_chars=`~!$%^&amp;*"|'&lt;&gt;?,()=</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>illegal_object_name_chars=`~!$%^&amp;*"|'&lt;&gt;?,()=</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4656,7 +4671,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>illegal_macro_output_chars=`~$^&amp;"|'&lt;&gt;</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>illegal_macro_output_chars=`~$^&amp;"|'&lt;&gt;</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4685,7 +4700,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_regexp_matching=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_regexp_matching=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4720,7 +4735,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>use_true_regexp_matching=0</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>use_true_regexp_matching=0</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4756,15 +4771,15 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>admin_email=root@localhost.localdomain</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>admin_email=root@localhost.localdomain</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
   </div>
 
   <p>This is the email address for the administrator of the local machine (i.e. the one that Icinga is running on). This value can
-  be used in notification commands by using the <span class="bold"><strong>$ADMINEMAIL$</strong></span><a class="link" href="macros.html" title="Understanding Macros and How They Work">macro</a>.</p>
+  be used in notification commands by using the <span class="bold"><strong>$ADMINEMAIL$</strong></span> <a class="link" href="macros.html" title="Understanding Macros and How They Work">macro</a>.</p>
 
   <p><a name="configmain-admin_pager"></a> <span class="bold"><strong>Administrator Pager</strong></span></p>
 
@@ -4781,15 +4796,15 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>admin_pager=pageroot@localhost.localdomain</strong></span>
-          </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>admin_pager=pageroot@localhost.localdomain</strong></span>
+          </font></span> </p></td>
 </tr>
 </tbody>
 </table>
   </div>
 
   <p>This is the pager number (or pager email gateway) for the administrator of the local machine (i.e. the one that Icinga is
-  running on). The pager number/address can be used in notification commands by using the <span class="bold"><strong>$ADMINPAGER$</strong></span><a class="link" href="macros.html" title="Understanding Macros and How They Work">macro</a>.</p>
+  running on). The pager number/address can be used in notification commands by using the <span class="bold"><strong>$ADMINPAGER$</strong></span> <a class="link" href="macros.html" title="Understanding Macros and How They Work">macro</a>.</p>
 
   <p><a name="configmain-event_broker_options"></a> <span class="bold"><strong>Event Broker Options</strong></span></p>
 
@@ -4806,7 +4821,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>event_broker_options=-1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>event_broker_options=-1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -4844,8 +4859,8 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>broker_module=/usr/local/icinga/bin/idomod.o
-          cfg_file=/usr/local/icinga/etc/idomod.cfg</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>broker_module=/usr/local/icinga/bin/idomod.o \
+          cfg_file=/usr/local/icinga/etc/idomod.cfg</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4887,7 +4902,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>debug_file=/usr/local/icinga/var/icinga.debug</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>debug_file=/usr/local/icinga/var/icinga.debug</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4912,7 +4927,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>debug_level=24</strong></span> </span> </p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>debug_level=24</strong></span> </font></span> </p></td>
 </tr>
 </tbody>
 </table>
@@ -4965,7 +4980,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>debug_verbosity=1</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>debug_verbosity=1</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -5001,7 +5016,7 @@
 </tr>
 <tr>
 <td><p>Example:</p></td>
-<td><p> <span class="color"> <span class="bold"><strong>max_debug_file_size=1000000</strong></span> </span>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>max_debug_file_size=1000000</strong></span> </font></span>
           </p></td>
 </tr>
 </tbody>
@@ -5012,289 +5027,377 @@
   larger than this size, it will be renamed with a .old extension. If a file already exists with a .old extension it will automatically be
   deleted. This helps ensure your disk space usage doesn't get out of control when debugging Icinga.</p>
 
-  <a class="indexterm" name="id4266581"></a>
+  <p><a name="configmain-allow_empty_hostgroup_assignment"></a> <span class="bold"><strong>Allow Empty Hostgroup
+  Assignment</strong></span></p>
+
+  <div class="informaltable">
+    <table border="0">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p>Format:</p></td>
+<td><p> <span class="bold"><strong>allow_empty_hostgroup_assignment=&lt;0|1&gt;</strong></span> </p></td>
+</tr>
+<tr>
+<td><p>Example:</p></td>
+<td><p> <span class="color"><font color="red"> <span class="bold"><strong>allow_empty_hostgroup_assignment=1</strong></span>
+          </font></span> </p></td>
+</tr>
+</tbody>
+</table>
+  </div>
+
+  <p>This boolean option determines whether services assigned to empty host groups (host groups with no host members) will cause
+  Icinga to exit with error on startup (or during a configuration check) or not. The default behaviour if the option is not present
+  (or set to "0") in the main configuration file is for Icinga to exit with error if services are associated with host groups whose
+  hostgroup definitions have no host_members associated with them.</p>
+
+  <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+    <p>This option is available starting with Icinga 1.3.</p>
+  </td></tr>
+</table></div>
 
-  <a class="indexterm" name="id4266590"></a>
+  <p><a name="configmain-process_empty_results"></a> <span class="bold"><strong>Process empty performance results</strong></span></p>
 
-  <a class="indexterm" name="id4266603"></a>
+  <div class="informaltable">
+    <table border="0">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p>Format:</p></td>
+<td>
+<p> <span class="bold"><strong>host_perfdata_process_empty_results=&lt;0|1&gt;</strong></span> </p>
+          <p> <span class="bold"><strong>service_perfdata_process_empty_results=&lt;0|1&gt;</strong></span> </p>
+</td>
+</tr>
+<tr>
+<td><p>Example:</p></td>
+<td>
+<p> <span class="color"><font color="red"> <span class="bold"><strong>host_perfdata_process_empty_results=1</strong></span>
+          </font></span></p>
+          <p> <span class="color"><font color="red"> <span class="bold"><strong>service_perfdata_process_empty_results=1</strong></span>
+          </font></span></p>
+</td>
+</tr>
+</tbody>
+</table>
+  </div>
 
-  <a class="indexterm" name="id4266616"></a>
+  <p>These options determine whether the core will process empty perfdata results or not. This is needed for distributed monitoring, and
+  intentionally turned on by default. If you don't require empty perfdata - saving some cpu cycles on unwanted macro calculation - you can
+  turn that off. Be careful! Values: 1 = enable, 0 = disable</p>
 
-  <a class="indexterm" name="id4266626"></a>
+  <div class="note" title="Note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top">
+    <p>These options are available starting with Icinga 1.4</p>
+  </td></tr>
+</table></div>
 
-  <a class="indexterm" name="id4266639"></a>
 
-  <a class="indexterm" name="id4266654"></a>
+  <a class="indexterm" name="id5677474"></a>
 
-  <a class="indexterm" name="id4266640"></a>
+  <a class="indexterm" name="id5677481"></a>
 
-  <a class="indexterm" name="id4266683"></a>
+  <a class="indexterm" name="id5677426"></a>
 
-  <a class="indexterm" name="id4266668"></a>
+  <a class="indexterm" name="id5677508"></a>
 
-  <a class="indexterm" name="id4266710"></a>
+  <a class="indexterm" name="id5677519"></a>
 
-  <a class="indexterm" name="id4266724"></a>
+  <a class="indexterm" name="id5677531"></a>
 
-  <a class="indexterm" name="id4266736"></a>
+  <a class="indexterm" name="id5677544"></a>
 
-  <a class="indexterm" name="id4266696"></a>
+  <a class="indexterm" name="id5677559"></a>
 
-  <a class="indexterm" name="id4266765"></a>
+  <a class="indexterm" name="id5677573"></a>
 
-  <a class="indexterm" name="id4266751"></a>
+  <a class="indexterm" name="id5677586"></a>
 
-  <a class="indexterm" name="id4266790"></a>
+  <a class="indexterm" name="id5677545"></a>
 
-  <a class="indexterm" name="id4266776"></a>
+  <a class="indexterm" name="id5677614"></a>
 
-  <a class="indexterm" name="id4266818"></a>
+  <a class="indexterm" name="id5677600"></a>
 
-  <a class="indexterm" name="id4266804"></a>
+  <a class="indexterm" name="id5677641"></a>
 
-  <a class="indexterm" name="id4266847"></a>
+  <a class="indexterm" name="id5677655"></a>
 
-  <a class="indexterm" name="id4266858"></a>
+  <a class="indexterm" name="id5677669"></a>
 
-  <a class="indexterm" name="id4266871"></a>
+  <a class="indexterm" name="id5677682"></a>
 
-  <a class="indexterm" name="id4266884"></a>
+  <a class="indexterm" name="id5677695"></a>
 
-  <a class="indexterm" name="id4266900"></a>
+  <a class="indexterm" name="id5677709"></a>
 
-  <a class="indexterm" name="id4266886"></a>
+  <a class="indexterm" name="id5677723"></a>
 
-  <a class="indexterm" name="id4266926"></a>
+  <a class="indexterm" name="id5677736"></a>
 
-  <a class="indexterm" name="id4266940"></a>
+  <a class="indexterm" name="id5677749"></a>
 
-  <a class="indexterm" name="id4266927"></a>
+  <a class="indexterm" name="id5677764"></a>
 
-  <a class="indexterm" name="id4266941"></a>
+  <a class="indexterm" name="id5677710"></a>
 
-  <a class="indexterm" name="id4266956"></a>
+  <a class="indexterm" name="id5677789"></a>
 
-  <a class="indexterm" name="id4266995"></a>
+  <a class="indexterm" name="id5677804"></a>
 
-  <a class="indexterm" name="id4267009"></a>
+  <a class="indexterm" name="id5677818"></a>
 
-  <a class="indexterm" name="id4266997"></a>
+  <a class="indexterm" name="id5677833"></a>
 
-  <a class="indexterm" name="id4267038"></a>
+  <a class="indexterm" name="id5677847"></a>
 
-  <a class="indexterm" name="id4267052"></a>
+  <a class="indexterm" name="id5677861"></a>
 
-  <a class="indexterm" name="id4267063"></a>
+  <a class="indexterm" name="id5677874"></a>
 
-  <a class="indexterm" name="id4267080"></a>
+  <a class="indexterm" name="id5677888"></a>
 
-  <a class="indexterm" name="id4267094"></a>
+  <a class="indexterm" name="id5677901"></a>
 
-  <a class="indexterm" name="id4267106"></a>
+  <a class="indexterm" name="id5677915"></a>
 
-  <a class="indexterm" name="id4267120"></a>
+  <a class="indexterm" name="id5677929"></a>
 
-  <a class="indexterm" name="id4267134"></a>
+  <a class="indexterm" name="id5677941"></a>
 
-  <a class="indexterm" name="id4267149"></a>
+  <a class="indexterm" name="id5677956"></a>
 
-  <a class="indexterm" name="id4267135"></a>
+  <a class="indexterm" name="id5677943"></a>
 
-  <a class="indexterm" name="id4267178"></a>
+  <a class="indexterm" name="id5677972"></a>
 
-  <a class="indexterm" name="id4267163"></a>
+  <a class="indexterm" name="id5677998"></a>
 
-  <a class="indexterm" name="id4267203"></a>
+  <a class="indexterm" name="id5678012"></a>
 
-  <a class="indexterm" name="id4267191"></a>
+  <a class="indexterm" name="id5677999"></a>
 
-  <a class="indexterm" name="id4267229"></a>
+  <a class="indexterm" name="id5678040"></a>
 
-  <a class="indexterm" name="id4267246"></a>
+  <a class="indexterm" name="id5678027"></a>
 
-  <a class="indexterm" name="id4267232"></a>
+  <a class="indexterm" name="id5678068"></a>
 
-  <a class="indexterm" name="id4267272"></a>
+  <a class="indexterm" name="id5678054"></a>
 
-  <a class="indexterm" name="id4267288"></a>
+  <a class="indexterm" name="id5678096"></a>
 
-  <a class="indexterm" name="id4267274"></a>
+  <a class="indexterm" name="id5678082"></a>
 
-  <a class="indexterm" name="id4267316"></a>
+  <a class="indexterm" name="id5678124"></a>
 
-  <a class="indexterm" name="id4267330"></a>
+  <a class="indexterm" name="id5678110"></a>
 
-  <a class="indexterm" name="id4267344"></a>
+  <a class="indexterm" name="id5678150"></a>
 
-  <a class="indexterm" name="id4267357"></a>
+  <a class="indexterm" name="id5678164"></a>
 
-  <a class="indexterm" name="id4267369"></a>
+  <a class="indexterm" name="id5678177"></a>
 
-  <a class="indexterm" name="id4267385"></a>
+  <a class="indexterm" name="id5678179"></a>
 
-  <a class="indexterm" name="id4267372"></a>
+  <a class="indexterm" name="id5678192"></a>
 
-  <a class="indexterm" name="id4267413"></a>
+  <a class="indexterm" name="id5678191"></a>
 
-  <a class="indexterm" name="id4267426"></a>
+  <a class="indexterm" name="id5678234"></a>
 
-  <a class="indexterm" name="id4267400"></a>
+  <a class="indexterm" name="id5678220"></a>
 
-  <a class="indexterm" name="id4267428"></a>
+  <a class="indexterm" name="id5678258"></a>
 
-  <a class="indexterm" name="id4267442"></a>
+  <a class="indexterm" name="id5678247"></a>
 
-  <a class="indexterm" name="id4267455"></a>
+  <a class="indexterm" name="id5678260"></a>
 
-  <a class="indexterm" name="id4267469"></a>
+  <a class="indexterm" name="id5678299"></a>
 
-  <a class="indexterm" name="id4267510"></a>
+  <a class="indexterm" name="id5678289"></a>
 
-  <a class="indexterm" name="id4267496"></a>
+  <a class="indexterm" name="id5678300"></a>
 
-  <a class="indexterm" name="id4267495"></a>
+  <a class="indexterm" name="id5678332"></a>
 
-  <a class="indexterm" name="id4267549"></a>
+  <a class="indexterm" name="id5678355"></a>
 
-  <a class="indexterm" name="id4267551"></a>
+  <a class="indexterm" name="id5678371"></a>
 
-  <a class="indexterm" name="id4267579"></a>
+  <a class="indexterm" name="id5678373"></a>
 
-  <a class="indexterm" name="id4267565"></a>
+  <a class="indexterm" name="id5678400"></a>
 
-  <a class="indexterm" name="id4267563"></a>
+  <a class="indexterm" name="id5678414"></a>
 
-  <a class="indexterm" name="id4267591"></a>
+  <a class="indexterm" name="id5678428"></a>
 
-  <a class="indexterm" name="id4267608"></a>
+  <a class="indexterm" name="id5678441"></a>
 
-  <a class="indexterm" name="id4267648"></a>
+  <a class="indexterm" name="id5678454"></a>
 
-  <a class="indexterm" name="id4267635"></a>
+  <a class="indexterm" name="id5678469"></a>
 
-  <a class="indexterm" name="id4267677"></a>
+  <a class="indexterm" name="id5678483"></a>
 
-  <a class="indexterm" name="id4267678"></a>
+  <a class="indexterm" name="id5678470"></a>
 
-  <a class="indexterm" name="id4267704"></a>
+  <a class="indexterm" name="id5678512"></a>
 
-  <a class="indexterm" name="id4267717"></a>
+  <a class="indexterm" name="id5678499"></a>
 
-  <a class="indexterm" name="id4267727"></a>
+  <a class="indexterm" name="id5678539"></a>
 
-  <a class="indexterm" name="id4267718"></a>
+  <a class="indexterm" name="id5678525"></a>
 
-  <a class="indexterm" name="id4267730"></a>
+  <a class="indexterm" name="id5678567"></a>
 
-  <a class="indexterm" name="id4267772"></a>
+  <a class="indexterm" name="id5678581"></a>
 
-  <a class="indexterm" name="id4267759"></a>
+  <a class="indexterm" name="id5678594"></a>
 
-  <a class="indexterm" name="id4267800"></a>
+  <a class="indexterm" name="id5678553"></a>
 
-  <a class="indexterm" name="id4267814"></a>
+  <a class="indexterm" name="id5678595"></a>
 
-  <a class="indexterm" name="id4267826"></a>
+  <a class="indexterm" name="id5678636"></a>
 
-  <a class="indexterm" name="id4267842"></a>
+  <a class="indexterm" name="id5678622"></a>
 
-  <a class="indexterm" name="id4267828"></a>
+  <a class="indexterm" name="id5678663"></a>
 
-  <a class="indexterm" name="id4267871"></a>
+  <a class="indexterm" name="id5678650"></a>
 
-  <a class="indexterm" name="id4267856"></a>
+  <a class="indexterm" name="id5678689"></a>
 
-  <a class="indexterm" name="id4267897"></a>
+  <a class="indexterm" name="id5678702"></a>
 
-  <a class="indexterm" name="id4267884"></a>
+  <a class="indexterm" name="id5678717"></a>
 
-  <a class="indexterm" name="id4267925"></a>
+  <a class="indexterm" name="id5678705"></a>
 
-  <a class="indexterm" name="id4267911"></a>
+  <a class="indexterm" name="id5678719"></a>
 
-  <a class="indexterm" name="id4267952"></a>
+  <a class="indexterm" name="id5678732"></a>
 
-  <a class="indexterm" name="id4267938"></a>
+  <a class="indexterm" name="id5678746"></a>
 
-  <a class="indexterm" name="id4267979"></a>
+  <a class="indexterm" name="id5678760"></a>
 
-  <a class="indexterm" name="id4267993"></a>
+  <a class="indexterm" name="id5678774"></a>
 
-  <a class="indexterm" name="id4268007"></a>
+  <a class="indexterm" name="id5678812"></a>
 
-  <a class="indexterm" name="id4268021"></a>
+  <a class="indexterm" name="id5678828"></a>
 
-  <a class="indexterm" name="id4268033"></a>
+  <a class="indexterm" name="id5678842"></a>
 
-  <a class="indexterm" name="id4268048"></a>
+  <a class="indexterm" name="id5678829"></a>
 
-  <a class="indexterm" name="id4268062"></a>
+  <a class="indexterm" name="id5678802"></a>
 
-  <a class="indexterm" name="id4268035"></a>
+  <a class="indexterm" name="id5678882"></a>
 
-  <a class="indexterm" name="id4268089"></a>
+  <a class="indexterm" name="id5678897"></a>
 
-  <a class="indexterm" name="id4268076"></a>
+  <a class="indexterm" name="id5678910"></a>
 
-  <a class="indexterm" name="id4268119"></a>
+  <a class="indexterm" name="id5678926"></a>
 
-  <a class="indexterm" name="id4268120"></a>
+  <a class="indexterm" name="id5678937"></a>
 
-  <a class="indexterm" name="id4268145"></a>
+  <a class="indexterm" name="id5678953"></a>
 
-  <a class="indexterm" name="id4268158"></a>
+  <a class="indexterm" name="id5678966"></a>
 
-  <a class="indexterm" name="id4268174"></a>
+  <a class="indexterm" name="id5678982"></a>
 
-  <a class="indexterm" name="id4268188"></a>
+  <a class="indexterm" name="id5678968"></a>
 
-  <a class="indexterm" name="id4268200"></a>
+  <a class="indexterm" name="id5679009"></a>
 
-  <a class="indexterm" name="id4268189"></a>
+  <a class="indexterm" name="id5679025"></a>
 
-  <a class="indexterm" name="id4268230"></a>
+  <a class="indexterm" name="id5679039"></a>
 
-  <a class="indexterm" name="id4268215"></a>
+  <a class="indexterm" name="id5679052"></a>
 
-  <a class="indexterm" name="id4268256"></a>
+  <a class="indexterm" name="id5679010"></a>
 
-  <a class="indexterm" name="id4268272"></a>
+  <a class="indexterm" name="id5679079"></a>
 
-  <a class="indexterm" name="id4268257"></a>
+  <a class="indexterm" name="id5679094"></a>
 
-  <a class="indexterm" name="id4268300"></a>
+  <a class="indexterm" name="id5679108"></a>
 
-  <a class="indexterm" name="id4268286"></a>
+  <a class="indexterm" name="id5679109"></a>
 
-  <a class="indexterm" name="id4268327"></a>
+  <a class="indexterm" name="id5679135"></a>
 
-  <a class="indexterm" name="id4268329"></a>
+  <a class="indexterm" name="id5679121"></a>
 
-  <a class="indexterm" name="id4268355"></a>
+  <a class="indexterm" name="id5679164"></a>
 
-  <a class="indexterm" name="id4268366"></a>
+  <a class="indexterm" name="id5679150"></a>
 
-  <a class="indexterm" name="id4268384"></a>
+  <a class="indexterm" name="id5679136"></a>
 
-  <a class="indexterm" name="id4268367"></a>
+  <a class="indexterm" name="id5679205"></a>
+
+  <a class="indexterm" name="id5679192"></a>
+
+  <a class="indexterm" name="id5679231"></a>
+
+  <a class="indexterm" name="id5679247"></a>
+
+  <a class="indexterm" name="id5679232"></a>
+
+  <a class="indexterm" name="id5679233"></a>
+
+  <a class="indexterm" name="id5679290"></a>
+
+  <a class="indexterm" name="id5679303"></a>
+
+  <a class="indexterm" name="id5679316"></a>
+
+  <a class="indexterm" name="id5679263"></a>
 </div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="config.html">Prev</a>Â </td>
+<a accesskey="p" href="config.html">Prev</a> </td>
 <td width="20%" align="center"><a accesskey="u" href="ch03.html">Up</a></td>
-<td width="40%" align="right">Â <a accesskey="n" href="configobject.html">Next</a>
+<td width="40%" align="right"> <a accesskey="n" href="configobject.html">Next</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Configuration OverviewÂ </td>
+<td width="40%" align="left" valign="top">Configuration Overview </td>
 <td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td>
-<td width="40%" align="right" valign="top">Â Object Configuration Overview</td>
+<td width="40%" align="right" valign="top"> Object Configuration Overview</td>
 </tr>
 </table>
 </div>
-<P class="copyright">Â© 2009-2010 Icinga Development Team, http://www.icinga.org</P>
+<P class="copyright">© 2009-2011 Icinga Development Team, http://www.icinga.org</P>
 </body>
 </html>

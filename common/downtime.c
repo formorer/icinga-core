@@ -3,7 +3,8 @@
  * DOWNTIME.C - Scheduled downtime functions for Icinga
  *
  * Copyright (c) 2000-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -53,7 +54,7 @@ extern timed_event *event_list_high;
 extern timed_event *event_list_high_tail;
 #endif
 
-
+int dummy;	/* reduce compiler warnings */
 
 #ifdef NSCORE
 
@@ -270,9 +271,9 @@ int register_downtime(int type, unsigned long downtime_id){
 	else
 		type_string="service";
 	if(temp_downtime->fixed==TRUE)
-		asprintf(&temp_buffer,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string);
+		dummy=asprintf(&temp_buffer,"This %s has been scheduled for fixed downtime from %s to %s.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,type_string);
 	else
-		asprintf(&temp_buffer,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string);
+		dummy=asprintf(&temp_buffer,"This %s has been scheduled for flexible downtime starting between %s and %s and lasting for a period of %d hours and %d minutes.  Notifications for the %s will not be sent out during that time period.",type_string,start_time_string,end_time_string,hours,minutes,type_string);
 
 
 	log_debug_info(DEBUGL_DOWNTIME,0,"Scheduled Downtime Details:\n");
@@ -842,6 +843,45 @@ int delete_service_downtime(unsigned long downtime_id){
 	return result;
         }
 
+/* 
+Deletes all host and service downtimes on a host by hostname, optionally filtered by service description, start time and comment. 
+All char* must be set or NULL - "" will silently fail to match
+Returns number deleted 
+*/
+int delete_downtime_by_hostname_service_description_start_time_comment(char *hostname, char *service_description, time_t start_time, char *comment){
+	scheduled_downtime *temp_downtime;
+	int deleted=0;
+
+	/* Do not allow deletion of everything - must have at least 1 filter on */
+	if(hostname==NULL && service_description==NULL && start_time==0 && comment==NULL)
+		return deleted;
+
+	for(temp_downtime=scheduled_downtime_list;temp_downtime!=NULL;temp_downtime=temp_downtime->next){
+		if(start_time!=0 && temp_downtime->start_time!=start_time) {
+			continue;
+		}
+		if(comment!=NULL && strcmp(temp_downtime->comment,comment)!=0)
+			continue;
+		if(temp_downtime->type==HOST_DOWNTIME) {
+			/* If service is specified, then do not delete the host downtime */
+			if(service_description!=NULL)
+				continue;
+			if(hostname!=NULL && strcmp(temp_downtime->host_name,hostname)!=0)
+				continue;
+			}
+		else if(temp_downtime->type==SERVICE_DOWNTIME) {
+			if(hostname!=NULL && strcmp(temp_downtime->host_name,hostname)!=0)
+				continue;
+			if(service_description!=NULL && strcmp(temp_downtime->service_description,service_description)!=0)
+				continue;
+			}
+		
+		unschedule_downtime(temp_downtime->type,temp_downtime->downtime_id);
+		deleted++;
+		}
+	return deleted;
+	}
+
 #endif
 
 
@@ -1098,5 +1138,3 @@ void free_downtime_data(void){
 
 	return;
         }
-
-

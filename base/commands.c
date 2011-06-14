@@ -3,7 +3,8 @@
  * COMMANDS.C - External command functions for Icinga
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -88,7 +89,7 @@ extern pthread_t       worker_threads[TOTAL_WORKER_THREADS];
 extern circular_buffer external_command_buffer;
 extern int             external_command_buffer_slots;
 
-
+int dummy;	/* reduce compiler warnings */
 
 /******************************************************************/
 /****************** EXTERNAL COMMAND PROCESSING *******************/
@@ -448,6 +449,13 @@ int process_external_command1(char *cmd){
 		command_type=CMD_SCHEDULE_HOST_SVC_DOWNTIME;
 	else if(!strcmp(command_id,"DEL_HOST_DOWNTIME"))
 		command_type=CMD_DEL_HOST_DOWNTIME;
+	else if(!strcmp(command_id,"DEL_DOWNTIME_BY_HOST_NAME"))
+		command_type=CMD_DEL_DOWNTIME_BY_HOST_NAME;
+	else if(!strcmp(command_id,"DEL_DOWNTIME_BY_HOSTGROUP_NAME"))
+		command_type=CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME;
+
+	else if(!strcmp(command_id,"DEL_DOWNTIME_BY_START_TIME_COMMENT"))
+		command_type=CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT;
 
 	else if(!strcmp(command_id,"ENABLE_HOST_FLAP_DETECTION"))
 		command_type=CMD_ENABLE_HOST_FLAP_DETECTION;
@@ -752,9 +760,9 @@ int process_external_command1(char *cmd){
 
 	/* log the external command */
 	if(log_external_commands_user==TRUE){
-		asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s;%s\n",command_id,username,args);
+		dummy=asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s;%s\n",command_id,username,args);
 	} else {
-		asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
+		dummy=asprintf(&temp_buffer,"EXTERNAL COMMAND: %s;%s\n",command_id,args);
 	}
 
 	if(command_type==CMD_PROCESS_SERVICE_CHECK_RESULT || command_type==CMD_PROCESS_HOST_CHECK_RESULT){
@@ -1112,6 +1120,18 @@ int process_external_command2(int cmd, time_t entry_time, char *args){
 	case CMD_DEL_HOST_DOWNTIME:
 	case CMD_DEL_SVC_DOWNTIME:
 		cmd_delete_downtime(cmd,args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_HOST_NAME:
+		cmd_delete_downtime_by_host_name(cmd,args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_HOSTGROUP_NAME:
+		cmd_delete_downtime_by_hostgroup_name(cmd,args);
+		break;
+
+	case CMD_DEL_DOWNTIME_BY_START_TIME_COMMENT:
+		cmd_delete_downtime_by_start_time_comment(cmd,args);
 		break;
 
 	case CMD_CANCEL_ACTIVE_HOST_SVC_DOWNTIME:
@@ -2100,6 +2120,10 @@ int process_passive_service_check(time_t check_time, char *host_name, char *svc_
 				real_host_name=temp_host->name;
 				break;
 			        }
+		        else if(!strcmp(host_name,temp_host->address6)){
+				real_host_name=temp_host->name;
+				break;
+			        }
 		        }
 	        }
 
@@ -2238,6 +2262,10 @@ int process_passive_host_check(time_t check_time, char *host_name, int return_co
 	else{
 		for(temp_host=host_list;temp_host!=NULL;temp_host=temp_host->next){
 			if(!strcmp(host_name,temp_host->address)){
+				real_host_name=temp_host->name;
+				break;
+			        }
+		        else if(!strcmp(host_name,temp_host->address6)){
 				real_host_name=temp_host->name;
 				break;
 			        }
@@ -2527,6 +2555,16 @@ int cmd_schedule_downtime(int cmd, time_t entry_time, char *args){
 	if((comment_data=my_strtok(NULL,";"))==NULL)
 		return ERROR;
 
+	/* MF 26-01-2011: check if flexible downtime demanded
+	   and duration set to non-zero.
+	   according to the documentation, a flexible downtime is
+	   started between start and end time and will last for
+	   "duration" seconds. strtoul converts a NULL value to 0
+	   so if set to 0, bail out as a duration>0 is needed. 	   */
+
+	if(fixed==0 && duration==0)
+		return ERROR;
+
 	/* duration should be auto-calculated, not user-specified */
 	if(fixed>0)
 		duration=(unsigned long)(end_time-start_time);
@@ -2632,8 +2670,171 @@ int cmd_delete_downtime(int cmd, char *args){
 		unschedule_downtime(SERVICE_DOWNTIME,downtime_id);
 
 	return OK;
-        }
+	}
 
+
+/* Opsview enhancements: some of these commands are now "distributable" as no downtime ids are used */
+/* Deletes scheduled host and service downtime based on hostname and optionally other filter arguments */
+int cmd_delete_downtime_by_host_name(int cmd, char *args){
+	char *temp_ptr=NULL;
+	char *end_ptr=NULL;
+	char *hostname=NULL;
+	char *service_description=NULL;
+	char *downtime_comment=NULL;
+	time_t downtime_start_time=0L;
+	int deleted=0;
+
+	/* get the host name of the downtime to delete */
+	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+	hostname=temp_ptr;
+
+	/* get the optional service name */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr!=NULL) {
+		if(*temp_ptr!='\0')
+			service_description=temp_ptr;
+
+		/* get the optional start time */
+		temp_ptr=my_strtok(NULL,";");
+		if(temp_ptr!=NULL) {
+			downtime_start_time=strtoul(temp_ptr,&end_ptr,10);
+
+			/* get the optional comment */
+			temp_ptr=my_strtok(NULL,";");
+			if(temp_ptr!=NULL) {
+				if(*temp_ptr!='\0')
+					downtime_comment=temp_ptr;
+
+				}
+			}
+		}
+
+	deleted=delete_downtime_by_hostname_service_description_start_time_comment(hostname, service_description, downtime_start_time, downtime_comment);
+
+	if (deleted==0)
+		return ERROR;
+
+	return OK;
+	}
+
+/* Opsview enhancement: Deletes scheduled host and service downtime based on hostgroup and optionally other filter arguments */
+int cmd_delete_downtime_by_hostgroup_name(int cmd, char *args){
+	char *temp_ptr=NULL;
+	char *end_ptr=NULL;
+	host *temp_host=NULL;
+	hostgroup *temp_hostgroup=NULL;
+	hostsmember *temp_member=NULL;
+	char *service_description=NULL;
+	char *downtime_comment=NULL;
+	char *host_name=NULL;
+	time_t downtime_start_time=0L;
+	int deleted=0;
+
+	/* get the host group name of the downtime to delete */
+	temp_ptr=my_strtok(args,";");
+	if(temp_ptr==NULL)
+		return ERROR;
+
+	temp_hostgroup=find_hostgroup(temp_ptr);
+	if(temp_hostgroup==NULL)
+		return ERROR;
+
+	/* get the optional host name */
+	temp_ptr=my_strtok(NULL,";");
+	if(temp_ptr!=NULL) {
+		if(*temp_ptr!='\0')
+			host_name=temp_ptr;
+
+			/* get the optional service name */
+			temp_ptr=my_strtok(NULL,";");
+			if(temp_ptr!=NULL) {
+				if(*temp_ptr!='\0')
+					service_description=temp_ptr;
+
+				/* get the optional start time */
+				temp_ptr=my_strtok(NULL,";");
+				if(temp_ptr!=NULL) {
+					downtime_start_time=strtoul(temp_ptr,&end_ptr,10);
+
+					/* get the optional comment */
+					temp_ptr=my_strtok(NULL,";");
+					if(temp_ptr!=NULL) {
+						if(*temp_ptr!='\0')
+							downtime_comment=temp_ptr;
+
+						}
+					}
+				}
+
+			/* get the optional service name */
+			temp_ptr=my_strtok(NULL,";");
+			if(temp_ptr!=NULL) {
+				if(*temp_ptr!='\0')
+					service_description=temp_ptr;
+
+			/* get the optional start time */
+			temp_ptr=my_strtok(NULL,";");
+			if(temp_ptr!=NULL) {
+				downtime_start_time=strtoul(temp_ptr,&end_ptr,10);
+
+				/* get the optional comment */
+				temp_ptr=my_strtok(NULL,";");
+					if(temp_ptr!=NULL) {
+						if(*temp_ptr!='\0')
+							downtime_comment=temp_ptr;
+						}
+				}
+			}
+		}
+
+	for(temp_member=temp_hostgroup->members;temp_member!=NULL;temp_member=temp_member->next){
+		if((temp_host=(host *)temp_member->host_ptr)==NULL)
+			continue;
+		if(host_name!=NULL && strcmp(temp_host->name,host_name)!=0)
+			continue;
+		deleted=+delete_downtime_by_hostname_service_description_start_time_comment(temp_host->name, service_description, downtime_start_time, downtime_comment);
+		}
+
+	if (deleted==0)
+		return ERROR;
+
+	return OK;
+	}
+
+/* Opsview enhancement: Delete downtimes based on start time and/or comment */
+int cmd_delete_downtime_by_start_time_comment(int cmd, char *args){
+	time_t downtime_start_time=0L;
+	char *downtime_comment=NULL;
+	char *temp_ptr=NULL;
+	char *end_ptr=NULL;
+	int deleted=0;
+
+	/* Get start time if set */
+	temp_ptr=my_strtok(args,";");
+	if(temp_ptr!=NULL){
+		/* This will be set to 0 if no start_time is entered or data is bad */
+		downtime_start_time=strtoul(temp_ptr,&end_ptr,10);
+		}
+
+	/* Get comment - not sure if this should be also tokenised by ; */
+	temp_ptr=my_strtok(NULL,"\n");
+	if(temp_ptr!=NULL && *temp_ptr!='\0'){
+		downtime_comment=temp_ptr;
+		}
+
+	/* No args should give an error */
+	if(downtime_start_time==0 && downtime_comment==NULL)
+		return ERROR;
+
+	deleted=delete_downtime_by_hostname_service_description_start_time_comment(NULL,NULL,downtime_start_time,downtime_comment);
+
+	if (deleted==0)
+		return ERROR;
+
+	return OK;
+	}
 
 	
 /* changes a host or service (integer) variable */
@@ -5003,7 +5204,7 @@ void process_passive_checks(void){
 
 	/* open a temp file for storing check result(s) */
 	old_umask=umask(new_umask);
-	asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path);
+	dummy=asprintf(&checkresult_file,"%s/checkXXXXXX",temp_path);
 	checkresult_file_fd=mkstemp(checkresult_file);
 	umask(old_umask);
 

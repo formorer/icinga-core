@@ -3,7 +3,8 @@
  * XPDDEFAULT.H - Include file for default performance data routines
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Nagios Core Development Team and Community Contributors
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -31,7 +32,8 @@
 #define DEFAULT_HOST_PERFDATA_FILE_TEMPLATE "[HOSTPERFDATA]\t$TIMET$\t$HOSTNAME$\t$HOSTEXECUTIONTIME$\t$HOSTOUTPUT$\t$HOSTPERFDATA$"
 #define DEFAULT_SERVICE_PERFDATA_FILE_TEMPLATE "[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$"
 
-
+#define DEFAULT_HOST_PERFDATA_PROCESS_EMPTY_RESULTS 	1
+#define DEFAULT_SERVICE_PERFDATA_PROCESS_EMPTY_RESULTS 	1
 
 int xpddefault_initialize_performance_data(char *);
 int xpddefault_cleanup_performance_data(char *);

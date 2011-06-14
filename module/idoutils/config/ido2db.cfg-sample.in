@@ -103,14 +103,31 @@ db_host=localhost
 # 	3306 = Default MySQL port
 #	5432 = Default PostgreSQL port
 #       1521 = Default Oracle port
+#
+# Note: ocilib will ignore this, you have to modify your tnsnames.ora
 
 db_port=3306
+
+
+# DATABASE SOCKET
+# Optional db_socket allows to specify a different socket location.
+# This will be passed to libdbi MySQL as mysql_unix_socket, while
+# PostgeSQL overrides the port, ocilib Oracle ignores this setting.
+#
+# Note: This setting overrules db_port, making it useless!
+
+#db_socket=/var/lib/mysql/mysql.sock
 
 
 
 # DATABASE NAME
 # This option specifies the name of the database that should be used.
-# Note: Oracle needs //DBSERVER/DBNAME
+#
+# Note: Oracle with ocilib requires tnsnames.ora filled with host, port
+# and database information. you can use the SID then with ocilib and
+# one of the following:
+# 	//DBSERVER/SID
+#	SID
 
 db_name=icinga
 
@@ -120,7 +137,9 @@ db_name=icinga
 # Determines the prefix (if any) that should be prepended to table names.
 # If you modify the table prefix, you'll need to modify the SQL script for
 # creating the database!
-# Note: Oracle will ignore this prefix since the tablename length will exceed 30 characters.
+#
+# Note: Oracle will ignore this prefix since the tablename length will exceed
+# 30 characters.
 
 db_prefix=icinga_
 
@@ -169,13 +188,11 @@ max_eventhandlers_age=10080
 # Keep external commands for 1 week
 max_externalcommands_age=10080
 
-# ***OPTIONAL***
-
 # Keep logentries for 31 days
-# max_logentries_age=44640
+max_logentries_age=44640
 
 # Keep acknowledgements for 31 days
-# max_acknowledgements_age=44640
+max_acknowledgements_age=44640
 
 
 ## CLEAN REALTIME TABLES AT CORE STARTUP
@@ -201,21 +218,23 @@ clean_config_tables_on_core_startup=1
 
 
 # ***EXPERIMENTAL*** DB TRIMMING INTERVAL
-# ido2db default db trimming interval is set to 60 SECONDS.
+# ido2db default db trimming interval is set to 3600 SECONDS.
 # Some environments will require higher or lower values. This setting is
 # highly experimental!!!
 # Modify at your own risk to set the interval DB trimming interval
-# to an appropriate value. If left blank, it defaults to 60 seconds.
+# to an appropriate value. If left blank, it defaults to 3600 seconds.
 
-trim_db_interval=60
+trim_db_interval=3600
 
 
 # DB TRIMMING THREAD DELAY ON STARTUP
 # ido2db spawns a thread for parallel db trimming. This option can be
 # modified to extend/minimize the initial wait delay at startup.
-# Default is set to 60 seconds in order to allow startup routines.
+# Default is set to 300 seconds in order to allow startup routines.
+# 300 seconds is also the minimum value, lower ones will be overwritten.
 
-housekeeping_thread_startup_delay=60
+housekeeping_thread_startup_delay=300
+
 
 
 # DEBUG LEVEL
@@ -255,5 +274,16 @@ debug_file=@localstatedir@/ido2db.debug
 # automatically be deleted.  This helps ensure your disk space usage doesn't
 # get out of control when debugging.
 
-max_debug_file_size=1000000
+# 100M
+max_debug_file_size=100000000
+
+
+
+# OCI ERRORS TO SYSLOG
+# ido2db registers an error handler in ocilib which spits all msg
+# into debug and syslog by default. Setting this option to 0,
+# syslog output will be disabled, only debug log will be used (if
+# appropriate debug_level is set).
+
+oci_errors_to_syslog=1
 

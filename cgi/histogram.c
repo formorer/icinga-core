@@ -3,7 +3,7 @@
  * HISTOGRAM.C -  Icinga Alert Histogram CGI
  *
  * Copyright (c) 1999-2009 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * License:
  *
@@ -26,6 +26,7 @@
 #include "../include/common.h"
 #include "../include/objects.h"
 #include "../include/statusdata.h"
+#include "../include/readlogs.h"
 
 #include "../include/cgiutils.h"
 #include "../include/getcgi.h"
@@ -70,22 +71,6 @@
 #define BREAKDOWN_DAY_OF_MONTH	1
 #define BREAKDOWN_DAY_OF_WEEK	2
 #define BREAKDOWN_HOURLY	3
-
-/* standard report times */
-#define TIMEPERIOD_CUSTOM	0
-#define TIMEPERIOD_TODAY	1
-#define TIMEPERIOD_YESTERDAY	2
-#define TIMEPERIOD_THISWEEK	3
-#define TIMEPERIOD_LASTWEEK	4
-#define TIMEPERIOD_THISMONTH	5
-#define TIMEPERIOD_LASTMONTH	6
-#define TIMEPERIOD_THISQUARTER	7
-#define TIMEPERIOD_LASTQUARTER	8
-#define TIMEPERIOD_THISYEAR	9
-#define TIMEPERIOD_LASTYEAR	10
-#define TIMEPERIOD_LAST24HOURS	11
-#define TIMEPERIOD_LAST7DAYS	12
-#define TIMEPERIOD_LAST31DAYS	13
 
 
 #define MAX_ARCHIVE_SPREAD	65
@@ -132,7 +117,7 @@ extern int     log_rotation_method;
 
 extern host *host_list;
 extern service *service_list;
-
+extern logentry *entry_list;
 
 
 authdata current_authdata;
@@ -151,8 +136,6 @@ typedef struct timeslice_data_struct{
 
 timeslice_data *tsdata;
 
-
-void convert_timeperiod_to_times(int);
 void compute_report_times(void);
 void graph_all_histogram_data(void);
 void add_archived_state(int,time_t);
@@ -267,7 +250,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			cgi_config_file_error(get_cgi_config_location());
+			print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -278,7 +261,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			main_config_file_error(main_config_file);
+			print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -289,7 +272,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			object_data_error();
+			print_error(NULL, ERROR_CGI_OBJECT_DATA);
 			document_footer(CGI_ID);
 		        }
 		return ERROR;
@@ -300,7 +283,7 @@ int main(int argc, char **argv){
 	if(result==ERROR && daemon_check==TRUE){
 		if(content_type==HTML_CONTENT){
 			document_header(CGI_ID,FALSE);
-			status_data_error();
+			print_error(NULL, ERROR_CGI_STATUS_DATA);
 			document_footer(CGI_ID);
 		        }
 		free_memory();
@@ -411,11 +394,14 @@ int main(int argc, char **argv){
 		/* right hand column of top row */
 		printf("<td align=right valign=bottom width=33%%>\n");
 
+		printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 		printf("<table border=0 CLASS='optBox'>\n");
 
 		if(display_type!=DISPLAY_NO_HISTOGRAM && input_type==GET_INPUT_NONE){
 
-			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
+			printf("<tr><td CLASS='optBoxItem' valign=top align=left>Breakdown type:</td><td CLASS='optBoxItem' valign=top align=left>Initial states logged:</td></tr>\n");
+			printf("<tr><td CLASS='optBoxItem' valign=top align=left>\n");
+
 			printf("<input type='hidden' name='t1' value='%lu'>\n",(unsigned long)t1);
 			printf("<input type='hidden' name='t2' value='%lu'>\n",(unsigned long)t2);
 			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
@@ -446,8 +432,6 @@ int main(int argc, char **argv){
 			printf("</select>\n");
 			printf("</td></tr>\n");
 
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>Breakdown type:</td><td CLASS='optBoxItem' valign=top align=left>Initial states logged:</td></tr>\n");
-			printf("<tr><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<select name='breakdown'>\n");
 			printf("<option value=monthly %s>Month\n",(breakdown_type==BREAKDOWN_MONTHLY)?"SELECTED":"");
 			printf("<option value=dayofmonth %s>Day of the Month\n",(breakdown_type==BREAKDOWN_DAY_OF_MONTH)?"SELECTED":"");
@@ -497,8 +481,6 @@ int main(int argc, char **argv){
 			printf("</td><td CLASS='optBoxItem' valign=top align=left>\n");
 			printf("<input type='submit' value='Update'>\n");
 			printf("</td></tr>\n");
-
-			printf("</form>\n");
 		        }
 
 		/* display context-sensitive help */
@@ -524,6 +506,7 @@ int main(int argc, char **argv){
 		printf("</td></tr>\n");
 
 		printf("</table>\n");
+		printf("</form>\n");
 
 		printf("</td>\n");
 
@@ -545,13 +528,17 @@ int main(int argc, char **argv){
 	        }
 	if(is_authorized==FALSE){
 
-		if(content_type==HTML_CONTENT)
-			printf("<P><DIV ALIGN=CENTER CLASS='errorMessage'>It appears as though you are not authorized to view information for the specified %s...</DIV></P>\n",(display_type==DISPLAY_HOST_HISTOGRAM)?"host":"service");
+		if(content_type==HTML_CONTENT) {
+			if (display_type==DISPLAY_HOST_HISTOGRAM)
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified host...",NULL,0);
+			else
+				print_generic_error_message("It appears as though you are not authorized to view information for the specified service...",NULL,0);
+		}
 
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
-	        }
+	}
 
 	if(display_type!=DISPLAY_NO_HISTOGRAM && input_type==GET_INPUT_NONE){
 
@@ -698,10 +685,10 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 cellspacing=0 cellpadding=10>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 
+			printf("<TABLE BORDER=0 cellspacing=0 cellpadding=10>\n");
 			printf("<tr><td class='reportSelectSubTitle' valign=center>Host:</td>\n");
 			printf("<td class='reportSelectItem' valign=center>\n");
 			printf("<select name='host'>\n");
@@ -718,8 +705,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 3'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -754,11 +741,11 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 			
-			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\" name=\"serviceform\">\n",HISTOGRAM_CGI);
 			printf("<input type='hidden' name='input' value='getoptions'>\n");
 			printf("<input type='hidden' name='host' value='%s'>\n",(first_service==NULL)?"unknown":(char *)escape_string(first_service));
 
+			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<tr><td class='reportSelectSubTitle'>Service:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='service' onFocus='document.serviceform.host.value=gethostname(this.selectedIndex);' onChange='document.serviceform.host.value=gethostname(this.selectedIndex);'>\n");
@@ -776,8 +763,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 3'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -799,12 +786,12 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 			printf("<input type='hidden' name='host' value='%s'>\n",escape_string(host_name));
 			if(display_type==DISPLAY_SERVICE_HISTOGRAM)
 				printf("<input type='hidden' name='service' value='%s'>\n",escape_string(service_desc));
 
+			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<tr><td class='reportSelectSubTitle' align=right>Report Period:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='timeperiod'>\n");
@@ -943,8 +930,8 @@ int main(int argc, char **argv){
 
 			printf("<tr><td></td><td class='reportSelectItem'><input type='submit' value='Create Report'></td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -957,9 +944,9 @@ int main(int argc, char **argv){
 
 			printf("<P><DIV ALIGN=CENTER>\n");
 
-			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<form method=\"GET\" action=\"%s\">\n",HISTOGRAM_CGI);
 
+			printf("<TABLE BORDER=0 cellpadding=5>\n");
 			printf("<tr><td class='reportSelectSubTitle' align=right>Type:</td>\n");
 			printf("<td class='reportSelectItem'>\n");
 			printf("<select name='input'>\n");
@@ -972,8 +959,8 @@ int main(int argc, char **argv){
 			printf("<input type='submit' value='Continue to Step 2'>\n");
 			printf("</td></tr>\n");
 
-			printf("</form>\n");
 			printf("</TABLE>\n");
+			printf("</form>\n");
 
 			printf("</DIV></P>\n");
 		        }
@@ -986,7 +973,7 @@ int main(int argc, char **argv){
 	free_memory();
 
 	return OK;
-        }
+}
 
 int process_cgivars(void){
 	char **variables;
@@ -1118,7 +1105,7 @@ int process_cgivars(void){
 
 	
 			if(timeperiod_type!=TIMEPERIOD_CUSTOM)
-				convert_timeperiod_to_times(timeperiod_type);
+				convert_timeperiod_to_times(timeperiod_type,&t1,&t2);
 		        }
 
 		/* we found time argument */
@@ -1433,7 +1420,7 @@ int process_cgivars(void){
 	free_cgivars(variables);
 
 	return error;
-        }
+}
 
 
 
@@ -1964,7 +1951,7 @@ void graph_all_histogram_data(void){
 	        }
 
 	return;
-        }
+}
 
 
 /* adds an archived state entry */
@@ -2078,7 +2065,7 @@ void add_archived_state(int state_type, time_t time_stamp){
 	last_state=state_type;
 
 	return;
-        }
+}
 
 
 
@@ -2109,6 +2096,25 @@ void read_archived_state_data(void){
 	printf("Newest archive: %d\n",newest_archive);
 #endif
 
+	/* Service filter */
+	add_log_filter(LOGENTRY_SERVICE_OK,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_WARNING,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_CRITICAL,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_UNKNOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SERVICE_RECOVERY,LOGFILTER_INCLUDE);
+
+	/* Host filter */
+	add_log_filter(LOGENTRY_HOST_UP,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_DOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_UNREACHABLE,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_HOST_RECOVERY,LOGFILTER_INCLUDE);
+
+	/* system message */
+	add_log_filter(LOGENTRY_STARTUP,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_RESTART,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_SHUTDOWN,LOGFILTER_INCLUDE);
+	add_log_filter(LOGENTRY_BAILOUT,LOGFILTER_INCLUDE);
+
 	/* read in all the necessary archived logs */
 	for(current_archive=newest_archive;current_archive<=oldest_archive;current_archive++){
 
@@ -2121,235 +2127,149 @@ void read_archived_state_data(void){
 
 		/* scan the log file for archived state data */
 		scan_log_file_for_archived_state_data(filename);
-	        }
+	}
+
+	free_log_filters();
 
 	return;
-        }
+}
 
 
 
 /* grabs archives state data from a log file */
 void scan_log_file_for_archived_state_data(char *filename){
-	char *input=NULL;
-	char *input2=NULL;
 	char entry_host_name[MAX_INPUT_BUFFER];
 	char entry_service_desc[MAX_INPUT_BUFFER];
 	char *temp_buffer;
-	time_t time_stamp;
-	mmapfile *thefile;
+	logentry *temp_entry=NULL;
+	int status;
 
 	/* print something so browser doesn't time out */
 	if(content_type==HTML_CONTENT){
 		printf(" ");
 		fflush(NULL);
-	        }
+	}
 
-	if((thefile=mmap_fopen(filename))==NULL){
+	status = get_log_entries(filename,NULL,FALSE,t1-(60*60*24*backtrack_archives),t2);
+	
+	if (status!=READLOG_OK) {
 #ifdef DEBUG2
 		printf("Could not open file '%s' for reading.\n",filename);
 #endif
+		/* free memory */
+		free_log_entries();
 		return;
-	        }
+	}else{
 
 #ifdef DEBUG2
-	printf("Scanning log file '%s' for archived state data...\n",filename);
+		printf("Scanning log file '%s' for archived state data...\n",filename);
 #endif
 
-	while(1){
+		for(temp_entry=entry_list;temp_entry!=NULL;temp_entry=temp_entry->next) {
 
-		/* free memory */
-		free(input);
-		free(input2);
-		input=NULL;
-		input2=NULL;
+			/* program starts/restarts */
+			if(temp_entry->type==LOGENTRY_STARTUP)
+				add_archived_state(AS_PROGRAM_START,temp_entry->timestamp);
+			if(temp_entry->type==LOGENTRY_RESTART)
+				add_archived_state(AS_PROGRAM_START,temp_entry->timestamp);
 
-		/* read the next line */
-		if((input=mmap_fgets(thefile))==NULL)
-			break;
+			/* program stops */
+			if(temp_entry->type==LOGENTRY_SHUTDOWN)
+				add_archived_state(AS_PROGRAM_END,temp_entry->timestamp);
+			if(temp_entry->type==LOGENTRY_BAILOUT)
+				add_archived_state(AS_PROGRAM_END,temp_entry->timestamp);
 
-		strip(input);
+			if(display_type==DISPLAY_HOST_HISTOGRAM){
+				switch(temp_entry->type){
 
-		if((input2=strdup(input))==NULL)
-			continue;
+					/* normal host alerts and initial/current states */
+					case LOGENTRY_HOST_DOWN:
+					case LOGENTRY_HOST_UNREACHABLE:
+					case LOGENTRY_HOST_RECOVERY:
+					case LOGENTRY_HOST_UP:
 
-		temp_buffer=my_strtok(input2,"]");
-		time_stamp=(temp_buffer==NULL)?(time_t)0:(time_t)strtoul(temp_buffer+1,NULL,10);
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
 
-		/* program starts/restarts */
-		if(strstr(input," starting..."))
-			add_archived_state(AS_PROGRAM_START,time_stamp);
-		if(strstr(input," restarting..."))
-			add_archived_state(AS_PROGRAM_START,time_stamp);
+						if(strcmp(host_name,entry_host_name))
+							continue;
 
-		/* program stops */
-		if(strstr(input," shutting down..."))
-			add_archived_state(AS_PROGRAM_END,time_stamp);
-		if(strstr(input,"Bailing out"))
-			add_archived_state(AS_PROGRAM_END,time_stamp);
+						/* skip soft states if necessary */
+						if(!(graph_statetypes & GRAPH_SOFT_STATETYPES) && strstr(temp_entry->entry_text,";SOFT;"))
+							continue;
 
-		if(display_type==DISPLAY_HOST_HISTOGRAM){
-			if(strstr(input,"HOST ALERT:")){
+						/* skip hard states if necessary */
+						if(!(graph_statetypes & GRAPH_HARD_STATETYPES) && strstr(temp_entry->entry_text,";HARD;"))
+							continue;
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+						if(temp_entry->type==LOGENTRY_HOST_DOWN)
+							add_archived_state(AS_HOST_DOWN,temp_entry->timestamp);
+						else if(temp_entry->type==LOGENTRY_HOST_UNREACHABLE)
+							add_archived_state(AS_HOST_UNREACHABLE,temp_entry->timestamp);
+						else if(temp_entry->type==LOGENTRY_HOST_RECOVERY || temp_entry->type==LOGENTRY_HOST_UP)
+							add_archived_state(AS_HOST_UP,temp_entry->timestamp);
 
-				if(strcmp(host_name,entry_host_name))
-					continue;
-
-				/* skip soft states if necessary */
-				if(!(graph_statetypes & GRAPH_SOFT_STATETYPES) && strstr(input,";SOFT;"))
-					continue;
-
-				/* skip hard states if necessary */
-				if(!(graph_statetypes & GRAPH_HARD_STATETYPES) && strstr(input,";HARD;"))
-					continue;
-
-				if(strstr(input,";DOWN;"))
-					add_archived_state(AS_HOST_DOWN,time_stamp);
-				else if(strstr(input,";UNREACHABLE;"))
-					add_archived_state(AS_HOST_UNREACHABLE,time_stamp);
-				else if(strstr(input,";RECOVERY") || strstr(input,";UP;"))
-					add_archived_state(AS_HOST_UP,time_stamp);
-			        }
+						break;
+				}
 		        }
-		if(display_type==DISPLAY_SERVICE_HISTOGRAM){
-			if(strstr(input,"SERVICE ALERT:")){
 
-				/* get host name */
-				temp_buffer=my_strtok(NULL,":");
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
-				entry_host_name[sizeof(entry_host_name)-1]='\x0';
+			else if(display_type==DISPLAY_SERVICE_HISTOGRAM){
+				switch(temp_entry->type){
 
-				if(strcmp(host_name,entry_host_name))
-					continue;
+					/* normal service alerts and initial/current states */
+					case LOGENTRY_SERVICE_CRITICAL:
+					case LOGENTRY_SERVICE_WARNING:
+					case LOGENTRY_SERVICE_UNKNOWN:
+					case LOGENTRY_SERVICE_RECOVERY:
+					case LOGENTRY_SERVICE_OK:
+
+						/* get host name */
+						temp_buffer=my_strtok(temp_entry->entry_text,":");
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_host_name,(temp_buffer==NULL)?"":temp_buffer+1,sizeof(entry_host_name));
+						entry_host_name[sizeof(entry_host_name)-1]='\x0';
+
+						if(strcmp(host_name,entry_host_name))
+							continue;
 				
-				/* get service description */
-				temp_buffer=my_strtok(NULL,";");
-				strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
-				entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
+						/* get service description */
+						temp_buffer=my_strtok(NULL,";");
+						strncpy(entry_service_desc,(temp_buffer==NULL)?"":temp_buffer,sizeof(entry_service_desc));
+						entry_service_desc[sizeof(entry_service_desc)-1]='\x0';
 
-				if(strcmp(service_desc,entry_service_desc))
-					continue;
+						if(strcmp(service_desc,entry_service_desc))
+							continue;
 
-				/* skip soft states if necessary */
-				if(!(graph_statetypes & GRAPH_SOFT_STATETYPES) && strstr(input,";SOFT;"))
-					continue;
+						/* skip soft states if necessary */
+						if(!(graph_statetypes & GRAPH_SOFT_STATETYPES) && strstr(temp_entry->entry_text,";SOFT;"))
+							continue;
 
-				/* skip hard states if necessary */
-				if(!(graph_statetypes & GRAPH_HARD_STATETYPES) && strstr(input,";HARD;"))
-					continue;
+						/* skip hard states if necessary */
+						if(!(graph_statetypes & GRAPH_HARD_STATETYPES) && strstr(temp_entry->entry_text,";HARD;"))
+							continue;
 
-				if(strstr(input,";CRITICAL;"))
-					add_archived_state(AS_SVC_CRITICAL,time_stamp);
-				else if(strstr(input,";WARNING;"))
-					add_archived_state(AS_SVC_WARNING,time_stamp);
-				else if(strstr(input,";UNKNOWN;"))
-					add_archived_state(AS_SVC_UNKNOWN,time_stamp);
-				else if(strstr(input,";RECOVERY;") || strstr(input,";OK;"))
-					add_archived_state(AS_SVC_OK,time_stamp);
+						if(temp_entry->type==LOGENTRY_SERVICE_CRITICAL)
+							add_archived_state(AS_SVC_CRITICAL,temp_entry->timestamp);
+						else if(temp_entry->type==LOGENTRY_SERVICE_WARNING)
+							add_archived_state(AS_SVC_WARNING,temp_entry->timestamp);
+						else if(temp_entry->type==LOGENTRY_SERVICE_UNKNOWN)
+							add_archived_state(AS_SVC_UNKNOWN,temp_entry->timestamp);
+						else if(temp_entry->type==LOGENTRY_SERVICE_RECOVERY || temp_entry->type==LOGENTRY_SERVICE_OK)
+							add_archived_state(AS_SVC_OK,temp_entry->timestamp);
+					break;
 			        }
 		        }
-		
 	        }
+	}	
 
-	/* free memory and close the file */
-	free(input);
-	free(input2);
-	mmap_fclose(thefile);
-	
-	return;
-        }
-	
-
-
-
-void convert_timeperiod_to_times(int type){
-	time_t current_time;
-	struct tm *t;
-
-	/* get the current time */
-	time(&current_time);
-
-	t=localtime(&current_time);
-
-	t->tm_sec=0;
-	t->tm_min=0;
-	t->tm_hour=0;
-        t->tm_isdst=-1;
-
-	switch(type){
-	case TIMEPERIOD_LAST24HOURS:
-		t1=current_time-(60*60*24);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_TODAY:
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_YESTERDAY:
-		t1=(time_t)(mktime(t)-(60*60*24));
-		t2=(time_t)mktime(t);
-		break;
-	case TIMEPERIOD_THISWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTWEEK:
-		t1=(time_t)(mktime(t)-(60*60*24*t->tm_wday)-(60*60*24*7));
-		t2=(time_t)(mktime(t)-(60*60*24*t->tm_wday));
-		break;
-	case TIMEPERIOD_THISMONTH:
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTMONTH:
-		t->tm_mday=1;
-		t2=mktime(t);
-		if(t->tm_mon==0){
-			t->tm_mon=11;
-			t->tm_year--;
-		        }
-		else
-			t->tm_mon--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_THISQUARTER:
-		break;
-	case TIMEPERIOD_LASTQUARTER:
-		break;
-	case TIMEPERIOD_THISYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t1=mktime(t);
-		t2=current_time;
-		break;
-	case TIMEPERIOD_LASTYEAR:
-		t->tm_mon=0;
-		t->tm_mday=1;
-		t2=mktime(t);
-		t->tm_year--;
-		t1=mktime(t);
-		break;
-	case TIMEPERIOD_LAST7DAYS:
-		t2=current_time;
-		t1=current_time-(7*24*60*60);
-		break;
-	case TIMEPERIOD_LAST31DAYS:
-		t2=current_time;
-		t1=current_time-(31*24*60*60);
-		break;
-	default:
-		break;
-	        }
+	/* free memory */
+	free_log_entries();
 
 	return;
-        }
-
+}
 
 
 void compute_report_times(void){
@@ -2383,7 +2303,7 @@ void compute_report_times(void){
 	et->tm_isdst=-1;
 
 	t2=mktime(et);
-        }
+}
 
 
 
@@ -2400,7 +2320,7 @@ void draw_line(int x1,int y1,int x2,int y2,int color){
 	gdImageLine(histogram_image,x1,y1,x2,y2,gdStyled);
 
 	return;
-	}
+}
 
 
 /* draws a dashed line */
@@ -2421,5 +2341,5 @@ void draw_dashed_line(int x1,int y1,int x2,int y2,int color){
 	gdImageLine(histogram_image,x1,y1,x2,y2,gdStyled);
 
 	return;
-	}
+}
 

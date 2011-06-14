@@ -29,7 +29,7 @@ clean:
 
 distclean: clean
 	rm -f Makefile
-	rm -f menu.html index.html top.html search.html
+	rm -f menu.html index.html search.html
 
 devclean: distclean
 
@@ -48,6 +48,9 @@ install:
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images/logos
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/images/interface
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/js
+	$(INSTALL) -m 775 $(COMMAND_OPTS) -d $(DESTDIR)$(HTMLDIR)/log
+	$(INSTALL) -m 444 $(INSTALL_OPTS) log/.htaccess $(DESTDIR)$(HTMLDIR)/log
+	$(INSTALL) -m 644 $(INSTALL_OPTS) log/index.htm $(DESTDIR)$(HTMLDIR)/log
 	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/ssi
 	$(INSTALL) -m 664 $(INSTALL_OPTS) robots.txt $(DESTDIR)$(HTMLDIR)
 	$(INSTALL) -m 664 $(INSTALL_OPTS) docs/robots.txt $(DESTDIR)$(HTMLDIR)/docs
@@ -81,10 +84,16 @@ install:
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/images/logos; done
 	for file in images/interface/*.gif; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/images/interface; done
-	for file in images/interface/*.jpg; \
-	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/images/interface; done
 	for file in js/*.js; \
 	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/js; done
+
+install-dev-docu:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/doxygen
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(HTMLDIR)/doxygen/html
+	#for file in doxygen/*.*; \
+	#do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/doxygen; done
+	for file in doxygen/html/*.*; \
+	do $(INSTALL) -m 664 $(INSTALL_OPTS) $$file $(DESTDIR)$(HTMLDIR)/doxygen/html; done
 
 install-unstripped:
 	$(MAKE) install

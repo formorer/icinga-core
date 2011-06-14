@@ -1,0 +1,44 @@
+#!/bin/sh
+
+LD_RUN_PATH=/usr/lib:/usr/local/lib
+
+usage() {
+    echo "Usage: `basename ${0}` <prefix> <icinga-user> <icinga-group> <cmd-user> <cmd-group> <pkg_name> [num make_jobs]"
+    exit 1
+}
+
+[ $# -eq 0 ] && usage
+
+prefix=${1}
+icinga_user=${2}
+icinga_group=${3}
+cmd_user=${4}
+cmd_group=${5}
+pkg_name=${6}
+make_jobs=${7:-2}  # Use 2 Makejobs if not set
+config_file="configure.in"
+
+[ ! -f ${config_file}.solbak ] && cp ${config_file} ${config_file}.solbak
+sed -e "s/^\(SOL_PKG_NAME=\).*\$/\1${pkg_name}/" ${config_file} > ${config_file}.tmp
+mv ${config_file}.tmp ${config_file}
+
+autoreconf
+
+PATH=.:..:${PATH} configure \
+--prefix=${prefix} \
+--with-cgiurl=/icinga/cgi-bin \
+--with-htmurl=/icinga \
+--with-icinga-user=${icinga_user} \
+--with-icinga-grp=${icinga_group} \
+--with-command-user=${cmd_user} \
+--with-command-grp=${cmd_group} \
+--with-lockfile=/var/run/icinga.pid \
+--localstatedir=/var/log/icinga \
+--with-httpd-conf=/usr/local/apache2/conf \
+--with-gd-lib=/usr/local/lib \
+--with-gd-inc=/usr/local/include \
+--with-mail=/usr/bin/mailx
+
+make pkgclean
+make -j${make_jobs} all
+make pkgset

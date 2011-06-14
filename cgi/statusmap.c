@@ -3,7 +3,7 @@
  * STATUSMAP.C - Icinga Network Status Map CGI
  *
  * Copyright (c) 1999-2008 Ethan Galstad (egalstad@nagios.org)
- * Copyright (c) 2009-2010 Icinga Development Team (http://www.icinga.org)
+ * Copyright (c) 2009-2011 Icinga Development Team (http://www.icinga.org)
  *
  * Description:
  *
@@ -64,6 +64,8 @@ extern servicestatus *servicestatus_list;
 extern char *statusmap_background_image;
 
 extern int default_statusmap_layout_method;
+
+extern int suppress_maintenance_downtime;
 
 #define DEFAULT_NODE_WIDTH		40
 #define DEFAULT_NODE_HEIGHT		65
@@ -247,7 +249,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			cgi_config_file_error(get_cgi_config_location());
+			print_error(get_cgi_config_location(), ERROR_CGI_CFG_FILE);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -263,7 +265,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			main_config_file_error(main_config_file);
+			print_error(main_config_file, ERROR_CGI_MAIN_CFG);
 		document_footer(CGI_ID);
 		return ERROR;
 	        }
@@ -273,7 +275,7 @@ int main(int argc, char **argv){
 	if(result==ERROR){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			object_data_error();
+			print_error(NULL, ERROR_CGI_OBJECT_DATA);
 		document_footer(CGI_ID);
 		return ERROR;
                 }
@@ -283,7 +285,7 @@ int main(int argc, char **argv){
 	if(result==ERROR && daemon_check==TRUE){
 		document_header(CGI_ID,FALSE);
 		if(content_type==HTML_CONTENT)
-			status_data_error();
+			print_error(NULL, ERROR_CGI_STATUS_DATA);
 		document_footer(CGI_ID);
 		free_memory();
 		return ERROR;
@@ -1582,8 +1584,13 @@ void draw_hosts(void){
 
 
 			temp_hoststatus=find_hoststatus(temp_host->name);
-			if(temp_hoststatus!=NULL){
-				if(temp_hoststatus->status==HOST_DOWN)
+			if (temp_hoststatus!=NULL){
+				/* first, we color it as maintenance if that is preferred */
+				if (suppress_maintenance_downtime==TRUE && temp_hoststatus->scheduled_downtime_depth>0)
+					status_color=color_grey;
+
+				/* otherwise we color it as its appropriate state */
+				else if(temp_hoststatus->status==HOST_DOWN)
 					status_color=color_red;
 				else if(temp_hoststatus->status==HOST_UNREACHABLE)
 					status_color=color_red;
@@ -1621,6 +1628,8 @@ void draw_hosts(void){
 
 				/* calculate width of border */
 				if(temp_hoststatus==NULL)
+					inner_radius=outer_radius;
+				if(suppress_maintenance_downtime==FALSE && temp_hoststatus->scheduled_downtime_depth>0)
 					inner_radius=outer_radius;
 				else if((temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE) && temp_hoststatus->problem_has_been_acknowledged==FALSE)
 					inner_radius=outer_radius-3;
@@ -1795,10 +1804,20 @@ void draw_host_text(char *name,int x,int y){
 	temp_hoststatus=find_hoststatus(name);
 
 	/* get the status of the host (pending, up, down, or unreachable) */
-	if(temp_hoststatus!=NULL){
-
+	if (temp_hoststatus!=NULL){
 		/* draw the status string */
-		if(temp_hoststatus->status==HOST_DOWN){
+		if (suppress_maintenance_downtime==TRUE && temp_hoststatus->scheduled_downtime_depth>0){
+			if(temp_hoststatus->status==HOST_UP)
+				strncpy(temp_buffer,"Up",sizeof(temp_buffer));
+			else if(temp_hoststatus->status==HOST_DOWN)
+				strncpy(temp_buffer,"Down)",sizeof(temp_buffer));
+			else if(temp_hoststatus->status==HOST_UNREACHABLE)
+				strncpy(temp_buffer,"Unreachable",sizeof(temp_buffer));
+			else //catch any other state (just in case)
+				strncpy(temp_buffer,"Maintenance",sizeof(temp_buffer));
+			status_color=color_grey;
+			}
+		else if(temp_hoststatus->status==HOST_DOWN){
 			strncpy(temp_buffer,"Down",sizeof(temp_buffer));
 			status_color=color_red;
                         }
@@ -1814,7 +1833,7 @@ void draw_host_text(char *name,int x,int y){
 			strncpy(temp_buffer,"Pending",sizeof(temp_buffer));
 			status_color=color_grey;
                         }
-		else{
+		else {
 			strncpy(temp_buffer,"Unknown",sizeof(temp_buffer));
 			status_color=color_orange;
 	                }
@@ -1857,7 +1876,7 @@ void write_host_popup_text(host *hst){
 	        }
 
 	/* grab macros */
-	grab_host_macros(mac, hst);
+	grab_host_macros_r(mac, hst);
 
 	/* strip nasty stuff from plugin output */
 	sanitize_plugin_output(temp_status->plugin_output);
@@ -1878,27 +1897,39 @@ void write_host_popup_text(host *hst){
 	printf("<tr><td class=\\\"popupText\\\">Name:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->name));
 	printf("<tr><td class=\\\"popupText\\\">Alias:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",escape_string(hst->alias));
 	printf("<tr><td class=\\\"popupText\\\">Address:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address,TRUE));
+	printf("<tr><td class=\\\"popupText\\\">Address6:</td><td class=\\\"popupText\\\"><b>%s</b></td></tr>",html_encode(hst->address6,TRUE));
 	printf("<tr><td class=\\\"popupText\\\">State:</td><td class=\\\"popupText\\\"><b>");
 
-	/* get the status of the host (pending, up, down, or unreachable) */
-	if(temp_status->status==HOST_DOWN){
+	/* show the status of the host (maintenance, pending, up, down, or unreachable) */
+	/* first, we mark it as maintenance if that is preferred */
+	if (suppress_maintenance_downtime==TRUE && temp_status->scheduled_downtime_depth>0){
+		if(temp_status->status==HOST_UP)
+			printf("<font color=gray>Up (Maintenance)");
+		else if(temp_status->status==HOST_DOWN)
+			printf("<font color=gray>Down (Maintenance)");
+		else if(temp_status->status==HOST_UNREACHABLE)
+			printf("<font color=gray>Unreachable (Maintenance)");
+		else if(temp_status->status==HOST_PENDING)
+			printf("<font color=gray>Pending (Maintenance)");
+		else //catch any other state (just in case)
+			printf("<font color=gray>Maintenance");
+
+		if(temp_status->problem_has_been_acknowledged==TRUE)//somewhat meaningless in this context, but possible
+			printf(" (Acknowledged)");
+		printf("</font>");
+	} else if(temp_status->status==HOST_DOWN){
 		printf("<font color=red>Down");
 		if(temp_status->problem_has_been_acknowledged==TRUE)
 			printf(" (Acknowledged)");
 		printf("</font>");
-	        }
-
-	else if(temp_status->status==HOST_UNREACHABLE){
+	} else if(temp_status->status==HOST_UNREACHABLE){
 		printf("<font color=red>Unreachable");
 		if(temp_status->problem_has_been_acknowledged==TRUE)
 			printf(" (Acknowledged)");
 		printf("</font>");
-	        }
-
-	else if(temp_status->status==HOST_UP)
+	} else if(temp_status->status==HOST_UP){
 		printf("<font color=green>Up</font>");
-
-	else if(temp_status->status==HOST_PENDING)
+	} else if(temp_status->status==HOST_PENDING)
 		printf("Pending");
 
 	printf("</b></td></tr>");
@@ -2243,7 +2274,7 @@ void print_layer_url(int get_method){
 
 	for(temp_layer=layer_list;temp_layer!=NULL;temp_layer=temp_layer->next){
 		if(get_method==TRUE)
-			printf("&layer=%s",temp_layer->layer_name);
+			printf("&layer=%s",escape_string(temp_layer->layer_name));
 		else
 			printf("<input type='hidden' name='layer' value='%s'>\n",escape_string(temp_layer->layer_name));
 	        }
@@ -2638,48 +2669,58 @@ void draw_circular_layer_markup(host *parent, double start_angle, double useable
 			x_offset=nagios_icon_x+(DEFAULT_NODE_WIDTH/2)-canvas_x;
 			y_offset=nagios_icon_y+(DEFAULT_NODE_HEIGHT/2)-canvas_y;
 
-			/* draw "slice" dividers */
-			if(immediate_children>1 || layer>1){
+			/* if the host should be drawn */
+			/* this enforces the privacy of hosts that are not eligble to be drawn */
+			if(temp_host->should_be_drawn==TRUE){
 
-				/* draw "leftmost" divider */
-				gdImageLine(map_image,(int)x_coord[0]+x_offset,(int)y_coord[0]+y_offset,(int)x_coord[1]+x_offset,(int)y_coord[1]+y_offset,color_lightgrey);
+				/* draw "slice" dividers */
+				if(immediate_children>1 || layer>1){
 
-				/* draw "rightmost" divider */
-				gdImageLine(map_image,(int)x_coord[2]+x_offset,(int)y_coord[2]+y_offset,(int)x_coord[3]+x_offset,(int)y_coord[3]+y_offset,color_lightgrey);
-			        }
+					/* draw "leftmost" divider */
+					gdImageLine(map_image,(int)x_coord[0]+x_offset,(int)y_coord[0]+y_offset,(int)x_coord[1]+x_offset,(int)y_coord[1]+y_offset,color_lightgrey);
 
-			/* determine arc drawing angles */
-			arc_start_angle=current_drawing_angle-90.0;
-			while(arc_start_angle<0.0)
-				arc_start_angle+=360.0;
-			arc_end_angle=arc_start_angle+available_angle;
-
-			/* draw inner arc */
-			gdImageArc(map_image,x_offset,y_offset,(radius-(CIRCULAR_DRAWING_RADIUS/2))*2,(radius-(CIRCULAR_DRAWING_RADIUS/2))*2,floor(arc_start_angle),ceil(arc_end_angle),color_lightgrey);
-
-			/* draw outer arc */
-			gdImageArc(map_image,x_offset,y_offset,(radius+(CIRCULAR_DRAWING_RADIUS/2))*2,(radius+(CIRCULAR_DRAWING_RADIUS/2))*2,floor(arc_start_angle),ceil(arc_end_angle),color_lightgrey);
+					/* draw "rightmost" divider */
+					gdImageLine(map_image,(int)x_coord[2]+x_offset,(int)y_coord[2]+y_offset,(int)x_coord[3]+x_offset,(int)y_coord[3]+y_offset,color_lightgrey);
+				        }
 
 
-			/* determine center of "slice" and fill with appropriate color */
-			center_x=-(sin(-(current_drawing_angle+(available_angle/2.0))*(M_PI/180.0))*(radius));
-			center_y=-(sin((90+current_drawing_angle+(available_angle/2.0))*(M_PI/180.0))*(radius));
-			translated_x=center_x+x_offset;
-			translated_y=center_y+y_offset;
+				/* determine arc drawing angles */
+				arc_start_angle=current_drawing_angle-90.0;
+				while(arc_start_angle<0.0)
+					arc_start_angle+=360.0;
+				arc_end_angle=arc_start_angle+available_angle;
 
-			/* determine background color */
-			temp_hoststatus=find_hoststatus(temp_host->name);
-			if(temp_hoststatus==NULL)
-				bgcolor=color_lightgrey;
-			else if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)
-				bgcolor=color_lightred;
-			else
-				bgcolor=color_lightgreen;
+				/* draw inner arc */
+				gdImageArc(map_image,x_offset,y_offset,(radius-(CIRCULAR_DRAWING_RADIUS/2))*2,(radius-(CIRCULAR_DRAWING_RADIUS/2))*2,floor(arc_start_angle),ceil(arc_end_angle),color_lightgrey);
 
-			/* fill slice with background color */
-			/* the fill function only works with coordinates that are in bounds of the actual image */
-			if(translated_x>0 && translated_y>0 && translated_x<canvas_width && translated_y<canvas_height)
-				gdImageFillToBorder(map_image,translated_x,translated_y,color_lightgrey,bgcolor);
+				/* draw outer arc */
+				gdImageArc(map_image,x_offset,y_offset,(radius+(CIRCULAR_DRAWING_RADIUS/2))*2,(radius+(CIRCULAR_DRAWING_RADIUS/2))*2,floor(arc_start_angle),ceil(arc_end_angle),color_lightgrey);
+
+
+				/* determine center of "slice" and fill with appropriate color */
+				center_x=-(sin(-(current_drawing_angle+(available_angle/2.0))*(M_PI/180.0))*(radius));
+				center_y=-(sin((90+current_drawing_angle+(available_angle/2.0))*(M_PI/180.0))*(radius));
+				translated_x=center_x+x_offset;
+				translated_y=center_y+y_offset;
+
+				/* determine background color */
+				temp_hoststatus=find_hoststatus(temp_host->name);
+				if(temp_hoststatus==NULL)
+					bgcolor=color_lightgrey;
+				else if(suppress_maintenance_downtime==TRUE && temp_hoststatus->scheduled_downtime_depth>0)
+					bgcolor=color_lightgrey;
+				else if(temp_hoststatus->status==HOST_DOWN || temp_hoststatus->status==HOST_UNREACHABLE)
+					bgcolor=color_lightred;
+				else
+					bgcolor=color_lightgreen;
+
+
+				/* fill slice with background color */
+				/* the fill function only works with coordinates that are in bounds of the actual image */
+				if(translated_x>0 && translated_y>0 && translated_x<canvas_width && translated_y<canvas_height)
+					gdImageFillToBorder(map_image,translated_x,translated_y,color_lightgrey,bgcolor);
+
+				}
 
 			/* recurse into child host ... */
 			draw_circular_layer_markup(temp_host,current_drawing_angle+((available_angle-clipped_available_angle)/2),clipped_available_angle,layer+1,radius+CIRCULAR_DRAWING_RADIUS);
