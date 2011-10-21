@@ -42,6 +42,7 @@ ido_dbuf dbuf;
 
 /* threading for buffer */
 pthread_t queue_thread;
+pthread_t *dbqueue_thread;
 
 char *ido2db_buffer_file = NULL;
 unsigned long ido2db_sink_buffer_slots = IDO2DB_SINK_BUFFER_SLOTS;
@@ -1188,6 +1189,7 @@ int ido2db_handle_client_connection(int sd) {
 	int result = 0;
 	int error = IDO_FALSE;
 
+	int t;
 	int pthread_ret = 0;
 	//sigset_t newmask;
 	//pthread_attr_t attr;
@@ -1259,6 +1261,14 @@ int ido2db_handle_client_connection(int sd) {
 		syslog(LOG_ERR, "Could not create queue thread... exiting with error '%s'\n", strerror(errno));
 		exit(EXIT_FAILURE);
         }
+
+	/* create the dbqueue with structs */
+	/* TODO queue buffer init, mutex init */
+
+	/* create the db queue threads, which use their own asynchronous db connection */
+	/* TODO - allow users to configure thread count */
+	for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) 
+		pthread_create(&dbqueue_thread_id[t], NULL, ido2db_dbqueue_handle, &idi);
 
 	/* initialize input data information */
 	ido2db_idi_init(&idi);
@@ -1427,6 +1437,23 @@ int ido2db_handle_client_connection(int sd) {
 
 	return IDO_OK;
 }
+
+/* initializes structure for tracking data */
+int ido2db_idi_init_mbuf(ido2db_idi *idi) {
+
+        if (idi == NULL)
+                return IDO_ERROR;
+
+        /* initialize mbuf */
+        for (x = 0; x < IDO2DB_MAX_MBUF_ITEMS; x++) {
+                idi->mbuf[x].used_lines = 0;
+                idi->mbuf[x].allocated_lines = 0;
+                idi->mbuf[x].buffer = NULL;
+        }
+
+        return IDO_OK;
+}
+
 
 
 /* initializes structure for tracking data */
@@ -2263,7 +2290,13 @@ int ido2db_add_input_data_mbuf(ido2db_idi *idi, int type, int mbuf_slot, char *b
 }
 
 
+/* TODO 
 
+this function only handles the end of the input data, where the buffered_input and mbuf are ready
+to be processed. then it should reassign the pointers to those onto a new struct (memcpy) being
+pushed into the dbqueue. 
+the rest of the function needs to be renamed into ido2db_handle_input_data
+*/
 int ido2db_end_input_data(ido2db_idi *idi) {
 	int result = IDO_OK;
 
@@ -2271,6 +2304,9 @@ int ido2db_end_input_data(ido2db_idi *idi) {
 
 	if (idi == NULL)
 		return IDO_ERROR;
+
+/* TODO split into ido2db_handle_input_data here, will be called in dbqueue thread, which gets the new
+idi objects and pointers for the buffers */
 
 	/* update db stats occassionally */
 	if (ido2db_db_last_checkin_time < (time(NULL) - 60))
@@ -2836,6 +2872,87 @@ void * ido2db_thread_worker(void *data) {
 	pthread_exit((void *) pthread_self());
 }
 
+
+void * ido2db_dbqueue_handle(void *data) {
+
+        ido2db_idi *idi = (ido2db_idi*) data;
+
+	/* TODO initialize idi work dbqueue worker with different description */
+
+        struct timespec delay;
+        delay.tv_sec = 5;
+        delay.tv_nsec = 500000;
+        nanosleep(&delay, NULL);
+        delay.tv_sec = 0;
+
+	/* TODO get thread id to write to logs */
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle() start\n");
+
+        /* specify cleanup routine */
+        pthread_cleanup_push((void *) &ido2db_dbqueue_thread_exit_handler, NULL);
+
+        /* initialize input data information */
+        ido2db_idi_init(&dbqueue_idi);
+
+        /* initialize database connection */
+        ido2db_db_init(&dbqueue_idi);
+
+        /* copy needed idi information */
+        dbqueue_idi.instance_name = idi->instance_name;
+        dbqueue_idi.agent_name = "IDO2DB DBQueue Thread"; /* TODO add the threadid */
+        dbqueue_idi.agent_version = idi->agent_version;
+        dbqueue_idi.disposition = idi->disposition;
+        dbqueue_idi.connect_source = idi->connect_source;
+        dbqueue_idi.connect_type = idi->connect_type;
+
+        /* set cancellation info */
+        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+        while (1) {
+
+                /* should we shutdown? */
+                pthread_testcancel();
+
+                /* sleep a bit */
+                nanosleep(&delay, NULL);
+
+                if (idi->disconnect_client == IDO_TRUE) {
+                        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(): origin idi said we should disconnect the client\n");
+                        break;
+                }
+
+		/* TODO 
+		   we need to read from the queue, where we have put pointers to
+		   - buffered_input
+		   - mbuf
+		   - current_input_type
+		   since the design is foobar, we reassign those pointers to the thread idi object,
+		   let the data process and free the memory after processing. 
+		*/
+
+		//pop from queue
+		//reassign
+		//ido2db_handle_input_data (rewritten enddata)
+		//free memory like in ido2db_free_input_memory
+
+                /* sleep a bit */
+                nanosleep(&delay, NULL);
+
+                /* should we shutdown? */
+                pthread_testcancel();
+        }
+
+        pthread_cleanup_pop(0);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_worker() end\n");
+
+        pthread_exit((void *) pthread_self());
+}
+
+
+
 /* ******************************************************************
  *
  * exit_handler_mem is called as thread canceling
@@ -2845,6 +2962,12 @@ void * ido2db_thread_worker(void *data) {
 static void *ido2db_thread_worker_exit_handler(void * arg) {
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_worker() cleanup_exit_handler...\n");
 	return 0;
+
+}
+
+static void *ido2db_dbqueue_thread_exit_handler(void * arg) {
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_thread_exit_handleri () cleanup ...\n");
+        return 0;
 
 }
 
@@ -2985,10 +3108,13 @@ int ido2db_terminate_threads(void) {
 	ido2db_db_disconnect(&thread_idi);
 	ido2db_db_deinit(&thread_idi);
 
+	/* TODO deinit idi from dbqueue threads */
+
 	/* terminate each thread on its own */
 	/*result=terminate_worker_thread();*/
 	result = terminate_cleanup_thread();
 	result = terminate_queue_thread();
+	result = terminate_dbqueue_threads();
 
 	return IDO_OK;
 }
@@ -3034,10 +3160,23 @@ int terminate_queue_thread(void) {
         return IDO_OK;
 }
 
+int terminate_dbqueue_threads(void) {
+
+        int result = IDO_OK;
+
+	for (t=0; t < g_num_clientthreads; t++) {
+		if (pthread_join(dbqueue_thread_id[t], NULL) != 0)
+			result = IDO_ERROR;
+
+        return result;
+}
+
 
 /****************************************************************************/
 /* SINKBUFFERFUNCTIONS                                                      */
 /****************************************************************************/
+
+/* TODO create new functions for dbqueue buffer */
 
 /* initializes sink buffer */
 int ido2db_sink_buffer_init(ido2db_sink_buffer *sbuf, unsigned long maxitems) {
