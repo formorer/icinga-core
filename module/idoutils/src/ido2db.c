@@ -2869,7 +2869,7 @@ int ido2db_free_input_memory(ido2db_idi *idi) {
 			if (idi->mbuf[x].buffer) {
 				for (y = 0; y < idi->mbuf[x].used_lines; y++) {
 					if (idi->mbuf[x].buffer[y]) {
-						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "item %s\n", idi->mbuf[x].buffer[y]);
+						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_free_input_memory() %d|%d used: %d item %s\n", x, y, idi->mbuf[x].used_lines, idi->mbuf[x].buffer[y]);
 						free(idi->mbuf[x].buffer[y]);
 						idi->mbuf[x].buffer[y] = NULL;
 					}
