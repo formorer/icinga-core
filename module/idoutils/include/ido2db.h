@@ -76,17 +76,6 @@ typedef struct ido2db_mbuf_struct{
 	char **buffer;
         }ido2db_mbuf;
 
-typedef struct ido2db_sink_buffer_struct{
-        char **buffer;
-        unsigned long size;
-        unsigned long head;
-        unsigned long tail;
-        unsigned long items;
-        unsigned long maxitems;
-        unsigned long overflow;
-        pthread_mutex_t buffer_lock;
-        }ido2db_sink_buffer;
-
 typedef struct ido2db_dbobject_struct{
 	char *name1;
 	char *name2;
@@ -272,6 +261,10 @@ typedef struct ido2db_input_data_info_struct{
 	ido2db_dbconninfo dbinfo;
         }ido2db_idi;
 
+typedef struct ido2db_thread_data_struct{
+	int idi_thread_id;
+	ido2db_idi *idi;
+	}ido2db_thread_data;
 
 
 /*************** DB server types ***************/
@@ -404,7 +397,7 @@ typedef struct ido2db_input_data_info_struct{
 
 #define IDO2DB_CLEANER_THREADS			1
 #define IDO2DB_WORKER_THREADS			1
-#define IDO2DB_DBQUEUE_THREADS			10
+#define IDO2DB_DBQUEUE_THREADS			1
 #define IDO2DB_NR_OF_THREADS                   (IDO2DB_CLEANER_THREADS+IDO2DB_WORKER_THREADS)
 
 #define IDO2DB_THREAD_POOL_CLEANER		0
@@ -445,17 +438,6 @@ int ido2db_handle_client_input(ido2db_idi *,char *);
 /* sinkbuf */
 int ido2db_write_to_sink_queue(char *);
 void * ido2db_read_from_sink_queue(void *);
-int ido2db_sink_buffer_init(ido2db_sink_buffer *sbuf,unsigned long);
-int ido2db_sink_buffer_deinit(ido2db_sink_buffer *sbuf);
-int ido2db_sink_buffer_push(ido2db_sink_buffer *sbuf,char *);
-char *ido2db_sink_buffer_peek(ido2db_sink_buffer *sbuf);
-char *ido2db_sink_buffer_pop(ido2db_sink_buffer *sbuf);
-int ido2db_sink_buffer_items(ido2db_sink_buffer *sbuf);
-unsigned long ido2db_sink_buffer_get_overflow(ido2db_sink_buffer *sbuf);
-int ido2db_sink_buffer_set_overflow(ido2db_sink_buffer *sbuf,unsigned long);
-int ido2db_load_unprocessed_data(char *);
-int ido2db_save_unprocessed_data(char *);
-
 
 /* data handling */
 int ido2db_start_input_data(ido2db_idi *);
@@ -484,5 +466,14 @@ int ido2db_terminate_threads(void);
 int terminate_worker_thread(void);
 int terminate_cleanup_thread(void);
 int terminate_queue_thread(void);
+
+int ido2db_disconnect_threads(void);
+
+/* dbqueue */
+int ido2db_dbqueue_thread_init(ido2db_idi *, ido2db_idi *, int);
+void * ido2db_dbqueue_handle(void *);
+int ido2db_handle_input_data(ido2db_idi *);
+
+int terminate_dbqueue_threads(void);
 
 #endif

@@ -19,6 +19,7 @@
 #include "../include/utils.h"
 #include "../include/protoapi.h"
 #include "../include/ido2db.h"
+#include "../include/queue.h"
 #include "../include/db.h"
 #include "../include/dbhandlers.h"
 #include "../include/sla.h"
@@ -34,6 +35,9 @@ extern int errno;
 
 extern char *ido2db_db_tablenames[IDO2DB_MAX_DBTABLES];
 
+/* sla config variable */
+int enable_sla = 0;
+
 #ifdef USE_LIBDBI
 extern int ido2db_check_dbd_driver(void);
 #endif
@@ -42,17 +46,35 @@ ido_dbuf dbuf;
 
 /* threading for buffer */
 pthread_t queue_thread;
-pthread_t *dbqueue_thread;
+pthread_t dbqueue_thread[IDO2DB_DBQUEUE_THREADS];
 
+/* sink buffer */
 char *ido2db_buffer_file = NULL;
 unsigned long ido2db_sink_buffer_slots = IDO2DB_SINK_BUFFER_SLOTS;
 ido2db_sink_buffer sinkbuf;
 
+/* dbqueue buffer */
+ido2db_dbqueue_buf dbqueue_buf;
+unsigned long ido2db_dbqueue_buf_slots = IDO2DB_DBQUEUE_BUF_SLOTS;
+
 /* lock for the logs */
 pthread_mutex_t log_lock;
 
+/*
+ * libdbi dbi_conn_query, dbi_conn_ping, dbi_conn_error
+ * are NOT threadsafe and therefore need to be
+ * protected by a mutex
+ *
+ * see https://dev.icinga.org/issues/2034
+ */
+pthread_mutex_t dbi_conn_query_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t dbi_conn_ping_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t dbi_conn_error_lock = PTHREAD_MUTEX_INITIALIZER;
+
+
 static void *ido2db_thread_cleanup_exit_handler(void *);
 static void *ido2db_thread_worker_exit_handler(void *);
+static void *ido2db_thread_dbqueue_exit_handler(void *);
 
 
 #ifdef HAVE_SSL
@@ -81,6 +103,7 @@ int ido2db_run_foreground = IDO_FALSE;
 
 ido2db_dbconfig ido2db_db_settings;
 ido2db_idi thread_idi;
+ido2db_idi dbqueue_idi[IDO2DB_DBQUEUE_THREADS];
 pthread_t thread_pool[IDO2DB_NR_OF_THREADS];
 
 time_t ido2db_db_last_checkin_time = 0L;
@@ -1100,8 +1123,10 @@ int ido2db_wait_for_connections(void) {
 
 	/* daemonize */
 	if (ido2db_run_foreground == IDO_FALSE) {
-		if (ido2db_daemonize() != IDO_OK)
+		if (ido2db_daemonize() != IDO_OK) {
+			ido2db_cleanup_socket();
 			return IDO_ERROR;
+		}
 		syslog(LOG_USER | LOG_INFO, "Finished daemonizing... (New PID=%d)\n", (int)getpid());
 	}
 
@@ -1188,11 +1213,13 @@ int ido2db_handle_client_connection(int sd) {
 	char buf[512];
 	int result = 0;
 	int error = IDO_FALSE;
+	ido2db_thread_data *thread_data = (ido2db_thread_data *)calloc(1, sizeof(ido2db_thread_data));
 
+        struct timespec delay;
 	int t;
 	int pthread_ret = 0;
 	//sigset_t newmask;
-	//pthread_attr_t attr;
+	pthread_attr_t attr_dbqueue;
 
 #ifdef HAVE_SSL
 	SSL *ssl = NULL;
@@ -1215,39 +1242,30 @@ int ido2db_handle_client_connection(int sd) {
 	signal(SIGSEGV, ido2db_child_sighandler);
 	signal(SIGFPE, ido2db_child_sighandler);
 
-	/* new thread should block all signals */
-	/*sigfillset(&newmask);
-	pthread_sigmask(SIG_BLOCK,&newmask,NULL);*/
+	/*
+	 *initialize input data information
+	 */
+	ido2db_idi_init(&idi);
 
-	/* set stack size */
-	/*pthread_attr_init(&attr);
-	if(pthread_attr_setstacksize(&attr, IDO2DB_DEFAULT_THREAD_STACK_SIZE)!=0)
-		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_connection() pthread_attr_setstacksize with %lu error\n", IDO2DB_DEFAULT_THREAD_STACK_SIZE);
-	*/
-	/* create cleanup thread */
-	/*if ((pthread_ret = pthread_create(&thread_pool[IDO2DB_THREAD_POOL_CLEANER], &attr, ido2db_thread_cleanup, &idi)) != 0) {*/
+	/*
+	 *********************************************************************
+	 * thread initialization
+	 *********************************************************************
+	 */
+
+	/*
+	 * create cleaner thread
+	 */
 	if ((pthread_ret = pthread_create(&thread_pool[IDO2DB_THREAD_POOL_CLEANER], NULL, ido2db_thread_cleanup, &idi)) != 0) {
 		syslog(LOG_ERR, "Could not create cleanup thread... exiting with error '%s'\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 
-	/* create worker thread */
-	/*
-	    if ((pthread_ret = pthread_create(&thread_pool[IDO2DB_THREAD_POOL_WORKER], &attr, ido2db_thread_worker, &idi)) != 0) {
-	            syslog(LOG_ERR,"Could not create thread... exiting with error '%s'\n", strerror(errno));
-	            exit(EXIT_FAILURE);
-	    }
-	*/
-
-	/* main thread should unblock all signals */
-	/*pthread_sigmask(SIG_UNBLOCK,&newmask,NULL);
-	pthread_attr_destroy(&attr);*/
-
         /* initialize data sink buffer */ 
         ido2db_sink_buffer_init(&sinkbuf, ido2db_sink_buffer_slots);
 
         /* read unprocessed data from buffer file */
-        ido2db_load_unprocessed_data(ido2db_buffer_file); /* FIXME do we want that? */
+        ido2db_load_unprocessed_data(&sinkbuf, ido2db_buffer_file); /* FIXME do we want that? */
 
 
 	/* initialize sink buffer and log mutex */
@@ -1262,16 +1280,69 @@ int ido2db_handle_client_connection(int sd) {
 		exit(EXIT_FAILURE);
         }
 
-	/* create the dbqueue with structs */
+	/* 
+	 * create the dbqueue buffer and its mutex
+	 */
 	/* TODO queue buffer init, mutex init */
+	ido2db_dbqueue_buf_init(&dbqueue_buf, ido2db_sink_buffer_slots);
+	pthread_mutex_init(&dbqueue_buf.buffer_lock, NULL);
 
 	/* create the db queue threads, which use their own asynchronous db connection */
 	/* TODO - allow users to configure thread count */
-	for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) 
-		pthread_create(&dbqueue_thread_id[t], NULL, ido2db_dbqueue_handle, &idi);
 
-	/* initialize input data information */
-	ido2db_idi_init(&idi);
+	/* 
+	 * first copy needed information into thread_data,
+	 * this includes a unique thread identifier
+	 * (pthred_self() is not usable!)
+	 * then create the threads and save their handles
+	 * we will use idi_thread_id for connect to db and such
+	 */
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_connection() dbqueue threads\n");
+
+	/*
+	 * set the unix thread with system scope
+	 * for best performance
+	 */
+	pthread_attr_init(&attr_dbqueue);
+	pthread_attr_setscope(&attr_dbqueue, PTHREAD_SCOPE_SYSTEM);
+
+	thread_data->idi_thread_id = 0;
+	thread_data->idi = NULL;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_connection() dbqueue threads after init\n");
+	thread_data->idi = &idi;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_connection() dbqueue threads\n");
+
+	for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) { 
+		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_client_connection() thread cnt %d\n", t);
+		/*
+		 * save the array identifier for this thread and pass it
+		 * this will allow us to manage idi objects
+		 */
+		thread_data->idi_thread_id = t;
+		/* 
+		 * initialize idi and connect to db before threads are starting
+		 */
+		ido2db_dbqueue_thread_init(&idi, &dbqueue_idi[t], t);
+		/*
+		 * now actually create the threads and sleep a bit
+		 */
+		pthread_create(&dbqueue_thread[t], &attr_dbqueue, ido2db_dbqueue_handle, (void *)thread_data);
+
+		delay.tv_sec = 0;
+		delay.tv_nsec = 500;
+		nanosleep(&delay, NULL);
+	}
+
+	pthread_attr_destroy(&attr_dbqueue);
+
+	/*
+	 *********************************************************************
+	 * main initialization
+	 *********************************************************************
+	 */
 
 	/* initialize dynamic buffer (2KB chunk size) */
 	ido_dbuf_init(&dbuf, dbuf_chunk);
@@ -1407,17 +1478,22 @@ int ido2db_handle_client_connection(int sd) {
 #endif
 
         /* save unprocessed data to buffer file */
-        ido2db_save_unprocessed_data(ido2db_buffer_file);
+        ido2db_save_unprocessed_data(&sinkbuf, ido2db_buffer_file);
 
 	/* terminate threads */
-	terminate_queue_thread();
-	terminate_cleanup_thread();
+	ido2db_terminate_threads();
 
 	/* free memory allocated to dynamic buffer */
 	ido_dbuf_free(&dbuf);
 
         /* clear sink buffer */
         ido2db_sink_buffer_deinit(&sinkbuf);
+
+        /* clear dbqueue buffer */
+        ido2db_dbqueue_buf_deinit(&dbqueue_buf);
+
+	/* disconnect threads from database */
+	ido2db_disconnect_threads();
 
 	/* disconnect from database */
 	ido2db_db_disconnect(&idi);
@@ -1440,6 +1516,7 @@ int ido2db_handle_client_connection(int sd) {
 
 /* initializes structure for tracking data */
 int ido2db_idi_init_mbuf(ido2db_idi *idi) {
+	int x = 0;
 
         if (idi == NULL)
                 return IDO_ERROR;
@@ -1465,7 +1542,11 @@ int ido2db_idi_init(ido2db_idi *idi) {
 	if (idi == NULL)
 		return IDO_ERROR;
 
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_idi_init() prepare elements\n");
+
 	idi->disconnect_client = IDO_FALSE;
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_idi_init() first element done\n");
+
 	idi->ignore_client_data = IDO_FALSE;
 	idi->protocol_version = 0;
 	idi->instance_name = NULL;
@@ -1483,6 +1564,8 @@ int ido2db_idi_init(ido2db_idi *idi) {
 	idi->current_object_config_type = IDO2DB_CONFIGTYPE_ORIGINAL;
 	idi->data_start_time = 0L;
 	idi->data_end_time = 0L;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_idi_init() init mbuf\n");
 
 	/* initialize mbuf */
 	for (x = 0; x < IDO2DB_MAX_MBUF_ITEMS; x++) {
@@ -2047,7 +2130,8 @@ int ido2db_start_input_data(ido2db_idi *idi) {
 		return IDO_ERROR;
 
 	/* sometimes ido2db_end_input_data() isn't called, so free memory if we find it */
-	ido2db_free_input_memory(idi);
+	/* disable that as it interferes with threading */
+	/*ido2db_free_input_memory(idi);*/
 
 	/* allocate memory for holding buffered input */
 	if ((idi->buffered_input = (char **)malloc(sizeof(char *) * IDO_MAX_DATA_TYPES)) == NULL)
@@ -2291,13 +2375,16 @@ int ido2db_add_input_data_mbuf(ido2db_idi *idi, int type, int mbuf_slot, char *b
 
 
 /* TODO 
-
-this function only handles the end of the input data, where the buffered_input and mbuf are ready
-to be processed. then it should reassign the pointers to those onto a new struct (memcpy) being
-pushed into the dbqueue. 
-the rest of the function needs to be renamed into ido2db_handle_input_data
-*/
+ *
+ * this function only handles the end of the input data, 
+ * where the buffered_input and mbuf are ready
+ * to be processed. 
+ * therefore pointers are saved and pushed to dbqueue
+ */
 int ido2db_end_input_data(ido2db_idi *idi) {
+        int buffer_items, head, tail = 0;
+        struct timespec delay;
+        int retry = 0;
 	int result = IDO_OK;
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_end_input_data() start\n");
@@ -2305,12 +2392,275 @@ int ido2db_end_input_data(ido2db_idi *idi) {
 	if (idi == NULL)
 		return IDO_ERROR;
 
-/* TODO split into ido2db_handle_input_data here, will be called in dbqueue thread, which gets the new
-idi objects and pointers for the buffers */
+	/* TODO
+	 * push the idi object holding all buffers into the queue
+	 * after locking the mutex for dbqueue
+	 * the item is reassigned the pointers
+	 * and stored to the buffer, then releasing the mutex lock
+	 * TODO maybe do some cleanup on the idi object itsself afterwards?
+	 * attention - we pass a pointer!
+	 */
+	
+	/*
+	 * loop to get all items pushed, i.e. buffer full
+	 */
+        while(1) {
+
+                /* get number of items in the buffer */
+                pthread_mutex_lock(&dbqueue_buf.buffer_lock);
+                buffer_items = dbqueue_buf.items;
+                head = dbqueue_buf.head;
+                tail = dbqueue_buf.tail;
+                pthread_mutex_unlock(&dbqueue_buf.buffer_lock);
+
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_end_input_data() buffer items: %d/%d head: %d tail: %d\n", buffer_items, ido2db_dbqueue_buf_slots, head, tail);
+
+                /* 
+		 * push idi object onto the dbqueue_buf
+		 * inner push functionality will take care
+		 * of all struct items
+		 * if not successful, loop again retrying
+		 */
+                if (ido2db_dbqueue_buf_push(&dbqueue_buf, idi) == IDO_OK) {
+                        /* write was successful, don't retry */
+                        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_end_input_data() dbqueue_buf push success\n");
+
+                        /*
+                         * We should wait for the sink queuing to catch up some data
+                         * from the buffer if for this atomic run the buffer is filled completely or
+                         * is overrun
+                         */
+                        /* wait a bit */
+                        delay.tv_sec = 0;
+                        delay.tv_nsec = 500000;
+                        nanosleep(&delay, NULL);
+
+                        return IDO_OK;
+
+                } else {
+                        /* write was not successful, retry */
+                        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_end_input_data() no dbqueue_buf push success, retry: %d/%d\n", retry, IDO2DB_SINK_RETRY_ON_ERROR);
+                        retry++;
+                }
+
+                /*
+                 * We should wait for the sink queuing to catch up some data
+                 * from the buffer if for this atomic run the buffer is filled completely or
+                 * is overrun
+                 */
+                /* wait a bit */
+                delay.tv_sec = 0;
+                delay.tv_nsec = 500000;
+                nanosleep(&delay, NULL);
+
+                /* don't retry too often */
+                /* FIXME - this should be dumped to disk then */
+                if (retry == IDO2DB_DBQUEUE_RETRY_ON_ERROR) {
+                        //ido2db_write_to_logs("ido2db: Unable to write to buffer. Maybe increase output_buffer_items?\n", NSLOG_INFO_MESSAGE);
+                        //break; /* FIXME we need to loop until the db is ready? */
+                }
+
+        }
+
+        return IDO_OK;
+}
+
+
+
+/* DBQUEUE */
+
+/*
+ * we will call this in main thread
+ * in order to control the connection
+ * flow, because at least mysql driver
+ * is not threadsafe on libdbi
+ */
+int ido2db_dbqueue_thread_init(ido2db_idi *idi, ido2db_idi *dbqueue_idi, int idi_thread_id) {
+        char *temp_buffer;
+
+        /* initialize input data information */
+        ido2db_idi_init(dbqueue_idi);
+
+        /* initialize database connection */
+        ido2db_db_init(dbqueue_idi);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_thread_init() after db_init\n");
+
+        /* copy needed idi information */
+        dummy = asprintf(&temp_buffer, "IDO2DB DBQueue ID %d", idi_thread_id);
+        dbqueue_idi->instance_name = idi->instance_name;
+        dbqueue_idi->agent_name = strdup(temp_buffer); /* create a copy and free it locally to avoid leaks */
+        dbqueue_idi->agent_version = idi->agent_version;
+        dbqueue_idi->disposition = idi->disposition;
+        dbqueue_idi->connect_source = idi->connect_source;
+        dbqueue_idi->connect_type = idi->connect_type;
+        my_free(temp_buffer);
+
+        /* FIXME TODO
+         * now connect to database
+         */
+        if (ido2db_db_connect(dbqueue_idi) == IDO_ERROR) {
+
+                /* tell main process to disconnect */
+                idi->disconnect_client = IDO_TRUE;
+
+                /* cleanup the thread */
+                ido2db_db_deinit(dbqueue_idi);
+
+                /* free memory */
+                ido2db_free_input_memory(dbqueue_idi);
+                ido2db_free_connection_memory(dbqueue_idi);
+
+                return IDO_ERROR;
+        }
+
+	return IDO_OK;
+}
+
+
+void * ido2db_dbqueue_handle(void *data) {
+        int buffer_items, head, tail = 0;
+        struct timespec delay;
+        int retry = 0;
+        int dummy;
+	int result = IDO_OK;
+
+        unsigned long int idi_thread_id;
+        ido2db_thread_data *thread_data = (ido2db_thread_data*) data;
+	ido2db_idi *idi;
+
+        /*
+         * first get the idi_thread_id 
+         * this will help us work on different
+         * idi objects with db connections
+         */
+        idi_thread_id = thread_data->idi_thread_id;
+	idi = thread_data->idi;
+
+        delay.tv_sec = 0;
+        delay.tv_nsec = 5000;
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle() start idi_thread_id %d\n", idi_thread_id);
+
+        /* set cancellation info */
+        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+
+        /* specify cleanup routine */
+        pthread_cleanup_push((void *) &ido2db_thread_dbqueue_exit_handler, NULL);
+
+	/*
+	 * idi and db connection was done
+	 * before in main thread before
+	 * thread creation due to possible
+	 * race conditions on the mysql driver
+	 * 2019: Can't initialize character set latin1 (path: /usr/share/mysql/charsets/)
+	 */
+
+        /* TODO wait until instance_name set to say hello to the db */
+        /* main idi object holds idi->instance_name and idi->instance_id which are unique identifiers
+         * to multiple idomod client connections
+         * we need to make sure that this data is inserted with ido2db_db_hello before
+         * doing any other operation on further data processing
+         * 
+         * since this is done outside the IDO_START_DATADUMP, but in the SECTION_HEADER after reading
+         * all information like instance_name, we just idle here if the thread dbhello does not return
+         * ok. this function is modified not to insert any instance if not found, but just to check for
+         * an existing entry
+         */
+
+        /* save connection info to DB */
+        while (ido2db_thread_db_hello(&dbqueue_idi[idi_thread_id]) == IDO_ERROR) {
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(idi_thread_id=%d) no instance found, sleeping...\n", idi_thread_id);
+                /* don't hogg the cpu */
+                nanosleep(&delay, NULL);
+        }
+        /* XXX recheck if we now have an instance_id ? */
+
+	/*
+	 * now loop to fetch all items from dbqueue
+	 */
+        while (1) {
+
+                /* should we shutdown? */
+                pthread_testcancel();
+
+                /*
+                 * if the main process was required to shutdown, threads will terminate too
+                 */
+                if (idi->disconnect_client == IDO_TRUE) {
+                        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(): origin idi said we should disconnect the client\n");
+                        break;
+                }
+
+		/*
+		 * we do the pointer reassign to idi object
+		 * stuff within the pop function, because
+		 * there we already have a lock on the buffer
+		 * the idi object will be updated after
+		 * actually pop'ing from the dbqueue_buf
+		 * attention - idi is a pointer.
+		 */
+		result = ido2db_dbqueue_buf_pop(&dbqueue_buf, &dbqueue_idi[idi_thread_id]);
+
+		/*
+		 * we check if something was read successfully into the idi
+		 * object, and if not, just continue with a bit sleeping
+		 */
+		if (result == IDO_ERROR) {
+			nanosleep(&delay, NULL);
+			continue;
+		}
+
+		/*
+		 * now handle the newly gotten buffered idi
+		 */
+		ido2db_handle_input_data(&dbqueue_idi[idi_thread_id]);
+
+                /* sleep a bit */
+                nanosleep(&delay, NULL);
+
+                /* should we shutdown? */
+                pthread_testcancel();
+        }
+
+	/* disconnect thread from database */
+        ido2db_db_disconnect(&dbqueue_idi[idi_thread_id]);
+        ido2db_db_deinit(&dbqueue_idi[idi_thread_id]);
+
+        /* free memory */
+        ido2db_free_input_memory(&dbqueue_idi[idi_thread_id]);
+        ido2db_free_connection_memory(&dbqueue_idi[idi_thread_id]);
+
+	/* free idi object */
+	//my_free(dbqueue_idi[thread_id]);
+
+        pthread_cleanup_pop(0);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle() end\n");
+
+        pthread_exit((void *) pthread_self());
+}
+
+/*
+ * will handle all data passed to idi object 
+ */
+int ido2db_handle_input_data(ido2db_idi *idi) {
+	int result = IDO_OK;
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_input_data() start\n");
+	/* 
+	 * all functionality below would have happened in ido2db_end_input_data, 
+	 * but we read a newly assigned idi object from dbqueue_buf
+	 * allowing us to queue all buffers which we will require in the
+	 * further data processing
+	 */
 
 	/* update db stats occassionally */
 	if (ido2db_db_last_checkin_time < (time(NULL) - 60))
 		ido2db_db_checkin(idi);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_input_data() input_data: %d\n", idi->current_input_data);
 
 #ifdef DEBUG_IDO2DB2
 	printf("HANDLING TYPE: %d\n", idi->current_input_data);
@@ -2477,18 +2827,23 @@ idi objects and pointers for the buffers */
 	/* adjust items processed */
 	idi->entries_processed++;
 
-	/* perform periodic maintenance... */
+	/*
+	 * perform periodic maintenance...
+	 * this is done outbound in cleanup thread
+	 */
 	//ido2db_db_perform_maintenance(idi);
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_end_input_data() end\n");
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_handle_input_data() end\n");
 	return result;
 }
 
 
 /* free memory allocated to data input */
 int ido2db_free_input_memory(ido2db_idi *idi) {
-	register int x = 0;
-	register int y = 0;
+	//register int x = 0;
+	//register int y = 0;
+	int x = 0;
+	int y = 0;
 
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_free_input_memory() start\n");
 
@@ -2514,6 +2869,7 @@ int ido2db_free_input_memory(ido2db_idi *idi) {
 			if (idi->mbuf[x].buffer) {
 				for (y = 0; y < idi->mbuf[x].used_lines; y++) {
 					if (idi->mbuf[x].buffer[y]) {
+						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "item %s\n", idi->mbuf[x].buffer[y]);
 						free(idi->mbuf[x].buffer[y]);
 						idi->mbuf[x].buffer[y] = NULL;
 					}
@@ -2764,6 +3120,9 @@ int ido2db_close_debug_log(void) {
 int ido2db_log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	va_list ap;
 	char *temp_path = NULL;
+	time_t t;
+	struct tm *tm;
+	char temp_time[80];
 	struct timeval current_time;
 
 	if (!(ido2db_debug_level == IDO2DB_DEBUGL_ALL || (level & ido2db_debug_level)))
@@ -2775,9 +3134,17 @@ int ido2db_log_debug_info(int level, int verbosity, const char *fmt, ...) {
 	if (ido2db_debug_file_fp == NULL)
 		return IDO_ERROR;
 
+	pthread_mutex_lock(&log_lock);
+
 	/* write the timestamp */
 	gettimeofday(&current_time, NULL);
-	fprintf(ido2db_debug_file_fp, "[%lu.%06lu] [%03d.%d] [pid=%lu] ", current_time.tv_sec, current_time.tv_usec, level, verbosity, (unsigned long)getpid());
+
+	time(&t);
+	tm=localtime(&t);
+	strftime(temp_time, 80, "%c", tm);
+
+	fprintf(ido2db_debug_file_fp, "%s .%06lu [%03d.%d] [pid=%lu] [tid=%llu] ", temp_time, current_time.tv_usec, level, verbosity, (unsigned long)getpid(), (unsigned long int)pthread_self());
+	//fprintf(ido2db_debug_file_fp, "[%lu.%06lu] [%03d.%d] [pid=%lu] [tid=%llu] ", current_time.tv_sec, current_time.tv_usec, level, verbosity, (unsigned long)getpid(), (unsigned long int)pthread_self());
 
 	/* write the data */
 	va_start(ap, fmt);
@@ -2786,6 +3153,8 @@ int ido2db_log_debug_info(int level, int verbosity, const char *fmt, ...) {
 
 	/* flush, so we don't have problems tailing or when fork()ing */
 	fflush(ido2db_debug_file_fp);
+
+	pthread_mutex_unlock(&log_lock);
 
 	/* if file has grown beyond max, rotate it */
 	if ((unsigned long)ftell(ido2db_debug_file_fp) > ido2db_max_debug_file_size && ido2db_max_debug_file_size > 0L) {
@@ -2873,86 +3242,6 @@ void * ido2db_thread_worker(void *data) {
 }
 
 
-void * ido2db_dbqueue_handle(void *data) {
-
-        ido2db_idi *idi = (ido2db_idi*) data;
-
-	/* TODO initialize idi work dbqueue worker with different description */
-
-        struct timespec delay;
-        delay.tv_sec = 5;
-        delay.tv_nsec = 500000;
-        nanosleep(&delay, NULL);
-        delay.tv_sec = 0;
-
-	/* TODO get thread id to write to logs */
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle() start\n");
-
-        /* specify cleanup routine */
-        pthread_cleanup_push((void *) &ido2db_dbqueue_thread_exit_handler, NULL);
-
-        /* initialize input data information */
-        ido2db_idi_init(&dbqueue_idi);
-
-        /* initialize database connection */
-        ido2db_db_init(&dbqueue_idi);
-
-        /* copy needed idi information */
-        dbqueue_idi.instance_name = idi->instance_name;
-        dbqueue_idi.agent_name = "IDO2DB DBQueue Thread"; /* TODO add the threadid */
-        dbqueue_idi.agent_version = idi->agent_version;
-        dbqueue_idi.disposition = idi->disposition;
-        dbqueue_idi.connect_source = idi->connect_source;
-        dbqueue_idi.connect_type = idi->connect_type;
-
-        /* set cancellation info */
-        pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
-
-        while (1) {
-
-                /* should we shutdown? */
-                pthread_testcancel();
-
-                /* sleep a bit */
-                nanosleep(&delay, NULL);
-
-                if (idi->disconnect_client == IDO_TRUE) {
-                        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(): origin idi said we should disconnect the client\n");
-                        break;
-                }
-
-		/* TODO 
-		   we need to read from the queue, where we have put pointers to
-		   - buffered_input
-		   - mbuf
-		   - current_input_type
-		   since the design is foobar, we reassign those pointers to the thread idi object,
-		   let the data process and free the memory after processing. 
-		*/
-
-		//pop from queue
-		//reassign
-		//ido2db_handle_input_data (rewritten enddata)
-		//free memory like in ido2db_free_input_memory
-
-                /* sleep a bit */
-                nanosleep(&delay, NULL);
-
-                /* should we shutdown? */
-                pthread_testcancel();
-        }
-
-        pthread_cleanup_pop(0);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_worker() end\n");
-
-        pthread_exit((void *) pthread_self());
-}
-
-
-
 /* ******************************************************************
  *
  * exit_handler_mem is called as thread canceling
@@ -2965,8 +3254,8 @@ static void *ido2db_thread_worker_exit_handler(void * arg) {
 
 }
 
-static void *ido2db_dbqueue_thread_exit_handler(void * arg) {
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_thread_exit_handleri () cleanup ...\n");
+static void *ido2db_thread_dbqueue_exit_handler(void * arg) {
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_dbqueue_exit_handler () cleanup thread_id %d\n", pthread_self());
         return 0;
 
 }
@@ -3030,7 +3319,7 @@ void * ido2db_thread_cleanup(void *data) {
 
 	/* keep on looping for an instance name from main thread */
 	while (idi->instance_name == NULL) {
-		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_cleanup() nanosleeping cause missing instance_name...\n");
+		//ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_cleanup() nanosleeping cause missing instance_name...\n");
 		nanosleep(&delay, NULL);
 	}
 
@@ -3100,15 +3389,26 @@ static void *ido2db_thread_cleanup_exit_handler(void * arg) {
 
 }
 
+int ido2db_disconnect_threads(void) {
+	int t = 0;
+
+        /* from cleaner thread */
+        ido2db_db_disconnect(&thread_idi);
+        ido2db_db_deinit(&thread_idi);
+
+        /* TODO deinit idi from dbqueue threads */
+        for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) {
+                ido2db_db_disconnect(&dbqueue_idi[t]);
+                ido2db_db_deinit(&dbqueue_idi[t]);
+        }
+
+	return IDO_OK;
+}
+
 int ido2db_terminate_threads(void) {
 
 	int result;
-
-	/* from cleaner thread */
-	ido2db_db_disconnect(&thread_idi);
-	ido2db_db_deinit(&thread_idi);
-
-	/* TODO deinit idi from dbqueue threads */
+	result = ido2db_disconnect_threads();
 
 	/* terminate each thread on its own */
 	/*result=terminate_worker_thread();*/
@@ -3161,317 +3461,13 @@ int terminate_queue_thread(void) {
 }
 
 int terminate_dbqueue_threads(void) {
-
         int result = IDO_OK;
+	int t = 0;
 
-	for (t=0; t < g_num_clientthreads; t++) {
-		if (pthread_join(dbqueue_thread_id[t], NULL) != 0)
+	for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) {
+		if (pthread_join(dbqueue_thread[t], NULL) != 0)
 			result = IDO_ERROR;
+	}
 
         return result;
 }
-
-
-/****************************************************************************/
-/* SINKBUFFERFUNCTIONS                                                      */
-/****************************************************************************/
-
-/* TODO create new functions for dbqueue buffer */
-
-/* initializes sink buffer */
-int ido2db_sink_buffer_init(ido2db_sink_buffer *sbuf, unsigned long maxitems) {
-        unsigned long x;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_init() start\n");
-
-        if (sbuf == NULL || maxitems <= 0)
-                return IDO_ERROR;
-
-        /* allocate memory for the buffer */
-        if ((sbuf->buffer = (char **)malloc(sizeof(char *) * maxitems))) {
-                for (x = 0; x < maxitems; x++)
-                        sbuf->buffer[x] = NULL;
-        }
-
-        sbuf->size = 0L;
-        sbuf->head = 0L;
-        sbuf->tail = 0L;
-        sbuf->items = 0L;
-        sbuf->maxitems = maxitems;
-        sbuf->overflow = 0L;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_init() end\n");
-
-        return IDO_OK;
-}
-
-/* deinitializes sink buffer */
-int ido2db_sink_buffer_deinit(ido2db_sink_buffer *sbuf) {
-        unsigned long x;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_deinit() start\n");
-
-        if (sbuf == NULL)
-                return IDO_ERROR;
-
-        /* free any allocated memory */
-        for (x = 0; x < sbuf->maxitems; x++)
-                free(sbuf->buffer[x]);
-
-        free(sbuf->buffer);
-        sbuf->buffer = NULL;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_deinit() end\n");
-
-        return IDO_OK;
-}
-
-/* buffers output */
-int ido2db_sink_buffer_push(ido2db_sink_buffer *sbuf, char *buf) {
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_push() start\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL || buf == NULL) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return IDO_ERROR;
-        }
-
-        /* no space to store buffer */
-        if (sbuf->buffer == NULL || sbuf->items == sbuf->maxitems) {
-                sbuf->overflow++;
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return IDO_ERROR;
-        }
-
-        /* store buffer */
-        sbuf->buffer[sbuf->head] = strdup(buf);
-        sbuf->head = (sbuf->head + 1) % sbuf->maxitems;
-        sbuf->items++;
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_push() end\n");
-
-        return IDO_OK;
-}
-
-/* gets and removes next item from buffer */
-char *ido2db_sink_buffer_pop(ido2db_sink_buffer *sbuf) {
-        char *buf = NULL;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_pop() start\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return NULL;
-        }
-
-        if (sbuf->buffer == NULL) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return NULL;
-        }
-
-        if (sbuf->items == 0) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return NULL;
-        }
-
-        /* remove item from buffer */
-        buf = sbuf->buffer[sbuf->tail];
-        sbuf->buffer[sbuf->tail] = NULL;
-        sbuf->tail = (sbuf->tail + 1) % sbuf->maxitems;
-        sbuf->items--;
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_pop() end\n");
-
-        return buf;
-}
-
-/* gets next items from buffer */
-char *ido2db_sink_buffer_peek(ido2db_sink_buffer *sbuf) {
-        char *buf = NULL;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_peek() start\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return NULL;
-        }
-
-        if (sbuf->buffer == NULL) {
-                pthread_mutex_unlock(&sinkbuf.buffer_lock);
-                return NULL;
-        }
-
-        buf = sbuf->buffer[sbuf->tail];
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_peek() end\n");
-
-        return buf;
-}
-
-/* returns number of items buffered */
-int ido2db_sink_buffer_items(ido2db_sink_buffer *sbuf) {
-        int items = 0;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_items()\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL)
-                items = 0;
-        else
-                items = sbuf->items;
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_items() items: %d\n", items);
-
-        return items;
-}
-
-/* gets number of items lost due to buffer overflow */
-unsigned long ido2db_sink_buffer_get_overflow(ido2db_sink_buffer *sbuf) {
-        int overflow = 0;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_get_overflow()\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL)
-                overflow = 0;
-        else
-                overflow = sbuf->overflow;
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_get_overflow() overflow: %d\n", overflow);
-
-        return overflow;
-}
-
-/* sets number of items lost due to buffer overflow */
-int ido2db_sink_buffer_set_overflow(ido2db_sink_buffer *sbuf, unsigned long num) {
-        int overflow = 0;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_set_overflow()\n");
-
-        /* get a lock on the buffer */
-        pthread_mutex_lock(&sinkbuf.buffer_lock);
-
-        if (sbuf == NULL) {
-                overflow = 0;
-        } else {
-                sbuf->overflow = num;
-                overflow = num;
-        }
-
-        /* release the lock on the buffer */
-        pthread_mutex_unlock(&sinkbuf.buffer_lock);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_sink_buffer_set_overflow() overflow: %d\n", overflow);
-
-        return overflow;
-}
-
-
-/* save unprocessed data to buffer file */
-int ido2db_save_unprocessed_data(char *f) {
-        FILE *fp = NULL;
-        char *buf = NULL;
-        char *ebuf = NULL;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_save_unprocessed_data() start\n");
-
-        /* no file */
-        if (f == NULL)
-                return IDO_OK;
-
-        /* open the file for writing */
-        if ((fp = fopen(f, "w")) == NULL)
-                return IDO_ERROR;
-
-        /* save all buffered items */
-        while (ido2db_sink_buffer_items(&sinkbuf) > 0) {
-
-                /* get next item from buffer */
-                buf = ido2db_sink_buffer_pop(&sinkbuf);
-
-                /* escape the string */
-                ebuf = ido_escape_buffer(buf);
-
-                /* write string to file */
-                fputs(ebuf, fp);
-                fputs("\n", fp);
-
-                /* free memory */
-                free(buf);
-                buf = NULL; 
-                free(ebuf);
-                ebuf = NULL;
-        }
-
-        fclose(fp);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_save_unprocessed_data() end\n");
-
-        return IDO_OK; 
-}
-
-/* load unprocessed data from buffer file */
-int ido2db_load_unprocessed_data(char *f) {
-        ido_mmapfile *thefile = NULL;
-        char *ebuf = NULL;
-        char *buf = NULL;
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_load_unprocessed_data() start\n");
-
-        /* open the file */
-        if ((thefile = ido_mmap_fopen(f)) == NULL)
-                return IDO_ERROR;
-
-        /* process each line of the file */
-        while ((ebuf = ido_mmap_fgets(thefile))) {
-
-                /* unescape string */
-                buf = ido_unescape_buffer(ebuf);
-
-                /* save the data to the sink buffer */
-                ido2db_sink_buffer_push(&sinkbuf, buf);
-
-                /* free memory */
-                free(ebuf);
-        }
-
-        /* close the file */
-        ido_mmap_fclose(thefile);
-
-        /* remove the file so we don't process it again in the future */
-        unlink(f);
-
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_load_unprocessed_data() end\n");
-
-        return IDO_OK;
-}
-
-

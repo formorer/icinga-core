@@ -22,7 +22,7 @@
 #include "../../../include/broker.h"
 #include "../../../include/comments.h"
 
-int enable_sla = 0;
+extern int enable_sla;
 
 /**
  * Allocates and initializes a new SLA state history entry.

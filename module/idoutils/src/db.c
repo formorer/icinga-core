@@ -206,6 +206,65 @@ char *ido2db_db_rawtablenames[IDO2DB_MAX_DBTABLES] = {
 
 char *ido2db_db_tablenames[IDO2DB_MAX_DBTABLES];
 
+/****************************************************************************/
+/* LIBDBI THREADSAFETY FUNCTIONS                                            */
+/****************************************************************************/
+
+/*
+ * libdbi dbi_conn_query, dbi_conn_ping, dbi_conn_error
+ * are NOT threadsafe and therefore need to be
+ * protected by a mutex
+ *
+ * see https://dev.icinga.org/issues/2034
+ */
+
+extern pthread_mutex_t dbi_conn_query_lock;
+extern pthread_mutex_t dbi_conn_ping_lock;
+extern pthread_mutex_t dbi_conn_error_lock;
+
+int ido2db_dbi_conn_error(dbi_conn conn, const char **errmsg_dest) {
+	int result = IDO_TRUE;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_error() start\n");
+
+	pthread_mutex_lock(&dbi_conn_error_lock);
+	result = dbi_conn_error(conn, errmsg_dest);
+	pthread_mutex_unlock(&dbi_conn_error_lock);
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_error() end\n");
+
+	return result;
+}
+
+int ido2db_dbi_conn_ping(dbi_conn conn) {
+	int result = IDO_TRUE;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_ping() start\n");
+
+	pthread_mutex_lock(&dbi_conn_ping_lock);
+	result = dbi_conn_ping(conn);
+	pthread_mutex_unlock(&dbi_conn_ping_lock);
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_ping() end\n");
+
+	return result;
+}
+
+dbi_result ido2db_dbi_conn_query(dbi_conn conn, const char *statement) {
+	dbi_result result = NULL;
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_query() start\n");
+
+	pthread_mutex_lock(&dbi_conn_query_lock);
+	result = dbi_conn_query(conn, statement);
+	pthread_mutex_unlock(&dbi_conn_query_lock);
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbi_conn_query() end\n");
+
+	return result;
+}
+
+
 /*
  #define DEBUG_IDO2DB_QUERIES 1
  */
@@ -370,8 +429,16 @@ int ido2db_db_deinit(ido2db_idi *idi) {
 
 int ido2db_db_is_connected(ido2db_idi *idi) {
 
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_is_connected() start\n");
 #ifdef USE_LIBDBI
-	if (!dbi_conn_ping(idi->dbinfo.dbi_conn))
+	/*
+	 * dbi_conn_ping is NOT threadsafe, use wrapper function
+	 */
+	int result = ido2db_dbi_conn_ping(idi->dbinfo.dbi_conn); 
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_is_connected() result: %d\n", result);
+
+	if (!result)
 		return IDO_FALSE;
 #endif
 
@@ -397,12 +464,15 @@ int ido2db_db_is_connected(ido2db_idi *idi) {
 
 int ido2db_db_reconnect(ido2db_idi *idi) {
 
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_reconnect() start\n");
+
 	/* check connection */
 	if (ido2db_db_is_connected(idi) == IDO_FALSE)
 		idi->dbinfo.connected = IDO_FALSE;
 
 	/* try to reconnect... */
 	if (idi->dbinfo.connected == IDO_FALSE) {
+		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_reconnect() not connected\n");
 		if (ido2db_db_connect(idi) == IDO_ERROR) {
 			ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_reconnect(): failed.\n");
 			syslog(LOG_USER | LOG_INFO, "Error: Could not reconnect to database!");
@@ -410,6 +480,8 @@ int ido2db_db_reconnect(ido2db_idi *idi) {
 		}
 		ido2db_db_hello(idi);
 	}
+
+	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_db_reconnect() end\n");
 
 	return IDO_OK;
 }
@@ -485,7 +557,11 @@ int ido2db_db_connect(ido2db_idi *idi) {
 
 	/* Check if the dbi connection was created successful */
 	if (idi->dbinfo.dbi_conn == NULL) {
-		dbi_conn_error(idi->dbinfo.dbi_conn, &dbi_error);
+		/*
+		 * dbi_conn_error is NOT threadsafe, use wrapper function
+		 */
+		ido2db_dbi_conn_error(idi->dbinfo.dbi_conn, &dbi_error);
+
 		syslog(LOG_USER | LOG_INFO, "Error: Could  not dbi_conn_new(): %s", dbi_error);
 		result = IDO_ERROR;
 		idi->disconnect_client = IDO_TRUE;
@@ -517,7 +593,11 @@ int ido2db_db_connect(ido2db_idi *idi) {
 	}
 
 	if (dbi_conn_connect(idi->dbinfo.dbi_conn) != 0) {
-		dbi_conn_error(idi->dbinfo.dbi_conn, &dbi_error);
+                /*
+                 * dbi_conn_error is NOT threadsafe, use wrapper function
+                 */
+                ido2db_dbi_conn_error(idi->dbinfo.dbi_conn, &dbi_error);
+
 		syslog(LOG_USER | LOG_INFO, "Error: Could not connect to %s database: %s", ido2db_db_settings.dbserver, dbi_error);
 		result = IDO_ERROR;
 		idi->disconnect_client = IDO_TRUE;
@@ -2538,15 +2618,21 @@ int ido2db_db_query(ido2db_idi *idi, char *buf) {
 	printf("%s\n\n", buf);
 #endif
 
-	ido2db_log_debug_info(IDO2DB_DEBUGL_SQL, 0, "%s\n", buf);
+	ido2db_log_debug_info(IDO2DB_DEBUGL_SQL, 0, "query: %s\n", buf);
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 
 	/* send query */
-	idi->dbinfo.dbi_result = dbi_conn_query(idi->dbinfo.dbi_conn, buf);
+	/*
+	 * dbi_conn_query is NOT threadsafe, use wrapper function
+	 */
+	idi->dbinfo.dbi_result = ido2db_dbi_conn_query(idi->dbinfo.dbi_conn, buf);
 
 	if (idi->dbinfo.dbi_result == NULL) {
-		dbi_conn_error(idi->dbinfo.dbi_conn, &error_msg);
+                /*
+                 * dbi_conn_error is NOT threadsafe, use wrapper function
+                 */
+                ido2db_dbi_conn_error(idi->dbinfo.dbi_conn, &error_msg);
 
 		syslog(LOG_USER | LOG_INFO, "Error: database query failed for '%s' - '%s'\n", buf, error_msg);
 
