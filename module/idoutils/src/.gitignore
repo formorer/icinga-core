@@ -8,4 +8,8 @@ io.o
 log2ido
 sockdebug
 utils.o
-
+sla.o
+queue.o
+logging.o
+dboci.o
+conv.o
