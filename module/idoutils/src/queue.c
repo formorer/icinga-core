@@ -12,6 +12,7 @@
 #include "../include/utils.h"
 #include "../include/protoapi.h"
 #include "../include/ido2db.h"
+#include "../include/logging.h"
 #include "../include/queue.h"
 
 /* Icinga header files */
@@ -219,7 +220,8 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	/*
 	 * free the calloc memory
 	 */
-	//my_free(dbqueue_item);
+	//free(dbqueue_item);
+	dbqueue_item = NULL;
 
         /* release the lock on the buffer */
         pthread_mutex_unlock(&dbqueue_buf->buffer_lock);

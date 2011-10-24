@@ -15,6 +15,7 @@
 #include "../include/ido2db.h"
 #include "../include/dbhandlers.h"
 #include "../include/db.h"
+#include "../include/logging.h"
 
 extern int errno;
 
@@ -1922,7 +1923,8 @@ int ido2db_thread_db_hello(ido2db_idi *idi) {
 
 	/* make sure we have an instance name */
 	if (idi->instance_name == NULL)
-		idi->instance_name = strdup("default");
+		return IDO_ERROR;
+		//idi->instance_name = strdup("default");
 
 #ifdef USE_LIBDBI /* everything else will be libdbi */
 

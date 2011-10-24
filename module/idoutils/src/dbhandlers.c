@@ -16,6 +16,7 @@
 #include "../include/db.h"
 #include "../include/dbhandlers.h"
 #include "../include/dbqueries.h"
+#include "../include/logging.h"
 #include "../include/sla.h"
 
 /* Icinga header files */

@@ -13,6 +13,7 @@
 #include "../include/protoapi.h"
 #include "../include/ido2db.h"
 #include "../include/db.h"
+#include "../include/logging.h"
 #include "../include/dbqueries.h"
 
 /* Icinga header files */

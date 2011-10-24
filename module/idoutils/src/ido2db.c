@@ -2562,7 +2562,9 @@ void * ido2db_dbqueue_handle(void *data) {
 
         /* save connection info to DB */
         while (ido2db_thread_db_hello(&dbqueue_idi[idi_thread_id]) == IDO_ERROR) {
-                //ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(idi_thread_id=%d) no instance found, sleeping...\n", idi_thread_id);
+                ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_handle(idi_thread_id=%d) no instance found, sleeping...\n", idi_thread_id);
+		if(idi->instance_name != NULL)
+			dbqueue_idi[idi_thread_id].instance_name = idi->instance_name;
                 /* don't hogg the cpu */
                 nanosleep(&delay, NULL);
         }
@@ -3166,6 +3168,8 @@ void * ido2db_thread_cleanup(void *data) {
 	/* save connection info to DB */
 	while (ido2db_thread_db_hello(&thread_idi) == IDO_ERROR) {
 		ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_thread_cleanup() no instance found, sleeping...\n");
+		if(idi->instance_name != NULL)
+			thread_idi.instance_name = idi->instance_name;
 		nanosleep(&delay, NULL);
 	}
 
