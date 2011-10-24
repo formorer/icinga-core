@@ -1789,8 +1789,13 @@ void display_info_table(char *title, int refresh, authdata *current_authdata, in
 			printf("<DIV CLASS='infoBoxBadProcStatus'>- Service checks are disabled</DIV>");
 	}
 
-	/* must have missed 2 update intervals */
-	if (status_file_creation_time < (current_time - (2 * status_update_interval)))
+	/* 
+	 * must have missed 20 update intervals, so ~30 minutes away
+	 * CHANGED 2011-10-22 MF: don't be so aggressive because
+	 * config and datadump with idoutils can block recreation of
+	 * status.dat
+	*/
+	if (status_file_creation_time < (current_time - (20 * status_update_interval)))
 		printf("<DIV CLASS='infoBoxBadProcStatus'>Warning: Status data OUTDATED! Last status data update was %d seconds ago!</DIV>", (int)(current_time - status_file_creation_time));
 
 	printf("</TD></TR>\n");
