@@ -20,6 +20,7 @@
 #include "../include/protoapi.h"
 #include "../include/ido2db.h"
 #include "../include/queue.h"
+#include "../include/logging.h"
 #include "../include/db.h"
 #include "../include/dbhandlers.h"
 #include "../include/sla.h"
@@ -117,10 +118,6 @@ unsigned long ido2db_max_debug_file_size = 0L;
 int stop_signal_detected = IDO_FALSE;
 
 char *sigs[35] = {"EXIT", "HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "UNUSED", "ZERR", "DEBUG", (char *)NULL};
-
-
-int ido2db_open_debug_log(void);
-int ido2db_close_debug_log(void);
 
 
 int dummy;	/* reduce compiler warnings */
@@ -3084,107 +3081,9 @@ int ido2db_convert_string_to_timeval(char *buf, struct timeval *tv) {
 /* LOGGING ROUTINES                                                         */
 /****************************************************************************/
 
-/* opens the debug log for writing */
-int ido2db_open_debug_log(void) {
-
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_open_debug_log() start\n");
-
-	/* don't do anything if we're not debugging */
-	if (ido2db_debug_level == IDO2DB_DEBUGL_NONE)
-		return IDO_OK;
-
-	if ((ido2db_debug_file_fp = fopen(ido2db_debug_file, "a+")) == NULL) {
-		syslog(LOG_ERR, "Warning: Could not open debug file '%s' - '%s'", ido2db_debug_file, strerror(errno));
-		return IDO_ERROR;
-	}
-
-	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_open_debug_log() end\n");
-
-	return IDO_OK;
-}
-
-
-/* closes the debug log */
-int ido2db_close_debug_log(void) {
-
-	if (ido2db_debug_file_fp != NULL)
-		fclose(ido2db_debug_file_fp);
-
-	ido2db_debug_file_fp = NULL;
-
-	return IDO_OK;
-}
-
-
-/* write to the debug log */
-int ido2db_log_debug_info(int level, int verbosity, const char *fmt, ...) {
-	va_list ap;
-	char *temp_path = NULL;
-	time_t t;
-	struct tm *tm;
-	char temp_time[80];
-	struct timeval current_time;
-
-	if (!(ido2db_debug_level == IDO2DB_DEBUGL_ALL || (level & ido2db_debug_level)))
-		return IDO_OK;
-
-	if (verbosity > ido2db_debug_verbosity)
-		return IDO_OK;
-
-	if (ido2db_debug_file_fp == NULL)
-		return IDO_ERROR;
-
-	pthread_mutex_lock(&log_lock);
-
-	/* write the timestamp */
-	gettimeofday(&current_time, NULL);
-
-	time(&t);
-	tm=localtime(&t);
-	strftime(temp_time, 80, "%c", tm);
-
-	fprintf(ido2db_debug_file_fp, "%s .%06lu [%03d.%d] [pid=%lu] [tid=%llu] ", temp_time, current_time.tv_usec, level, verbosity, (unsigned long)getpid(), (unsigned long int)pthread_self());
-	//fprintf(ido2db_debug_file_fp, "[%lu.%06lu] [%03d.%d] [pid=%lu] [tid=%llu] ", current_time.tv_sec, current_time.tv_usec, level, verbosity, (unsigned long)getpid(), (unsigned long int)pthread_self());
-
-	/* write the data */
-	va_start(ap, fmt);
-	vfprintf(ido2db_debug_file_fp, fmt, ap);
-	va_end(ap);
-
-	/* flush, so we don't have problems tailing or when fork()ing */
-	fflush(ido2db_debug_file_fp);
-
-	pthread_mutex_unlock(&log_lock);
-
-	/* if file has grown beyond max, rotate it */
-	if ((unsigned long)ftell(ido2db_debug_file_fp) > ido2db_max_debug_file_size && ido2db_max_debug_file_size > 0L) {
-
-		/* close the file */
-		ido2db_close_debug_log();
-
-		/* rotate the log file */
-		if (asprintf(&temp_path, "%s.old", ido2db_debug_file) == -1)
-			temp_path = NULL;
-
-		if (temp_path) {
-
-			/* unlink the old debug file */
-			unlink(temp_path);
-
-			/* rotate the debug file */
-			my_rename(ido2db_debug_file, temp_path);
-
-			/* free memory */
-			my_free(temp_path);
-		}
-
-		/* open a new file */
-		ido2db_open_debug_log();
-	}
-
-	return IDO_OK;
-}
-
+/*
+ * moved to logging.c/h
+ */
 
 /********************************************************************
  *

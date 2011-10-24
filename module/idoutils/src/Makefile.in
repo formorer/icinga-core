@@ -43,11 +43,11 @@ THREADLIBS=@THREADLIBS@
 SNPRINTF_O_IDO=@SNPRINTF_O_IDO@
 
 
-COMMON_INC=$(CORE_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/io.h $(SRC_INCLUDE)/protoapi.h $(SRC_INCLUDE)/utils.h $(SRC_INCLUDE)/sla.h $(SRC_INCLUDE)/queue.h
+COMMON_INC=$(CORE_INCLUDE)/config.h $(SRC_INCLUDE)/common.h $(SRC_INCLUDE)/io.h $(SRC_INCLUDE)/protoapi.h $(SRC_INCLUDE)/utils.h $(SRC_INCLUDE)/sla.h $(SRC_INCLUDE)/queue.h $(SRC_INCLUDE)/logging.h
 COMMON_SRC=io.c utils.c
 COMMON_OBJS=io.o utils.o ${SNPRINTF_O_IDO}
 
-IDO2DB_OBJS=dbhandlers.o dbqueries.o sla.o queue.o
+IDO2DB_OBJS=dbhandlers.o dbqueries.o sla.o queue.o logging.o
 
 IDO_INC=$(SRC_INCLUDE)/ido2db.h $(SRC_INCLUDE)/db.h
 IDO_SRC=db.c
@@ -93,6 +93,9 @@ sla.o: sla.c $(COMMON_INC)
 
 queue.o: queue.c $(COMMON_INC)
 	$(CC) $(CFLAGS) -c -o $@ queue.c
+
+logging.o: logging.c $(COMMON_INC)
+	$(CC) $(CFLAGS) -c -o $@ logging.c
 
 
 clean:
