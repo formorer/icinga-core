@@ -139,7 +139,7 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 
         /*
          * buffered_input
-	 * reset origin buffer to avoid free'ing in the wrong place
+	 * only copy all members pointer to arrays 
          */
 	if (idi->buffered_input) {
 	        dbqueue_item->buffered_input = idi->buffered_input;
@@ -147,12 +147,10 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
                 for (x = 0; x < IDO_MAX_DATA_TYPES; x++) {
                         if (idi->buffered_input[x]) {
 				/*
-				 * actually copy the complete char*
-				 * free idi after pushing successfully
+				 * actually copy the char*, but don't reset it in idi
 				 */
 				dbqueue_item->buffered_input[x] = idi->buffered_input[x];
                                 ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() buffered_input [%d]: %s\n", x, dbqueue_item->buffered_input[x]);
-				//my_free(idi->buffered_input[x]);
 			}
                  }
 
@@ -170,26 +168,21 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 			if (idi->mbuf[x].buffer) {
 		                dbqueue_item->mbuf[x].used_lines = idi->mbuf[x].used_lines;
 		                dbqueue_item->mbuf[x].allocated_lines = idi->mbuf[x].allocated_lines;
-				/* allocate memory for buffer first */
-				//dbqueue_item->mbuf[x].buffer = (char **)malloc(sizeof(char *) * allocation_chunk);
 		                dbqueue_item->mbuf[x].buffer = idi->mbuf[x].buffer;
-				dbqueue_item->mbuf[x].allocated_lines += allocation_chunk;
 				/*
-				 * also copy all buffer lines, not only mbuf slots!
+				 * also copy all buffer lines pointers, not only mbuf slots!
 				 */
 		                for (y = 0; y < idi->mbuf[x].used_lines; y++) {
 					if (idi->mbuf[x].buffer[y]) {
 						/*
-						 * actually copy the complete char*
-						 * free idi after pushing successfully
+						 * actually copy the pointer to char*, but don't reset idi
 						 */
 			                        dbqueue_item->mbuf[x].buffer[y] = idi->mbuf[x].buffer[y];
 						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() mbuf %d|%d used %d item %s\n", x, y, idi->mbuf[x].used_lines, dbqueue_item->mbuf[x].buffer[y]);
-						idi->mbuf[x].buffer[y] = NULL; /* line pointer to char* */
 					}
 		                }
 				/*
-				 * reset counters for data source
+				 * reset counters for arrays, prevent corrupted lists
 				 */
 				idi->mbuf[x].buffer = NULL; /* slot pointer to array of lines*/
                                 idi->mbuf[x].used_lines = 0;
@@ -287,7 +280,7 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
         dbqueue_item = dbqueue_buf->buffer[dbqueue_buf->tail];
 
 	/*
-	 * XXX check if dbqueue_item is NULL?
+	 * check if dbqueue_item is NULL
 	 */
 	if (dbqueue_item == NULL) {
 	        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() dbqueue_item NULL\n");
@@ -325,9 +318,11 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 
 	        for (x = 0; x < IDO_MAX_DATA_TYPES; x++) {
 	                if (dbqueue_item->buffered_input[x]) {
+				/*
+				 * copy all member pointers to char* but don't reset dbqueue_item in the end
+				 */
 				idi->buffered_input[x] = dbqueue_item->buffered_input[x];
 				ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() buffered_input [%d]: %s\n", x, idi->buffered_input[x]);		
-				//my_free(dbqueue_item->buffered_input[x]);
 			}
 	         }
 	}
@@ -345,26 +340,23 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 			if (dbqueue_item->mbuf[x].buffer) {
 		                idi->mbuf[x].used_lines =  dbqueue_item->mbuf[x].used_lines;
 		                idi->mbuf[x].allocated_lines =  dbqueue_item->mbuf[x].allocated_lines;
-                                /* allocate memory for buffer first */
-                                //idi->mbuf[x].buffer = (char **)malloc(sizeof(char *) * allocation_chunk);
 		                idi->mbuf[x].buffer = dbqueue_item->mbuf[x].buffer;
-                                idi->mbuf[x].allocated_lines += allocation_chunk;
 
 				/*
 				 * also copy all buffer lines, not only mbuf slots!
 				 */
 				for (y = 0; y < dbqueue_item->mbuf[x].used_lines; y++) {
 					if(dbqueue_item->mbuf[x].buffer[y]) {
+						/*
+						 * copy all x slots y line pointers to char*, but don't reset them
+						 */
 						idi->mbuf[x].buffer[y] = dbqueue_item->mbuf[x].buffer[y];
 						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() mbuf %d|%d used %d item %s\n", x, y, dbqueue_item->mbuf[x].used_lines, idi->mbuf[x].buffer[y]);
-						//my_free(dbqueue_item->mbuf[x].buffer[y]);
-						/* reset pointer to char* */
-						dbqueue_item->mbuf[x].buffer[y] = NULL;
 					}
 				}
 
 				/*
-				 * reset pointers
+				 * reset pointers to arrays, preventing currupted lists
 				 */
 				 dbqueue_item->mbuf[x].buffer = NULL;
 				 dbqueue_item->mbuf[x].used_lines = 0;
