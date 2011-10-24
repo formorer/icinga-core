@@ -1491,7 +1491,7 @@ int ido2db_handle_client_connection(int sd) {
         ido2db_dbqueue_buf_deinit(&dbqueue_buf);
 
 	/* disconnect threads from database */
-	ido2db_disconnect_threads();
+	//ido2db_disconnect_threads();
 
 	/* disconnect from database */
 	ido2db_db_disconnect(&idi);
@@ -2535,7 +2535,7 @@ void * ido2db_dbqueue_handle(void *data) {
 
         /* set cancellation info */
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-        pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+        pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
         /* specify cleanup routine */
         pthread_cleanup_push((void *) &ido2db_thread_dbqueue_exit_handler, NULL);
@@ -3279,8 +3279,10 @@ int terminate_dbqueue_threads(void) {
 	int t = 0;
 
 	for (t = 0; t < IDO2DB_DBQUEUE_THREADS; t++) {
-		if (pthread_join(dbqueue_thread[t], NULL) != 0)
-			result = IDO_ERROR;
+		result = pthread_cancel(dbqueue_thread[t]);
+		if (result == 0) {
+			result = pthread_join(dbqueue_thread[t], NULL);
+		}
 	}
 
         return result;
