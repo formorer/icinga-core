@@ -23,6 +23,8 @@ extern int errno;
 
 extern int ido2db_dbqueue_buf_slots;
 
+/* #define IDO2DB_DEBUG_DBQUEUE 1 */
+
 /****************************************************************************/
 /* DBQUEUE                                                                  */
 /****************************************************************************/
@@ -86,6 +88,8 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	int x = 0;
 	int y = 0;
 
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() start\n");
+
 	/*
 	 * we will copy all valid elements from idi buffers
 	 * into a new item, but first we need to get a lock
@@ -94,11 +98,11 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
         /* get a lock on the buffer */
         pthread_mutex_lock(&dbqueue_buf->buffer_lock);
 
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() start\n");
-
 	ido2db_dbqueue_item *dbqueue_item = (ido2db_dbqueue_item *)calloc(1, sizeof(ido2db_dbqueue_item));
 
+#ifdef IDO2DB_DEBUG_DBQUEUE
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() dbqueue_buf items: %d/%d head: %d tail: %d\n", dbqueue_buf->items, ido2db_dbqueue_buf_slots, dbqueue_buf->head, dbqueue_buf->tail);
+#endif
 
         if (dbqueue_buf == NULL || idi == NULL) {
                 pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
@@ -150,7 +154,9 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 				 * actually copy the char*, but don't reset it in idi
 				 */
 				dbqueue_item->buffered_input[x] = idi->buffered_input[x];
+#ifdef IDO2DB_DEBUG_DBQUEUE
                                 ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() buffered_input [%d]: %s\n", x, dbqueue_item->buffered_input[x]);
+#endif
 			}
                  }
 
@@ -178,7 +184,9 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 						 * actually copy the pointer to char*, but don't reset idi
 						 */
 			                        dbqueue_item->mbuf[x].buffer[y] = idi->mbuf[x].buffer[y];
+#ifdef IDO2DB_DEBUG_DBQUEUE
 						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() mbuf %d|%d used %d item %s\n", x, y, idi->mbuf[x].used_lines, dbqueue_item->mbuf[x].buffer[y]);
+#endif
 					}
 		                }
 				/*
@@ -208,8 +216,6 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
         dbqueue_buf->head = (dbqueue_buf->head + 1) % dbqueue_buf->maxitems;
         dbqueue_buf->items++;
 
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() end\n");
-
 	/*
 	 * free the calloc memory
 	 */
@@ -217,6 +223,8 @@ int ido2db_dbqueue_buf_push(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 
         /* release the lock on the buffer */
         pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_push() end\n");
 
         return IDO_OK;
 }
@@ -227,6 +235,8 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	int x = 0;
 	int y = 0;
 	int allocation_chunk = 80;
+
+        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() start\n");
 
 	/*
 	 * we will copy all valid elements from
@@ -241,18 +251,16 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 
 	ido2db_dbqueue_item *dbqueue_item = (ido2db_dbqueue_item *)calloc(1, sizeof(ido2db_dbqueue_item));;
 
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() start\n");
-
+#ifdef IDO2DB_DEBUG_DBQUEUE
 	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() dbqueue_buf items: %d/%d head: %d tail: %d\n", dbqueue_buf->items, ido2db_dbqueue_buf_slots, dbqueue_buf->head, dbqueue_buf->tail);
+#endif
 
         if (dbqueue_buf == NULL || idi == NULL) {
-        	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() dbqueue_buf, idi NULL\n");
                 pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
                 return IDO_ERROR;
         }
 
         if (dbqueue_buf->buffer == NULL) {
-        	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() buffer NULL\n");
                 pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
                 return IDO_ERROR;
         }
@@ -261,7 +269,9 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	 * buffer empty, so bail out
 	 */
         if (dbqueue_buf->items == 0) {
+#ifdef IDO2DB_DEBUG_DBQUEUE
         	ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() no items\n");
+#endif
                 pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
                 return IDO_ERROR;
         }
@@ -283,7 +293,6 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	 * check if dbqueue_item is NULL
 	 */
 	if (dbqueue_item == NULL) {
-	        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() dbqueue_item NULL\n");
                 pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
                 return IDO_ERROR;
         }
@@ -322,7 +331,9 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 				 * copy all member pointers to char* but don't reset dbqueue_item in the end
 				 */
 				idi->buffered_input[x] = dbqueue_item->buffered_input[x];
-				ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() buffered_input [%d]: %s\n", x, idi->buffered_input[x]);		
+#ifdef IDO2DB_DEBUG_DBQUEUE
+				ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() buffered_input [%d]: %s\n", x, idi->buffered_input[x]);
+#endif
 			}
 	         }
 	}
@@ -351,7 +362,9 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 						 * copy all x slots y line pointers to char*, but don't reset them
 						 */
 						idi->mbuf[x].buffer[y] = dbqueue_item->mbuf[x].buffer[y];
+#ifdef IDO2DB_DEBUG_DBQUEUE
 						ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() mbuf %d|%d used %d item %s\n", x, y, dbqueue_item->mbuf[x].used_lines, idi->mbuf[x].buffer[y]);
+#endif
 					}
 				}
 
@@ -374,8 +387,6 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
         dbqueue_buf->tail = (dbqueue_buf->tail + 1) % dbqueue_buf->maxitems;
         dbqueue_buf->items--;
 
-        ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() end\n");
-
 	/* do not free any buffer memory right now
 	 * this must be taken care of after having
 	 * processed the idi object buffers
@@ -384,6 +395,8 @@ int ido2db_dbqueue_buf_pop(ido2db_dbqueue_buf *dbqueue_buf, ido2db_idi *idi) {
 	
         /* release the lock on the buffer */
         pthread_mutex_unlock(&dbqueue_buf->buffer_lock);
+
+      ido2db_log_debug_info(IDO2DB_DEBUGL_PROCESSINFO, 2, "ido2db_dbqueue_buf_pop() end\n");
 
         return IDO_OK;
 }
