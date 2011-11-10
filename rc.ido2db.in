@@ -100,12 +100,18 @@ status_ido2db ()
 
 ido2db_procs ()
 {
-        pid_ido2db
-#	        PARENT=`ps -ef |grep pid_ido2db |grep -v grep`
-	PCHILD=`ps -ef |grep ido2db |grep -v grep |grep \_ |wc -l`
-	PID_LIST=`ps -ef |grep ido2db |grep -v grep |grep \_ |awk {'print $2'}| tr '\n' ' '`
+
+if [ `uname` == "SunOS" ] ; then
+        PCHILD=`ps -fe -o pid,ppid,comm | grep "$Ido2dbPID" |grep -v grep | wc -l`
+        PID_LIST=`ps -fe -o pid,ppid,comm | grep "$Ido2dbPID" |grep -v grep |awk {'print $1'}| tr '\n' ' ' `
+else 
+        PCHILD=`ps axf  -o user,pid,ppid,command | grep "$Ido2dbPID" |grep -v grep|grep \_ | wc -l`
+        PID_LIST=`ps axf  -o pid,ppid,command  | grep "$Ido2dbPID" |grep -v grep |grep  \_ |awk {'print $1'}| tr '\n' ' ' `
+fi
+
+
 }
-		
+
 
 
 printstatus_ido2db()
@@ -204,8 +210,9 @@ case "$1" in
 		;;
 
         status)
-		pid_ido2db
-		printstatus_ido2db ido2db
+                pid_ido2db
+                ido2db_procs
+                printstatus_ido2db
                 ;;
 
 	restart)
