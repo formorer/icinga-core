@@ -142,5 +142,5 @@ alter table  icinga_timedevents  modify  deletion_time  timestamp default 0;
 -- update dbversion
 -- -----------------------------------------
 
-INSERT INTO icinga_dbversion (name, version) VALUES ('idoutils', '1.6.0') ON DUPLICATE KEY UPDATE version='1.6.0';
+INSERT INTO icinga_dbversion (name, version) VALUES ('idoutils', '1.6.0-beta') ON DUPLICATE KEY UPDATE version='1.6.0-beta';
 

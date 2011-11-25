@@ -269,5 +269,5 @@ alter table icinga_timedevents
 -- update dbversion
 -- -----------------------------------------
 
-SELECT updatedbversion('1.6.0');
+SELECT updatedbversion('1.6.0-beta');
 
