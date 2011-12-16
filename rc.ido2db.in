@@ -100,16 +100,8 @@ status_ido2db ()
 
 ido2db_procs ()
 {
-
-if [ `uname` == "SunOS" ] ; then
-        PCHILD=`ps -fe -o pid,ppid,comm | grep "$Ido2dbPID" |grep -v grep | wc -l`
-        PID_LIST=`ps -fe -o pid,ppid,comm | grep "$Ido2dbPID" |grep -v grep |awk {'print $1'}| tr '\n' ' ' `
-else 
-        PCHILD=`ps axf  -o user,pid,ppid,command | grep "$Ido2dbPID" |grep -v grep|grep \_ | wc -l`
-        PID_LIST=`ps axf  -o pid,ppid,command  | grep "$Ido2dbPID" |grep -v grep |grep  \_ |awk {'print $1'}| tr '\n' ' ' `
-fi
-
-
+        PCHILD=`/usr/bin/pgrep -P  "$Ido2dbPID" | /usr/bin/wc -l`
+        PID_LIST=`/usr/bin/pgrep -P  "$Ido2dbPID" | /usr/bin/tr '\n' ' ' `
 }
 
 
